@@ -1,7 +1,7 @@
 # 一夜狼 · 后端系统设计
 
 > 技术栈：FastAPI + Pydantic v2 + 原生 WebSocket，前端 React。最后更新：2026-09-30
-> 进度：M1 规则引擎已完成，代码在 `server/app/domain/`。
+> 进度：M1 规则引擎、M2 联机已完成。服务端在 `server/`，前端在 `web/`。
 
 ## 0. 一页总结
 
@@ -57,23 +57,24 @@ Browser (React)
 旁路（P1）：Recorder 任务 ──▶ SQLite（只写已结束的对局）
 ```
 
-依赖只能往下走：api → runtime → domain。domain 不 import 任何其他层，所以整套规则不用启动服务器就能测试。
+依赖只能往下走：api → runtime → protocol → domain。domain 不 import 任何其他层，所以整套规则不用启动服务器就能测试。
 
 **目录**
 
 ```
 server/app/
-├─ main.py            M2：create_app()、lifespan、挂载路由和前端静态文件
-├─ config.py          M2：密钥、各种上限
-├─ api/               M2
+├─ main.py            create_app()：挂载路由，关闭时停掉所有房间
+├─ config.py          密钥、房间数上限（环境变量 UONW_SECRET_KEY、UONW_MAX_ROOMS）
+├─ protocol.py        线上消息格式（hello、state、error），以及导出给前端的 JSON Schema
+├─ api/
 │  ├─ http.py         REST 路由
-│  ├─ ws.py           WebSocket：鉴权 → 投递给 actor → 每条连接一个发送队列
-│  ├─ auth.py         访客 token 的签发和校验
-│  └─ messages.py     hello + domain 的指令，拼成客户端消息的判别联合
-├─ runtime/           M2
+│  ├─ ws.py           WebSocket：首帧 hello → 鉴权 → 交给 actor → 之后每帧都是一条指令
+│  └─ auth.py         访客 token 的签发和校验
+├─ runtime/
 │  ├─ manager.py      RoomManager：房间号 → actor；负责创建、回收、数量上限
-│  └─ actor.py        RoomActor：收件箱、倒计时、事务、推送
-├─ domain/            M1，已完成
+│  ├─ actor.py        RoomActor：收件箱、倒计时、事务、推送
+│  └─ connection.py   一条连接的发送队列
+├─ domain/
 │  ├─ room.py         Room 聚合根：成员、房主、配置、当前这局；玩家指令的唯一入口
 │  ├─ game.py         Game 状态机
 │  ├─ night.py        夜间计划、目标校验、超时代选
@@ -84,6 +85,12 @@ server/app/
 │  ├─ errors.py       ErrorCode、RuleError
 │  └─ types.py        RoleId、Team、Slot、Knowledge、Prompt、Settings 等类型
 └─ store/             P1：对局记录
+
+web/src/
+├─ api/               protocol.gen.ts（生成的协议类型）、访客身份、房间连接的 hook
+├─ game/              中文文案、目标选择、倒计时
+├─ components/        角色牌、夜间信息、可点选的牌桌
+└─ screens/           首页，以及大厅、看牌、夜晚、白天、投票、揭晓各一个页面
 ```
 
 ## 3. 领域模型
@@ -173,24 +180,30 @@ class Role:
 ## 4. 运行时：RoomActor
 
 ```python
-async def run(self):
+async def _run(self):
     while True:
-        msg = await self.next_message()      # 最多等到 room.next_deadline，到点就返回一个 Tick
-        draft = self.room.model_copy(deep=True)
-        try:
-            draft.apply(msg, now=clock())    # 处理玩家指令或 Tick
-            self.room = draft                # 成功了才替换：天然就是事务
-        except RuleError as e:
-            self.reply(msg, error=e.code)    # 指令不合法：状态保持不变
-        except Exception:
-            log.exception(...)               # 代码 bug：只影响这一条指令、这一个房间
-            self.reply(msg, error="INTERNAL")
-        self.publish()                       # 渲染视图，只把变了的放进发送队列
+        message = await self._next_message()   # 最多等到下一个截止时间；到点了就是 None
+        if message is None and self._expired():
+            return                             # 没人在线太久，房间自行关闭
+        self._process(message)                 # 先 tick，再处理消息，各自是一个事务
+        self._publish()                        # 渲染视图，只把变了的放进发送队列
+
+def _transact(self, change):
+    draft = self.room.model_copy(deep=True)    # 在副本上执行
+    try:
+        change(draft)
+    except RuleError as error:
+        return error.code                      # 指令不合法：状态保持不变
+    except Exception:
+        log.exception(...)                     # 代码 bug：只影响这一条指令、这一个房间
+        return INTERNAL
+    self.room = draft                          # 成功了才替换
 ```
 
-- **串行**：一个房间同一时刻只处理一条指令，所以不需要锁
-- **事务**：状态只有几 KB，每条指令都先在副本上执行，出错了就当没发生过
-- **倒计时**：每个房间自己算下一个截止时间，没有全局轮询
+- **串行**：一个房间同一时刻只处理一条消息，所以不需要锁
+- **事务**：状态只有几 KB，每次改动都先在副本上执行，出错了就当没发生过
+- **先结算倒计时**：处理每条消息之前先 tick 一次。截止时间刚过、actor 还没醒的那一瞬间到达的投票，看到的已经是新阶段，会被拒绝
+- **倒计时**：每个房间自己算下一个截止时间，没有全局轮询。如果 tick 本身出错，这个房间就关掉并通知里面的人（否则会在同一个到期时间上反复空转），其他房间不受影响
 - **推送**（`publish`）：给每个在线的人渲染视图，和上次发给他的比较，**只发变了的**。`seq` 是每人一个的计数器。actor 只负责把帧放进连接的发送队列，从不等待网络；队列里还没发出去的旧快照会被新快照直接覆盖
 - **新连接**：不管视图有没有变，都先补发一帧当前快照
 - **回收**：连续 10 分钟没有人在线，actor 自己退出，manager 删掉这个房间。全局房间数有上限
@@ -230,7 +243,9 @@ async def run(self):
 | `state` | seq, server_now, view | 只在你的视图变化时 |
 | `error` | code, ref? | 只发给出错的人；`ref` 对应请求里的 id |
 
-所有消息都是按 `type` 区分的 Pydantic 判别联合。用脚本导出 JSON Schema，再生成 `frontend/src/api/types.gen.ts`，前后端的类型就不用手工同步。
+所有消息都是按 `type` 区分的 Pydantic 判别联合。改了协议之后在 `web/` 下运行 `pnpm gen:types`：它导出 `server/app/protocol.py` 的 JSON Schema，再用 json-schema-to-typescript 生成 `web/src/api/protocol.gen.ts`。前后端的类型不用手工同步。
+
+指令里可以带一个 `ref` 字符串，出错时服务端会把它原样放进 `error` 里带回来。
 
 ### 5.3 一帧 state 长什么样
 
@@ -346,8 +361,8 @@ async def run(self):
 ## 12. 里程碑
 
 1. **M1 规则引擎** ✅：domain 层全部完成（化身幽灵除外），包括大厅规则（配牌、踢人、再来一局、房主转交、离线移出）。全部用纯单测覆盖，性质测试随机打完整局，不需要网络
-2. **M2 联机**：actor、WebSocket 加上最简单的前端，能用几台手机真打一局
-3. **M3 可以上线**：大厅和断线重连的前端体验、部署
+2. **M2 联机** ✅：actor、HTTP 和 WebSocket 接口、最简单的前端。在浏览器里用 3 个身份完整打过两局（含夜间行动、提前投票、再来一局）
+3. **M3 可以上线**：房主配牌和时长的界面、断线重连的体验打磨、限流和消息大小上限、结构化日志、部署（单镜像 + FastAPI 托管前端）
 4. **M4 扩展**：对局记录和战绩、化身幽灵、观战
 
 ## 13. 和旧项目的区别
