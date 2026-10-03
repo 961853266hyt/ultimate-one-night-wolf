@@ -4,7 +4,6 @@ from .base import Role, Table
 
 class Mason(Role):
     id = RoleId.MASON
-    night_order = 4
     max_copies = 2
 
     def wake_info(self, table: Table, me: PlayerId) -> list[Knowledge]:

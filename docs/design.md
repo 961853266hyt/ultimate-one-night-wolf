@@ -130,7 +130,6 @@ k 是牌堆里**会在夜里醒来的角色种数**。牌堆是公开的，所�
 class Role:
     id: ClassVar[RoleId]
     team: ClassVar[Team] = Team.VILLAGE   # 胜负按夜里换牌结束后手上的牌来算
-    night_order: ClassVar[int | None]     # None 表示夜里不醒
     max_copies: ClassVar[int] = 1
 
     def wake_info(self, table, me) -> list[Knowledge]    # 一醒来就知道的：狼互认、爪牙看狼、失眠者看自己
@@ -140,6 +139,8 @@ class Role:
 ```
 
 角色拿到的是 `Table`（牌桌）接口，只包含它们需要的东西：玩家、牌、这一步谁行动过、`players_acting_as()`、`swap()`。`Game` 实现了这个接口，但角色不依赖 `Game`。
+
+**唤醒顺序不写在角色里**，而是集中在 `night.py` 的 `NIGHT_ORDER` 列表中，位置就是顺序。顺序是角色之间的关系，放在一处才看得出整个夜晚怎么走；插入扩展包角色也只是加一行。有一条测试保证两边一致：有夜间行为的角色必须在列表里，列表里的角色必须有夜间行为。
 
 目标是否合法由引擎统一对照 Prompt 校验，角色不用自己写校验。Prompt 标了 `required` 的选择（目前只有酒鬼），超时后由引擎随机代选一个合法目标，角色也不用写超时逻辑。
 

@@ -18,9 +18,10 @@ class Table(Protocol):
 
 
 class Role:
+    """夜里什么时候醒，不由角色自己决定，见 night.NIGHT_ORDER。"""
+
     id: ClassVar[RoleId]
     team: ClassVar[Team] = Team.VILLAGE
-    night_order: ClassVar[int | None] = None  # None 表示夜里不醒
     max_copies: ClassVar[int] = 1
 
     def wake_info(self, table: Table, me: PlayerId) -> list[Knowledge]:

@@ -1,7 +1,8 @@
 import pytest
 
 from app.domain.errors import ErrorCode, RuleError
-from app.domain.roles import ROLES
+from app.domain.night import NIGHT_ORDER
+from app.domain.roles import ROLES, Role
 from app.domain.types import RoleId as R
 from app.domain.types import SawCard, SawPlayers, Swapped
 from tests.domain.helpers import new_game, night_until, skip
@@ -11,9 +12,19 @@ def test_every_role_is_registered():
     assert set(ROLES) == set(R)
 
 
-def test_waking_roles_have_distinct_night_orders():
-    orders = [role.night_order for role in ROLES.values() if role.night_order is not None]
-    assert len(orders) == len(set(orders))
+def test_the_night_order_lists_each_role_once():
+    assert len(NIGHT_ORDER) == len(set(NIGHT_ORDER))
+
+
+def has_night_behavior(role: Role) -> bool:
+    cls = type(role)
+    return any(getattr(cls, m) is not getattr(Role, m) for m in ("wake_info", "prompt", "choices"))
+
+
+@pytest.mark.parametrize("role", list(ROLES.values()), ids=lambda role: role.id)
+def test_a_role_wakes_at_night_exactly_when_it_has_something_to_do_there(role):
+    # 写了夜间能力却忘了排进 NIGHT_ORDER，这个角色就永远不会醒，而且不会报错
+    assert (role.id in NIGHT_ORDER) == has_night_behavior(role)
 
 
 def test_werewolves_see_each_other_and_cannot_peek():

@@ -5,6 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel
 
+from ..domain.night import NIGHT_ORDER
 from ..domain.roles import ROLES
 from ..domain.types import MAX_PLAYERS, Phase, PlayerId, RoleId, Team
 from ..protocol import Name, ProtocolErrorCode
@@ -37,7 +38,7 @@ class RoomSummary(BaseModel):
 class RoleInfo(BaseModel):
     id: RoleId
     team: Team
-    night_order: int | None
+    night_order: int | None  # 夜里第几个醒，从 1 开始；None 表示夜里不醒
     max_copies: int
 
 
@@ -104,6 +105,10 @@ async def room_summary(code: str, request: Request) -> RoomSummary:
 @router.get("/roles")
 async def roles() -> list[RoleInfo]:
     return [
-        RoleInfo(id=r.id, team=r.team, night_order=r.night_order, max_copies=r.max_copies)
+        RoleInfo(id=r.id, team=r.team, night_order=_night_order(r.id), max_copies=r.max_copies)
         for r in ROLES.values()
     ]
+
+
+def _night_order(role: RoleId) -> int | None:
+    return NIGHT_ORDER.index(role) + 1 if role in NIGHT_ORDER else None

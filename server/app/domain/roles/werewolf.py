@@ -15,7 +15,6 @@ from .base import Role, Table
 class Werewolf(Role):
     id = RoleId.WEREWOLF
     team = Team.WEREWOLF
-    night_order = 2
     max_copies = 2
 
     def wake_info(self, table: Table, me: PlayerId) -> list[Knowledge]:

@@ -4,7 +4,6 @@ from .base import Role, Table
 
 class Robber(Role):
     id = RoleId.ROBBER
-    night_order = 6
 
     def choices(self, table: Table, me: PlayerId) -> Prompt | None:
         return Prompt(options=[TargetOption(kind="player", count=1)])

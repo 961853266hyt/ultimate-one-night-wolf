@@ -4,7 +4,6 @@ from .base import Role, Table
 
 class Seer(Role):
     id = RoleId.SEER
-    night_order = 5
 
     def choices(self, table: Table, me: PlayerId) -> Prompt | None:
         return Prompt(

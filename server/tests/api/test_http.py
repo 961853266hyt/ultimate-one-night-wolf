@@ -55,5 +55,7 @@ def test_unknown_rooms_are_not_found(client):
 
 
 def test_the_role_catalog_covers_every_role(client):
-    roles = client.get("/api/roles").json()
-    assert {role["id"] for role in roles} == set(RoleId)
+    roles = {role["id"]: role for role in client.get("/api/roles").json()}
+    assert set(roles) == set(RoleId)
+    assert roles["werewolf"]["night_order"] == 1
+    assert roles["villager"]["night_order"] is None

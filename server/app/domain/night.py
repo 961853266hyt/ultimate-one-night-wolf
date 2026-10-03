@@ -1,20 +1,31 @@
-"""夜间的通用规则：计划、目标校验、超时代选。每个角色具体做什么在 roles/ 里。"""
+"""夜间的通用规则：唤醒顺序、计划、目标校验、超时代选。每个角色具体做什么在 roles/ 里。"""
 
 import random
-from collections.abc import Iterable
+from collections.abc import Collection
 
 from .errors import ErrorCode, RuleError
-from .roles import ROLES
 from .types import CENTER, PlayerId, Prompt, RoleId, Slot, TargetOption
 
+# 夜里的唤醒顺序，照官方规则书。不在这里的角色夜里不醒。
+# 位置就是顺序：新角色要排在谁后面，就插在谁的下一行。
+NIGHT_ORDER: tuple[RoleId, ...] = (
+    RoleId.WEREWOLF,
+    RoleId.MINION,
+    RoleId.MASON,
+    RoleId.SEER,
+    RoleId.ROBBER,
+    RoleId.TROUBLEMAKER,
+    RoleId.DRUNK,
+    RoleId.INSOMNIAC,
+)
 
-def plan_for(deck: Iterable[RoleId]) -> list[RoleId]:
+
+def plan_for(deck: Collection[RoleId]) -> list[RoleId]:
     """牌堆里会醒的角色，按唤醒顺序每种一步。
 
     牌堆是公开的，所以跳过不在牌堆里的角色不会泄露信息。
     """
-    orders = {role: order for role in set(deck) if (order := ROLES[role].night_order) is not None}
-    return sorted(orders, key=orders.__getitem__)
+    return [role for role in NIGHT_ORDER if role in deck]
 
 
 def candidates(players: list[PlayerId], me: PlayerId, option: TargetOption) -> list[Slot]:
