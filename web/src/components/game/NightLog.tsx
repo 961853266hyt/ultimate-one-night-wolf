@@ -1,5 +1,5 @@
-import { ROLES } from '@/game/roles'
 import type { NightLogLine } from '@/game/result'
+import { ROLES } from '@/roles/catalog'
 import { PhraseText } from './RoleText'
 
 /** 揭晓时回放夜里的每一次行动。 */

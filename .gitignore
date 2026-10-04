@@ -19,3 +19,7 @@ dist/
 .idea/
 .vscode/
 .claude/
+
+# 官方卡图版权属于 Bézier Games，只在本地用，不提交
+web/src/assets/role-art/*
+!web/src/assets/role-art/README.md

@@ -7,10 +7,10 @@ import { PageContent, PageFooter } from '@/components/layout/Page'
 import { PageTitle, Section } from '@/components/layout/Section'
 import { Button } from '@/components/ui/button'
 import { cluesOf } from '@/game/knowledge'
-import { ROLES } from '@/game/roles'
 import { centerLetter, seatsOf } from '@/game/seats'
 import { describePrompt } from '@/game/targets'
 import { useNightTargets } from '@/game/useNightTargets'
+import { ROLES } from '@/roles/catalog'
 import type { PhaseProps } from './types'
 
 /**

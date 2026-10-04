@@ -1,21 +1,25 @@
 import { Fragment } from 'react'
 import type { RoleId, Team } from '@/api/types'
 import { mergeText, type Phrase } from '@/game/phrase'
-import { ROLES } from '@/game/roles'
 import { autospace } from '@/lib/autospace'
 import { cn } from '@/lib/utils'
-import { TEAM_DOT, TEAM_TEXT } from './roleStyles'
+import { ROLES, TEAMS } from '@/roles/catalog'
 
 /** 阵营小圆点。 */
 export function TeamDot({ team, className }: { team: Team; className?: string }) {
-  return <span aria-hidden className={cn('size-1.5 shrink-0 rounded-full', TEAM_DOT[team], className)} />
+  return (
+    <span
+      aria-hidden
+      className={cn('size-1.5 shrink-0 rounded-full', TEAMS[team].dotClass, className)}
+    />
+  )
 }
 
 /** 角色名，按阵营上色，换行时不拆开。 */
 export function RoleName({ role, className }: { role: RoleId; className?: string }) {
   const { name, team } = ROLES[role]
   return (
-    <strong className={cn('font-semibold whitespace-nowrap', TEAM_TEXT[team], className)}>
+    <strong className={cn('font-semibold whitespace-nowrap', TEAMS[team].textClass, className)}>
       {name}
     </strong>
   )

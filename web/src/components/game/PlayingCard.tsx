@@ -1,8 +1,8 @@
 import { Moon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { RoleId } from '@/api/types'
-import { ROLES } from '@/game/roles'
 import { cn } from '@/lib/utils'
+import { ROLES } from '@/roles/catalog'
 import { CornerMark } from './CornerMark'
 import { RoleName, TeamDot } from './RoleText'
 

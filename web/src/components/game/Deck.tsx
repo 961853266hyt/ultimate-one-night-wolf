@@ -1,5 +1,6 @@
 import type { RoleId } from '@/api/types'
-import { countRoles, ROLES } from '@/game/roles'
+import { countRoles } from '@/game/deck'
+import { ROLES } from '@/roles/catalog'
 import { TeamDot } from './RoleText'
 
 /** 这局有哪些牌：每种角色一个小标签，多张的标出张数。 */

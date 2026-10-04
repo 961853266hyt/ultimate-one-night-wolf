@@ -7,8 +7,8 @@ import {
   type RoleId,
   type SawCard,
 } from '@/api/types'
+import { ROLES, TEAMS } from '@/roles/catalog'
 import { joinPhrases, mention, type Phrase } from './phrase'
-import { ROLES, TEAM_NAME } from './roles'
 import { centerLetter, seatsOf, slotLabeler, type Seat, type SlotLabeler } from './seats'
 
 export interface SeatResult {
@@ -64,7 +64,7 @@ export function centerResults(result: ResultView): CenterResult[] {
 /** 「狼人阵营获胜」。 */
 export function headline(result: ResultView): string {
   if (result.winning_teams.length === 0) return '没有人获胜'
-  return `${result.winning_teams.map((team) => TEAM_NAME[team]).join('、')}获胜`
+  return `${result.winning_teams.map((team) => TEAMS[team].name).join('、')}获胜`
 }
 
 /** 标题下面的两句话：谁出局了、最后拿的是什么牌；狼牌最后在谁手里。 */

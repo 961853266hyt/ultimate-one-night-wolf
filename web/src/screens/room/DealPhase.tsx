@@ -4,7 +4,7 @@ import { SeatProgress } from '@/components/game/SeatStatus'
 import { PageContent, PageFooter } from '@/components/layout/Page'
 import { PageTitle, Section } from '@/components/layout/Section'
 import { Button } from '@/components/ui/button'
-import { wakeOrder } from '@/game/roles'
+import { wakeOrder } from '@/game/night'
 import { seatsOf } from '@/game/seats'
 import type { PhaseProps } from './types'
 

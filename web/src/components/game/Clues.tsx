@@ -3,8 +3,8 @@ import { NotebookText } from 'lucide-react'
 import { buttonVariants } from '@/components/ui/button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer'
 import type { Clue } from '@/game/knowledge'
-import { ROLES } from '@/game/roles'
 import { cn } from '@/lib/utils'
+import { ROLES } from '@/roles/catalog'
 import { PhraseText } from './RoleText'
 
 export function ClueList({ clues }: { clues: readonly Clue[] }) {
