@@ -1,25 +1,33 @@
-import { useEffect, useState } from 'react'
-import { ensureSession, loadName, roomCodeFromPath, saveName, type Session } from './api/session'
-import { Centered } from './components/ui'
-import { Home, NamePrompt } from './screens/Home'
-import { RoomScreen } from './screens/RoomScreen'
+import { useState } from 'react'
+import { loadName, roomCodeFromPath, saveName } from '@/api/session'
+import { useSession } from '@/api/useSession'
+import { FullScreenMessage } from '@/components/layout/FullScreenMessage'
+import { Toaster } from '@/components/ui/sonner'
+import { HomeScreen } from '@/screens/home/HomeScreen'
+import { NamePromptScreen } from '@/screens/home/NamePromptScreen'
+import { RoomScreen } from '@/screens/room/RoomScreen'
 
 export default function App() {
-  const [session, setSession] = useState<Session | null>(null)
-  const [failed, setFailed] = useState(false)
+  return (
+    <>
+      <Screens />
+      <Toaster position="top-center" />
+    </>
+  )
+}
+
+/** 按网址选页面：首页，或者 /r/ABCD 这个房间。 */
+function Screens() {
+  const { session, failed } = useSession()
   const [name, setName] = useState(loadName)
   const code = roomCodeFromPath()
 
-  useEffect(() => {
-    ensureSession().then(setSession, () => setFailed(true))
-  }, [])
-
-  if (failed) return <Centered>连不上服务器，请稍后刷新重试</Centered>
-  if (!session) return <Centered>加载中…</Centered>
-  if (!code) return <Home session={session} />
+  if (failed) return <FullScreenMessage>连不上服务器，请稍后刷新重试</FullScreenMessage>
+  if (!session) return <FullScreenMessage>加载中…</FullScreenMessage>
+  if (!code) return <HomeScreen session={session} />
   if (!name) {
     return (
-      <NamePrompt
+      <NamePromptScreen
         code={code}
         onSubmit={(next) => {
           saveName(next)
