@@ -2,10 +2,11 @@
  * 夜间选目标：按服务端给的 Prompt 决定能选什么、选够了没有。
  * 这里只是为了界面好用，合不合法最终由服务端校验。
  */
-import { CENTER, type Prompt, type TargetOption } from '../api/types'
+import type { Prompt, TargetOption } from '@/api/types'
+import { isCenter } from './seats'
 
 export function kindOf(slot: string): TargetOption['kind'] {
-  return (CENTER as readonly string[]).includes(slot) ? 'center' : 'player'
+  return isCenter(slot) ? 'center' : 'player'
 }
 
 /** 点了一个位置之后的选择。换了种类（玩家 ↔ 底牌）就从头选。 */

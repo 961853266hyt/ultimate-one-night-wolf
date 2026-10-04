@@ -23,6 +23,7 @@ cd web && pnpm install && pnpm dev
 - **用手机玩**：手机和电脑连同一个 Wi-Fi，打开 `pnpm dev` 打印出来的 Network 地址
 - **一个人测试多个玩家**：在网址后面加 `?as=2`、`?as=3`，同一个浏览器里就是不同的玩家
 - **改了协议**：在 `web/` 下运行 `pnpm gen:types`，重新生成 `src/api/protocol.gen.ts`
+- **加界面组件**：界面用 [shadcn/ui](https://ui.shadcn.com)（Base UI + Tailwind），在 `web/` 下运行 `pnpm dlx shadcn@latest add <组件名>`，生成的源码在 `src/components/ui/`
 
 ## 测试
 

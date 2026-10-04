@@ -45,6 +45,16 @@ export function saveName(name: string): void {
   localStorage.setItem(NAME_KEY, name)
 }
 
+/** 房间号是 4 个大写字母。 */
+export function isRoomCode(code: string): boolean {
+  return /^[A-Z]{4}$/.test(code)
+}
+
+/** 发给朋友的房间链接。不带开发时用的 ?as= 参数，朋友打开时用的是自己的身份。 */
+export function roomUrl(code: string): string {
+  return `${location.origin}/r/${code.toUpperCase()}`
+}
+
 export function roomCodeFromPath(): string | null {
   const match = location.pathname.match(/^\/r\/([A-Za-z]{4})\/?$/)
   return match ? match[1].toUpperCase() : null

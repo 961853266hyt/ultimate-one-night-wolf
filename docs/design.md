@@ -88,10 +88,20 @@ server/app/
 
 web/src/
 ├─ api/               protocol.gen.ts（生成的协议类型）、访客身份、房间连接的 hook
-├─ game/              中文文案、目标选择、倒计时
-├─ components/        角色牌、夜间信息、可点选的牌桌
-└─ screens/           首页，以及大厅、看牌、夜晚、白天、投票、揭晓各一个页面
+├─ game/              纯逻辑，不含界面：角色目录、座位和称呼、线索文案、目标选择、揭晓结果
+├─ hooks/             通用 hook：倒计时、按住查看
+├─ lib/               工具函数：cn、复制、中英文之间补空格
+├─ components/
+│  ├─ ui/             shadcn/ui 生成的基础组件（Base UI），可以直接改
+│  ├─ layout/         页面骨架：Page、Section、整屏提示
+│  ├─ game/           游戏组件：座位网格、状态条、底牌、身份牌、线索、夜间记录
+│  └─ common/         通用组合组件：确认对话框
+└─ screens/
+   ├─ home/           首页、起名字
+   └─ room/           房间外壳（顶栏、按阶段切换），以及大厅、看牌、夜晚、白天、投票、揭晓各一个页面
 ```
+
+分层的约定：`game/` 只做计算，把 `PlayerView` 变成界面要用的数据（`Seat`、`Clue`、`Phrase`…）；`components/` 只认这些数据，不读 `PlayerView`；`screens/` 负责把两者接起来、发指令。服务端视图变了，通常只改 `game/`。
 
 ## 3. 领域模型
 

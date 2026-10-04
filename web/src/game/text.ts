@@ -1,60 +1,20 @@
-import type { ErrorMessage, Phase, RoleId, Team } from '../api/types'
-
-export const ROLE_NAME: Record<RoleId, string> = {
-  werewolf: '狼人',
-  minion: '爪牙',
-  mason: '守夜人',
-  seer: '预言家',
-  robber: '强盗',
-  troublemaker: '捣蛋鬼',
-  drunk: '酒鬼',
-  insomniac: '失眠者',
-  hunter: '猎人',
-  tanner: '皮匠',
-  villager: '村民',
-}
-
-export const ROLE_TEAM: Record<RoleId, Team> = {
-  werewolf: 'werewolf',
-  minion: 'werewolf',
-  mason: 'village',
-  seer: 'village',
-  robber: 'village',
-  troublemaker: 'village',
-  drunk: 'village',
-  insomniac: 'village',
-  hunter: 'village',
-  tanner: 'tanner',
-  villager: 'village',
-}
-
-export const ROLE_HINT: Record<RoleId, string> = {
-  werewolf: '夜里和其他狼互相确认。如果只有你一只狼，可以看一张底牌。',
-  minion: '夜里知道谁是狼，狼不知道你。狼没被票出去就算你赢，你自己被票出去也没关系。',
-  mason: '夜里和另一个守夜人互相确认。',
-  seer: '夜里可以看一名其他玩家的牌，或者看两张底牌。',
-  robber: '夜里可以和一名其他玩家换牌，然后看看你换到了什么。',
-  troublemaker: '夜里可以交换另外两名玩家的牌，但不能看。',
-  drunk: '夜里必须把自己的牌和一张底牌交换，并且不能看换到了什么。',
-  insomniac: '夜里最后醒来，看看自己现在手里是什么牌。',
-  hunter: '如果你被票出局，你投票指向的那个人也会一起出局。',
-  tanner: '只有你自己被票出局，你才赢。',
-  villager: '没有夜间能力，靠推理找出狼。',
-}
-
-export const TEAM_NAME: Record<Team, string> = {
-  village: '好人阵营',
-  werewolf: '狼人阵营',
-  tanner: '皮匠',
-}
+import type { ErrorMessage, Phase, PlayerView } from '@/api/types'
 
 export const PHASE_NAME: Record<Phase, string> = {
   lobby: '等待开始',
   deal: '看牌',
   night: '夜晚',
-  day: '白天',
+  day: '白天 · 讨论',
   vote: '投票',
   reveal: '揭晓',
+}
+
+/** 顶栏上显示的阶段，夜里带上进度，比如「夜晚 · 3/6」。 */
+export function phaseLabel(view: PlayerView): string {
+  if (view.phase === 'night' && view.night) {
+    return `${PHASE_NAME.night} · ${view.night.index}/${view.night.total}`
+  }
+  return PHASE_NAME[view.phase]
 }
 
 export const ERROR_TEXT: Record<ErrorMessage['code'], string> = {
