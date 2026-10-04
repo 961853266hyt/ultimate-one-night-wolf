@@ -49,7 +49,12 @@ interface CenterCardProps {
 
 /** 一张底牌，下面写着「A 号」。 */
 export function CenterCard({ letter, role, note, selected = false, onSelect }: CenterCardProps) {
-  const card = role ? <CardFace role={role} /> : <CardBack className="h-21 w-15" />
+  // 能选的牌本身就是按钮，里面的角色名就不能再点了
+  const card = role ? (
+    <CardFace role={role} interactive={!onSelect} />
+  ) : (
+    <CardBack className="h-21 w-15" />
+  )
 
   return (
     <li className="flex flex-col items-center gap-2">
@@ -78,11 +83,11 @@ export function CenterCard({ letter, role, note, selected = false, onSelect }: C
   )
 }
 
-function CardFace({ role }: { role: RoleId }) {
+function CardFace({ role, interactive }: { role: RoleId; interactive: boolean }) {
   return (
     <span className="flex h-21 w-15 flex-col items-center justify-center gap-1.5 rounded-lg border border-foreground bg-background text-[13px]">
       <TeamDot team={ROLES[role].team} />
-      <RoleName role={role} />
+      <RoleName role={role} interactive={interactive} />
     </span>
   )
 }

@@ -4,6 +4,7 @@ import { mergeText, type Phrase } from '@/game/phrase'
 import { autospace } from '@/lib/autospace'
 import { cn } from '@/lib/utils'
 import { ROLES, TEAMS } from '@/roles/catalog'
+import { RoleButton } from './RoleDetails'
 
 /** 阵营小圆点。 */
 export function TeamDot({ team, className }: { team: Team; className?: string }) {
@@ -15,13 +16,25 @@ export function TeamDot({ team, className }: { team: Team; className?: string })
   )
 }
 
-/** 角色名，按阵营上色，换行时不拆开。 */
-export function RoleName({ role, className }: { role: RoleId; className?: string }) {
+interface RoleNameProps {
+  role: RoleId
+  className?: string
+  /** 能不能点开角色详情。放在别的按钮里面、或者不该让人看的地方，传 false。 */
+  interactive?: boolean
+}
+
+/** 角色名，按阵营上色，换行时不拆开。默认可以点开角色详情，虚线下划线提示能点。 */
+export function RoleName({ role, className, interactive = true }: RoleNameProps) {
   const { name, team } = ROLES[role]
+  const style = cn('font-semibold whitespace-nowrap', TEAMS[team].textClass, className)
+  if (!interactive) return <strong className={style}>{name}</strong>
   return (
-    <strong className={cn('font-semibold whitespace-nowrap', TEAMS[team].textClass, className)}>
+    <RoleButton
+      role={role}
+      className={cn(style, 'underline decoration-current/40 decoration-dotted underline-offset-4')}
+    >
       {name}
-    </strong>
+    </RoleButton>
   )
 }
 

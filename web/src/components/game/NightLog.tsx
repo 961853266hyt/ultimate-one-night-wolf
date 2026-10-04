@@ -1,5 +1,6 @@
 import type { NightLogLine } from '@/game/result'
 import { ROLES } from '@/roles/catalog'
+import { RoleButton } from './RoleDetails'
 import { PhraseText } from './RoleText'
 
 /** 揭晓时回放夜里的每一次行动。 */
@@ -12,7 +13,9 @@ export function NightLog({ lines }: { lines: readonly NightLogLine[] }) {
             {index + 1}
           </span>
           <span className="min-w-0">
-            <span className="mr-1.5 font-semibold">{ROLES[line.step].name}</span>
+            <RoleButton role={line.step} className="mr-1.5 font-semibold hover:underline">
+              {ROLES[line.step].name}
+            </RoleButton>
             <PhraseText phrase={line.text} />
             {line.auto && <span className="text-muted-foreground">（超时，系统代选）</span>}
           </span>

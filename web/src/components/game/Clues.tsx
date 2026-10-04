@@ -5,6 +5,7 @@ import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerTrigger } from 
 import type { Clue } from '@/game/knowledge'
 import { cn } from '@/lib/utils'
 import { ROLES } from '@/roles/catalog'
+import { RoleButton } from './RoleDetails'
 import { PhraseText } from './RoleText'
 
 export function ClueList({ clues }: { clues: readonly Clue[] }) {
@@ -13,9 +14,12 @@ export function ClueList({ clues }: { clues: readonly Clue[] }) {
       {/* 线索只会往后加，用下标当 key 没问题 */}
       {clues.map((clue, index) => (
         <li key={index} className="flex items-start gap-2 text-sm leading-relaxed">
-          <span className="mt-0.5 shrink-0 rounded-sm bg-muted px-1.5 text-xs leading-5">
+          <RoleButton
+            role={clue.step}
+            className="mt-0.5 shrink-0 bg-muted px-1.5 text-xs leading-5 hover:bg-border"
+          >
             {ROLES[clue.step].name}
-          </span>
+          </RoleButton>
           <span>
             <PhraseText phrase={clue.text} />
           </span>
