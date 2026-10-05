@@ -8,7 +8,7 @@
 
 /*
  * 设计令牌。组件里只用语义化的颜色（bg-primary、text-werewolf…），不直接写色值。
- * 前半部分是 shadcn 的标准令牌，后面四个是游戏自己的：成功状态和三个阵营。
+ * 前半部分是 shadcn 的标准令牌，后面五个是游戏自己的：成功、提醒两种状态和三个阵营。
  */
 :root {
   --background: oklch(1 0 0);
@@ -32,6 +32,7 @@
   --radius: 0.5rem;
 
   --success: oklch(0.527 0.154 150.069);
+  --warning: oklch(0.555 0.163 48.998);
   --werewolf: oklch(0.505 0.213 27.518);
   --village: oklch(0.488 0.243 264.376);
   --tanner: oklch(0.555 0.163 48.998);
@@ -58,6 +59,7 @@
   --ring: oklch(0.556 0 0);
 
   --success: oklch(0.792 0.209 151.711);
+  --warning: oklch(0.828 0.189 84.429);
   --werewolf: oklch(0.704 0.191 22.216);
   --village: oklch(0.707 0.165 254.624);
   --tanner: oklch(0.828 0.189 84.429);
@@ -89,6 +91,7 @@
   --color-ring: var(--ring);
 
   --color-success: var(--success);
+  --color-warning: var(--warning);
   --color-werewolf: var(--werewolf);
   --color-village: var(--village);
   --color-tanner: var(--tanner);

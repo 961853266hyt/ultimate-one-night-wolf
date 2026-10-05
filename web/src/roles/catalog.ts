@@ -40,6 +40,7 @@ export interface RoleInfo {
   describeAction?: (targets: string[]) => string
 }
 
+// 顺序就是界面上的排列顺序：先按夜里醒来的顺序，不醒的放最后。配牌时的牌库就按这个顺序摆
 export const ROLES: Record<RoleId, RoleInfo> = {
   werewolf: {
     name: '狼人',

@@ -1,29 +1,41 @@
 import type { RoleId } from '@/api/types'
-import { countRoles } from '@/game/deck'
+import { boxCardsOf } from '@/game/deck'
 import { cn } from '@/lib/utils'
 import { ROLES } from '@/roles/catalog'
+import { CardGrid, CardSlot, EmptyCardSlot } from './CardGrid'
 import { RoleButton } from './RoleDetails'
-import { TeamDot } from './RoleText'
+
+interface DeckTrayProps {
+  deck: readonly RoleId[]
+  /** 一共要几张，少了的画成虚线空位。 */
+  size: number
+  /** 房主用：点空位去补牌。 */
+  onFill?: () => void
+}
+
+/** 大厅里这局的牌：一张牌一个头像，点头像看介绍。 */
+export function DeckTray({ deck, size, onFill }: DeckTrayProps) {
+  const missing = Math.max(0, size - deck.length)
+  return (
+    <CardGrid>
+      {boxCardsOf(deck).map((card) => (
+        <CardSlot key={card.id} role={card.role} />
+      ))}
+      {Array.from({ length: missing }, (_, index) =>
+        onFill ? (
+          <EmptyCardSlot key={`empty-${index}`} warning onSelect={onFill}>
+            补一张
+          </EmptyCardSlot>
+        ) : (
+          <EmptyCardSlot key={`empty-${index}`}>待补</EmptyCardSlot>
+        ),
+      )}
+    </CardGrid>
+  )
+}
 
 /** 可以点开角色详情的小标签。 */
 const CHIP = 'inline-flex h-8 items-center gap-1.5 rounded-full border text-[13px] transition-colors hover:bg-muted'
-
-/** 这局有哪些牌：每种角色一个小标签，多张的标出张数。 */
-export function DeckSummary({ deck }: { deck: readonly RoleId[] }) {
-  return (
-    <ul className="flex flex-wrap justify-center gap-1.5">
-      {countRoles(deck).map(([role, count]) => (
-        <li key={role}>
-          <RoleButton role={role} className={cn(CHIP, 'px-2.5')}>
-            <TeamDot team={ROLES[role].team} />
-            {ROLES[role].name}
-            {count > 1 && <span className="text-muted-foreground">×{count}</span>}
-          </RoleButton>
-        </li>
-      ))}
-    </ul>
-  )
-}
 
 /** 这局夜里的唤醒顺序，白天讨论时照着回忆谁可能换过谁的牌。 */
 export function NightOrder({ roles }: { roles: readonly RoleId[] }) {

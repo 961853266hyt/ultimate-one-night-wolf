@@ -1,23 +1,32 @@
-import { UserPlus } from 'lucide-react'
-import { useState } from 'react'
+import { SlidersHorizontal, UserPlus } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
+import type { RoleId } from '@/api/types'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
-import { DeckSummary } from '@/components/game/Deck'
+import { DeckTray } from '@/components/game/Deck'
+import { DeckEditor } from '@/components/game/DeckEditor'
 import { EmptySeatTile, SeatGrid, SeatTile } from '@/components/game/SeatGrid'
 import { SeatStatus } from '@/components/game/SeatStatus'
 import { PageContent, PageFooter } from '@/components/layout/Page'
 import { Section } from '@/components/layout/Section'
 import { Button } from '@/components/ui/button'
-import { emptySeatCount, startBlocker } from '@/game/lobby'
+import { deckSizeFor, emptySeatCount, startBlocker } from '@/game/lobby'
 import { seatLabel, seatsOf, type Seat } from '@/game/seats'
 import { inviteFriends } from './invite'
 import type { PhaseProps } from './types'
 
 export function LobbyPhase({ view, send }: PhaseProps) {
-  const { code, deck, auto_deck: autoDeck } = view.room
+  const { code, deck, auto_deck: autoDeck, timings } = view.room
   const seats = seatsOf(view)
   const isHost = view.me.id === view.room.host
-  const blocker = startBlocker(seats)
+  const need = deckSizeFor(seats.length)
+  const blocker = startBlocker(seats, deck)
   const invite = () => void inviteFriends(code)
+
+  // 房主调整这局用哪些牌
+  const [editingDeck, setEditingDeck] = useState(false)
+  const editDeck = () => setEditingDeck(true)
+  const saveDeck = (next: RoleId[] | null) =>
+    send({ type: 'configure', settings: { deck: next, timings } })
 
   // 房主点别人的头像，确认后把人移出房间
   const [kickTarget, setKickTarget] = useState<Seat | null>(null)
@@ -30,11 +39,14 @@ export function LobbyPhase({ view, send }: PhaseProps) {
   return (
     <>
       <PageContent>
-        <Section
-          title="本局的牌"
-          caption={`${deck.length} 张 · 每人 1 张，3 张做底牌${autoDeck ? ' · 按人数推荐' : ''}`}
-        >
-          <DeckSummary deck={deck} />
+        <Section title="本局角色" caption={deckCaption(deck.length, need, autoDeck)}>
+          <DeckTray deck={deck} size={need} onFill={isHost ? editDeck : undefined} />
+          {isHost && (
+            <Button variant="outline" size="lg" className="h-11 px-4" onClick={editDeck}>
+              <SlidersHorizontal aria-hidden />
+              调整角色
+            </Button>
+          )}
         </Section>
 
         <Section
@@ -67,7 +79,11 @@ export function LobbyPhase({ view, send }: PhaseProps) {
 
       <PageFooter>
         <p className="text-center text-xs text-muted-foreground">
-          {isHost ? (blocker ?? '人齐了就开始吧') : '等房主开始游戏…'}
+          {isHost
+            ? (blocker ?? '人齐了就开始吧')
+            : deck.length === need
+              ? '等房主开始游戏…'
+              : '等房主把牌调整好…'}
         </p>
         <div className="flex gap-2.5">
           <Button variant="outline" size="xl" className="flex-1" onClick={invite}>
@@ -95,6 +111,24 @@ export function LobbyPhase({ view, send }: PhaseProps) {
         confirmLabel="移出"
         onConfirm={() => kickTarget && send({ type: 'kick', player: kickTarget.id })}
       />
+
+      {/* 房主身份转走时自动关上 */}
+      <DeckEditor
+        open={isHost && editingDeck}
+        onOpenChange={setEditingDeck}
+        deck={deck}
+        players={seats.length}
+        onSave={saveDeck}
+      />
     </>
   )
+}
+
+/** 「本局角色」下面那行小字：牌数对上时说牌是怎么来的，对不上时说差几张。 */
+function deckCaption(count: number, need: number, auto: boolean): ReactNode {
+  if (count < need) return <span className="text-warning">需要 {need} 张，还差 {need - count} 张</span>
+  if (count > need) {
+    return <span className="text-destructive">需要 {need} 张，多了 {count - need} 张</span>
+  }
+  return `${count} 张 · ${auto ? '按人数推荐' : '自定义'} · 点头像看介绍`
 }
