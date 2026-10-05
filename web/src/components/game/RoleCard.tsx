@@ -1,8 +1,8 @@
 import type { RoleId } from '@/api/types'
-import { ROLES, TEAM_NAME } from '@/game/roles'
+import { ROLES, TEAMS } from '@/roles/catalog'
 import { CardBack } from './PlayingCard'
+import { RoleAvatar } from './RoleAvatar'
 import { TeamDot } from './RoleText'
-import { ROLE_ICON } from './roleStyles'
 
 interface RoleCardProps {
   role: RoleId
@@ -21,24 +21,21 @@ export function RoleCard({ role, faceUp, wakeOrder }: RoleCardProps) {
     )
   }
 
-  const { name, team, hint } = ROLES[role]
-  const Icon = ROLE_ICON[role]
+  const { name, team, ability } = ROLES[role]
   return (
     <div className="flex h-74 w-60 flex-col rounded-2xl border border-foreground bg-background p-4">
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1.5">
           <TeamDot team={team} />
-          {TEAM_NAME[team]}
+          {TEAMS[team].name}
         </span>
         <span>{wakeOrder ? `夜里第 ${wakeOrder} 个醒` : '夜里不醒'}</span>
       </div>
       <div className="flex flex-1 flex-col items-center justify-center gap-3">
-        <span className="flex size-16 items-center justify-center rounded-full border">
-          <Icon aria-hidden className="size-7" strokeWidth={1.5} />
-        </span>
+        <RoleAvatar role={role} className="size-24" />
         <span className="text-[32px] leading-none font-semibold tracking-wide">{name}</span>
       </div>
-      <p className="text-center text-[13px] leading-relaxed text-muted-foreground">{hint}</p>
+      <p className="text-center text-[13px] leading-relaxed text-muted-foreground">{ability}</p>
     </div>
   )
 }

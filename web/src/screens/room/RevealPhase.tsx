@@ -15,7 +15,7 @@ import {
   seatResults,
   type SeatResult,
 } from '@/game/result'
-import { ROLES } from '@/game/roles'
+import { ROLES } from '@/roles/catalog'
 import type { PhaseProps } from './types'
 
 export function RevealPhase({ view, send }: PhaseProps) {

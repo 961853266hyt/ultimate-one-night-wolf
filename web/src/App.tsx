@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { loadName, roomCodeFromPath, saveName } from '@/api/session'
 import { useSession } from '@/api/useSession'
+import { RoleDetailsProvider } from '@/components/game/RoleDetails'
 import { FullScreenMessage } from '@/components/layout/FullScreenMessage'
 import { Toaster } from '@/components/ui/sonner'
 import { HomeScreen } from '@/screens/home/HomeScreen'
@@ -9,10 +10,10 @@ import { RoomScreen } from '@/screens/room/RoomScreen'
 
 export default function App() {
   return (
-    <>
+    <RoleDetailsProvider>
       <Screens />
       <Toaster position="top-center" />
-    </>
+    </RoleDetailsProvider>
   )
 }
 

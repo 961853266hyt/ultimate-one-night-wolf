@@ -7,7 +7,7 @@ import { PageContent, PageFooter } from '@/components/layout/Page'
 import { Section } from '@/components/layout/Section'
 import { Button } from '@/components/ui/button'
 import { cluesOf } from '@/game/knowledge'
-import { nightPlan } from '@/game/roles'
+import { nightPlan } from '@/game/night'
 import { seatsOf } from '@/game/seats'
 import type { PhaseProps } from './types'
 

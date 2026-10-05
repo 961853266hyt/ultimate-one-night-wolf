@@ -35,7 +35,7 @@ export function PeekRoleRow({ role }: { role: RoleId }) {
       <div className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="text-xs text-muted-foreground">你发到的牌 · 夜里可能被换过</span>
         {held ? (
-          <RoleName role={role} className="text-[17px]" />
+          <RoleName role={role} interactive={false} className="text-[17px]" />
         ) : (
           <span aria-hidden className="text-[17px] font-semibold tracking-[0.3em] text-muted-foreground/40">
             ●●●

@@ -1,41 +1,50 @@
-import { cva, type VariantProps } from 'class-variance-authority'
 import type { ReactNode } from 'react'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 import { CornerMark, type Mark } from './CornerMark'
 
-const avatarVariants = cva(
-  'relative flex size-13 shrink-0 items-center justify-center rounded-full border text-[17px] font-medium select-none',
-  {
-    variants: {
-      tone: {
-        default: 'border-border bg-muted text-foreground',
-        me: 'border-foreground bg-muted text-foreground',
-        muted: 'border-border bg-muted/40 text-muted-foreground',
-        empty: 'border-dashed border-muted-foreground/40 text-muted-foreground',
-      },
-      selected: {
-        true: 'ring-2 ring-foreground ring-offset-2 ring-offset-background',
-      },
-    },
-    defaultVariants: { tone: 'default' },
-  },
-)
+type Tone = 'default' | 'me' | 'muted' | 'empty'
 
-interface PlayerAvatarProps extends VariantProps<typeof avatarVariants> {
+// 边框画在 Avatar 的 ::after 上，所以边框颜色用 after: 来改
+const TONE: Record<Tone, { root: string; fallback: string }> = {
+  default: { root: '', fallback: 'text-foreground' },
+  me: { root: 'after:border-foreground', fallback: 'text-foreground' },
+  muted: { root: '', fallback: 'bg-muted/40' },
+  empty: { root: 'after:border-dashed after:border-muted-foreground/40', fallback: 'bg-transparent' },
+}
+
+interface PlayerAvatarProps {
   /** 显示名字的第一个字。 */
   name?: string
   /** 不显示名字时放别的东西，比如空座位的加号。 */
   children?: ReactNode
+  tone?: Tone
+  selected?: boolean
   mark?: Mark
 }
 
 /** 圆形头像，显示名字的第一个字。纯装饰，读屏软件会跳过，名字由旁边的文字提供。 */
-export function PlayerAvatar({ name = '', children, tone, selected, mark }: PlayerAvatarProps) {
+export function PlayerAvatar({
+  name = '',
+  children,
+  tone = 'default',
+  selected = false,
+  mark,
+}: PlayerAvatarProps) {
   return (
-    <span aria-hidden className={cn(avatarVariants({ tone, selected }))}>
-      {children ?? firstCharacter(name)}
+    <Avatar
+      aria-hidden
+      className={cn(
+        'size-13',
+        TONE[tone].root,
+        selected && 'ring-2 ring-foreground ring-offset-2 ring-offset-background',
+      )}
+    >
+      <AvatarFallback className={cn('text-[17px] font-medium', TONE[tone].fallback)}>
+        {children ?? firstCharacter(name)}
+      </AvatarFallback>
       {mark && <CornerMark mark={mark} />}
-    </span>
+    </Avatar>
   )
 }
 

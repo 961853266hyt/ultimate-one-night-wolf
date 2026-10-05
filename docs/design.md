@@ -88,20 +88,22 @@ server/app/
 
 web/src/
 ├─ api/               protocol.gen.ts（生成的协议类型）、访客身份、房间连接的 hook
-├─ game/              纯逻辑，不含界面：角色目录、座位和称呼、线索文案、目标选择、揭晓结果
+├─ roles/             角色和阵营的目录：名字、图标、颜色、简介、能力说明、张数上限；可选的本地卡图
+├─ game/              纯逻辑，不含界面：座位和称呼、线索文案、唤醒顺序、目标选择、揭晓结果
 ├─ hooks/             通用 hook：倒计时、按住查看
 ├─ lib/               工具函数：cn、复制、中英文之间补空格
+├─ assets/role-art/   可选的角色卡图，只在本地用，git 忽略（见目录里的 README）；没有图就用线条图标
 ├─ components/
 │  ├─ ui/             shadcn/ui 生成的基础组件（Base UI），可以直接改
 │  ├─ layout/         页面骨架：Page、Section、整屏提示
-│  ├─ game/           游戏组件：座位网格、状态条、底牌、身份牌、线索、夜间记录
+│  ├─ game/           游戏组件：座位网格、状态条、底牌、身份牌、线索、夜间记录、角色详情弹窗
 │  └─ common/         通用组合组件：确认对话框
 └─ screens/
    ├─ home/           首页、起名字
    └─ room/           房间外壳（顶栏、按阶段切换），以及大厅、看牌、夜晚、白天、投票、揭晓各一个页面
 ```
 
-分层的约定：`game/` 只做计算，把 `PlayerView` 变成界面要用的数据（`Seat`、`Clue`、`Phrase`…）；`components/` 只认这些数据，不读 `PlayerView`；`screens/` 负责把两者接起来、发指令。服务端视图变了，通常只改 `game/`。
+分层的约定：`roles/` 描述每个角色是什么样的，`game/` 和 `components/` 都从这里取；`game/` 只做计算，把 `PlayerView` 变成界面要用的数据（`Seat`、`Clue`、`Phrase`…）；`components/` 只认这些数据，不读 `PlayerView`；`screens/` 负责把两者接起来、发指令。服务端视图变了，通常只改 `game/`；加新角色，在 `roles/catalog.ts` 里补一条就行。
 
 ## 3. 领域模型
 
