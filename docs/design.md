@@ -89,11 +89,11 @@ server/app/
 
 web/src/
 ├─ api/               protocol.gen.ts（生成的协议类型）、访客身份、房间连接的 hook
-├─ roles/             角色和阵营的目录：名字、图标、颜色、简介、能力说明、张数上限；可选的本地卡图
+├─ roles/             角色和阵营的目录：名字、图标、颜色、简介、能力说明、张数上限；卡图
 ├─ game/              纯逻辑，不含界面：座位和称呼、开局条件、牌盒和推荐牌堆、线索文案、唤醒顺序、目标选择、揭晓结果
 ├─ hooks/             通用 hook：倒计时、按住查看
 ├─ lib/               工具函数：cn、复制、中英文之间补空格
-├─ assets/role-art/   可选的角色卡图，只在本地用，git 忽略（见目录里的 README）；没有图就用线条图标
+├─ assets/role-art/   角色卡图（见目录里的 README）；没有图就用线条图标
 ├─ components/
 │  ├─ ui/             shadcn/ui 生成的基础组件（Base UI），可以直接改
 │  ├─ layout/         页面骨架：Page、Section、整屏提示

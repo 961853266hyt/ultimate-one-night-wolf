@@ -1,7 +1,7 @@
 /**
- * 角色卡图（可选，只在本地有）。
+ * 角色卡图。
  *
- * 图放在 src/assets/role-art/<角色 id>.webp，那个目录被 git 忽略，见目录里的 README。
+ * 图放在 src/assets/role-art/<角色 id>.webp，见目录里的 README。
  * 构建时扫描一遍：有图的角色用图，没有的退回 catalog.ts 里的线条图标。
  */
 import type { RoleId } from '@/api/types'
