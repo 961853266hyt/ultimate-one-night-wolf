@@ -1,10 +1,13 @@
-# 默认使用国内镜像源（阿里云服务器直连 npm/PyPI 官方源很慢）；
-# 在海外部署时可覆盖：--build-arg NPM_REGISTRY=https://registry.npmjs.org --build-arg PYPI_INDEX=https://pypi.org/simple
+# 默认使用国内镜像源（国内服务器直连 Docker Hub / npm / PyPI 官方源很慢甚至超时）；
+# 在海外部署时可覆盖：
+#   --build-arg DOCKER_REGISTRY=docker.io --build-arg NPM_REGISTRY=https://registry.npmjs.org
+#   --build-arg PYPI_INDEX=https://pypi.org/simple
+ARG DOCKER_REGISTRY=docker.m.daocloud.io
 ARG NPM_REGISTRY=https://registry.npmmirror.com
 ARG PYPI_INDEX=https://mirrors.aliyun.com/pypi/simple/
 
 # 阶段 1：构建前端
-FROM node:22-slim AS web
+FROM ${DOCKER_REGISTRY}/library/node:22-slim AS web
 ARG NPM_REGISTRY
 ENV COREPACK_NPM_REGISTRY=${NPM_REGISTRY}
 RUN corepack enable
@@ -15,7 +18,7 @@ COPY web/ ./
 RUN pnpm build
 
 # 阶段 2：后端 + 托管前端静态文件
-FROM python:3.13-slim
+FROM ${DOCKER_REGISTRY}/library/python:3.13-slim
 ARG PYPI_INDEX
 ENV UV_DEFAULT_INDEX=${PYPI_INDEX} PIP_INDEX_URL=${PYPI_INDEX}
 RUN pip install --no-cache-dir uv
