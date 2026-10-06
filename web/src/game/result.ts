@@ -67,8 +67,18 @@ export function headline(result: ResultView): string {
   return `${result.winning_teams.map((team) => TEAMS[team].name).join('、')}获胜`
 }
 
-/** 标题下面的两句话：谁出局了、最后拿的是什么牌；狼牌最后在谁手里。 */
+/**
+ * 这局投没投票。投票要全员投完才揭晓，所以一张票都没有，
+ * 就是夜里过后玩家全是好人、天一亮直接结束的那种局。
+ */
+export function hadVote(result: ResultView): boolean {
+  return Object.keys(result.votes).length > 0
+}
+
+/** 标题下面的两句话：谁出局了、最后拿的是什么牌；狼牌最后在谁手里。没投票的局只有一句。 */
 export function outcomeSummary(view: PlayerView, result: ResultView): Phrase[] {
+  if (!hadVote(result)) return [['夜里过后玩家手里全是好人，不用投票']]
+
   const label = slotLabeler(view)
 
   const deaths: Phrase = result.deaths.length

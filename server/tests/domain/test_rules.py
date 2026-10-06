@@ -1,6 +1,6 @@
 import pytest
 
-from app.domain.rules import deaths, lynched, resolve, winning_teams
+from app.domain.rules import all_village, deaths, lynched, resolve, winning_teams
 from app.domain.types import RoleId as R
 from app.domain.types import Team
 
@@ -58,3 +58,17 @@ def test_winners_are_decided_by_the_card_they_end_with():
     assert result.deaths == ["p1"]
     assert result.winning_teams == [Team.WEREWOLF]
     assert result.winners == ["p0"]
+
+
+@pytest.mark.parametrize(
+    ("held", "expected"),
+    [
+        ([VILLAGER, HUNTER, R.SEER], True),
+        ([VILLAGER, VILLAGER, WOLF], False),
+        ([VILLAGER, VILLAGER, MINION], False),
+        ([VILLAGER, VILLAGER, TANNER], False),  # 皮匠不算好人
+    ],
+)
+def test_all_village(held, expected):
+    cards = {f"p{i}": role for i, role in enumerate(held)}
+    assert all_village(cards, list(cards)) is expected

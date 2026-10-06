@@ -39,7 +39,8 @@ def test_a_step_never_ends_early_even_after_the_actor_has_acted():
 
 
 def test_a_deck_without_waking_roles_goes_straight_to_day():
-    game = new_game(R.VILLAGER, R.VILLAGER, R.VILLAGER, R.HUNTER, R.TANNER, R.VILLAGER)
+    # 皮匠在玩家手里；玩家全是好人的话会直接揭晓，见 test_game
+    game = new_game(R.VILLAGER, R.VILLAGER, R.TANNER, R.HUNTER, R.VILLAGER, R.VILLAGER)
     skip(game)
     assert game.phase is Phase.DAY
 

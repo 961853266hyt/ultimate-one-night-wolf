@@ -2,9 +2,10 @@ import pytest
 
 from app.domain.errors import ErrorCode, RuleError
 from app.domain.game import Game
+from app.domain.rules import Result
 from app.domain.types import Phase, Team, Timings
 from app.domain.types import RoleId as R
-from tests.domain.helpers import NoShuffle, new_game, night_until, until_phase
+from tests.domain.helpers import NoShuffle, new_game, night_until, skip, until_phase
 
 T = Timings()
 
@@ -38,6 +39,38 @@ def test_a_full_game_the_wolves_win():
         game.vote(voter, target, now=1000)
     assert game.result is not None
     assert game.result.winners == ["p0"]
+
+
+def test_if_every_player_ends_the_night_on_the_village_side_the_village_wins_without_a_vote():
+    # 狼都在底牌里，玩家手里全是好人：天一亮就揭晓，不讨论也不投票
+    game = new_game(R.SEER, R.ROBBER, R.VILLAGER, R.WEREWOLF, R.WEREWOLF, R.TROUBLEMAKER)
+    phases = []
+    while game.phase is not Phase.REVEAL:
+        phases.append(game.phase)
+        skip(game)
+
+    assert Phase.DAY not in phases
+    assert game.ends_at is None
+    assert game.votes == {}
+    assert game.result == Result(
+        deaths=[], winning_teams=[Team.VILLAGE], winners=["p0", "p1", "p2"]
+    )
+
+
+@pytest.mark.parametrize("role", [R.MINION, R.TANNER])
+def test_a_minion_or_tanner_among_the_players_still_means_a_vote(role):
+    game = new_game(role, R.SEER, R.VILLAGER, R.WEREWOLF, R.WEREWOLF, R.ROBBER)
+    until_phase(game, Phase.DAY)
+    assert game.result is None
+
+
+def test_the_check_uses_the_cards_after_the_night():
+    # 酒鬼从底牌换来一张狼：玩家里有狼了，照常进入白天
+    game = new_game(R.DRUNK, R.SEER, R.VILLAGER, R.WEREWOLF, R.WEREWOLF, R.TROUBLEMAKER)
+    night_until(game, R.DRUNK)
+    game.night_action("p0", ["C0"])
+    until_phase(game, Phase.DAY)
+    assert game.cards["p0"] is R.WEREWOLF
 
 
 def test_dealing_ends_once_everyone_has_seen_their_card():

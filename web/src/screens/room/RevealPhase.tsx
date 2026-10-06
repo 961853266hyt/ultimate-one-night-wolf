@@ -9,6 +9,7 @@ import { Section } from '@/components/layout/Section'
 import { Button } from '@/components/ui/button'
 import {
   centerResults,
+  hadVote,
   headline,
   nightLog,
   outcomeSummary,
@@ -25,6 +26,7 @@ export function RevealPhase({ view, send }: PhaseProps) {
   const isHost = view.me.id === view.room.host
   const played = view.me.seat !== null
   const won = result.winners.includes(view.me.id)
+  const voted = hadVote(result)
   const log = nightLog(view, result)
 
   return (
@@ -57,7 +59,7 @@ export function RevealPhase({ view, send }: PhaseProps) {
                 seat={outcome.seat}
                 muted={outcome.out}
                 mark={outcome.out ? 'out' : undefined}
-                status={<OutcomeStatus outcome={outcome} />}
+                status={<OutcomeStatus outcome={outcome} voted={voted} />}
               >
                 <span className="text-xs">
                   <RoleChange from={outcome.dealt} to={outcome.final} />
@@ -90,7 +92,9 @@ export function RevealPhase({ view, send }: PhaseProps) {
   )
 }
 
-function OutcomeStatus({ outcome }: { outcome: SeatResult }) {
+function OutcomeStatus({ outcome, voted }: { outcome: SeatResult; voted: boolean }) {
+  // 没投票的局所有人都赢，也没有票数可写
+  if (!voted) return <SeatStatus tone="win">胜</SeatStatus>
   const votes = `${outcome.votes} 票`
   if (outcome.out) return <SeatStatus tone="out">出局 · {votes}</SeatStatus>
   if (outcome.won) return <SeatStatus tone="win">胜 · {votes}</SeatStatus>

@@ -1,5 +1,7 @@
 """一局游戏的状态机：deal → night[1..k] → day → vote → reveal。
 
+夜里过后玩家手里全是好人，就跳过 day 和 vote 直接 reveal，好人赢。这是家规，官方规则照样投票。
+
 时间（now）和随机数（rng）都由调用方传入，这里不读时钟，也不用全局随机数。
 """
 
@@ -137,7 +139,7 @@ class Game(BaseModel):
                     self.night_index += 1
                     self._enter_step(now)
                 else:
-                    self._enter_day(now)
+                    self._end_night(now)
 
     # ------------------------------------------------------------ 内部
 
@@ -149,7 +151,7 @@ class Game(BaseModel):
 
     def _enter_night(self, now: float) -> None:
         if not self.night_plan:
-            self._enter_day(now)
+            self._end_night(now)
             return
         self.phase = Phase.NIGHT
         self.night_index = 0
@@ -179,6 +181,13 @@ class Game(BaseModel):
     def _learn(self, player: PlayerId, facts: list[Knowledge]) -> None:
         if facts:
             self.knowledge.setdefault(player, []).extend(facts)
+
+    def _end_night(self, now: float) -> None:
+        # 看的是夜里换完之后的牌：酒鬼可能从底牌换来一张狼
+        if rules.all_village(self.cards, self.players):
+            self._reveal()  # 没有票，没人出局，好人赢
+        else:
+            self._enter_day(now)
 
     def _enter_day(self, now: float) -> None:
         self.phase = Phase.DAY

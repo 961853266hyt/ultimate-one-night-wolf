@@ -26,6 +26,11 @@ def resolve(
     )
 
 
+def all_village(cards: dict[Slot, RoleId], players: list[PlayerId]) -> bool:
+    """玩家手里全是好人阵营的牌：没有狼人、爪牙，也没有皮匠。"""
+    return all(ROLES[cards[p]].team is Team.VILLAGE for p in players)
+
+
 def lynched(votes: dict[PlayerId, PlayerId]) -> set[PlayerId]:
     """得票最多且至少 2 票的人出局，平票一起出局。没人超过 1 票就没人出局。"""
     counts = Counter(votes.values())
