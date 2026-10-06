@@ -1,0 +1,9 @@
+services:
+  wolf:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "80:8000"
+    environment:
+      # 固定密钥，重启后访客身份不会失效：在服务器 .env 里写 UONW_SECRET_KEY=随机字符串
+      UONW_SECRET_KEY: ${UONW_SECRET_KEY:-}
