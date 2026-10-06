@@ -1,6 +1,7 @@
 services:
   wolf:
-    build: .
+    image: ultimate-one-night-wolf:latest
+    build: .  # 手动部署用 docker compose up -d --build；Actions 部署则直接加载构建好的镜像
     restart: unless-stopped
     ports:
       - "80:8000"

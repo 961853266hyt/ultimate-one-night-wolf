@@ -1,0 +1,56 @@
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# 同一时间只部署一次，后来的排队
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+env:
+  IMAGE: ultimate-one-night-wolf:latest
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Actions 的机器在海外，直接用官方源，不用 Dockerfile 里默认的国内镜像
+      - name: Build image
+        run: |
+          docker build -t "$IMAGE" \
+            --build-arg DOCKER_REGISTRY=docker.io \
+            --build-arg NPM_REGISTRY=https://registry.npmjs.org \
+            --build-arg PYPI_INDEX=https://pypi.org/simple \
+            .
+
+      - name: Set up SSH
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_HOST: ${{ secrets.SSH_HOST }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          ssh-keyscan -H "$SSH_HOST" >> ~/.ssh/known_hosts
+          printf 'Host wolf\n  HostName %s\n  User root\n  IdentityFile ~/.ssh/deploy_key\n' "$SSH_HOST" > ~/.ssh/config
+
+      # 服务器不构建，只接收镜像：镜像 ~100MB，gzip 后通过 SSH 直接灌进服务器的 Docker
+      - name: Ship image and compose file
+        run: |
+          ssh wolf 'mkdir -p ~/wolf'
+          scp docker-compose.yml wolf:~/wolf/docker-compose.yml
+          docker save "$IMAGE" | gzip | ssh wolf 'gunzip | docker load'
+
+      - name: Restart
+        env:
+          UONW_SECRET_KEY: ${{ secrets.UONW_SECRET_KEY }}
+        run: |
+          # 服务器上没有 .env 才创建；优先用 secret，没配就随机生成一个
+          ssh wolf "cd ~/wolf && [ -f .env ] || echo \"UONW_SECRET_KEY=\${UONW_SECRET_KEY:-\$(openssl rand -hex 32)}\" > .env"
+          ssh wolf 'cd ~/wolf && docker compose up -d && docker image prune -f'
+          ssh wolf 'sleep 3 && curl -fsS localhost/healthz'
