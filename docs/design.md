@@ -76,6 +76,7 @@ server/app/
 │  └─ connection.py   一条连接的发送队列
 ├─ domain/
 │  ├─ room.py         Room 聚合根：成员、房主、配置、当前这局；玩家指令的唯一入口
+│  ├─ recommended.py  按人数推荐的牌堆，3–10 人各一副
 │  ├─ game.py         Game 状态机
 │  ├─ night.py        夜间计划、目标校验、超时代选
 │  ├─ roles/          每个角色一个文件，__init__.py 是注册表
@@ -89,14 +90,14 @@ server/app/
 web/src/
 ├─ api/               protocol.gen.ts（生成的协议类型）、访客身份、房间连接的 hook
 ├─ roles/             角色和阵营的目录：名字、图标、颜色、简介、能力说明、张数上限；可选的本地卡图
-├─ game/              纯逻辑，不含界面：座位和称呼、线索文案、唤醒顺序、目标选择、揭晓结果
+├─ game/              纯逻辑，不含界面：座位和称呼、开局条件、牌盒和推荐牌堆、线索文案、唤醒顺序、目标选择、揭晓结果
 ├─ hooks/             通用 hook：倒计时、按住查看
 ├─ lib/               工具函数：cn、复制、中英文之间补空格
 ├─ assets/role-art/   可选的角色卡图，只在本地用，git 忽略（见目录里的 README）；没有图就用线条图标
 ├─ components/
 │  ├─ ui/             shadcn/ui 生成的基础组件（Base UI），可以直接改
 │  ├─ layout/         页面骨架：Page、Section、整屏提示
-│  ├─ game/           游戏组件：座位网格、状态条、底牌、身份牌、线索、夜间记录、角色详情弹窗
+│  ├─ game/           游戏组件：座位网格、状态条、本局的牌、调整角色的抽屉、底牌、身份牌、线索、夜间记录、角色详情弹窗
 │  └─ common/         通用组合组件：确认对话框
 └─ screens/
    ├─ home/           首页、起名字
@@ -111,7 +112,7 @@ web/src/
 
 - **访客身份**：第一次打开页面时调用 `POST /api/session`，拿到 `player_id` 和签名 token，存进 localStorage。token 用 HMAC 签名，服务端不需要保存；服务器重启后身份依然有效
 - **Room**：包括房间号、成员（id、昵称、是否在线）、房主、配置（牌堆、各阶段时长），以及当前这局 Game（在大厅里为空）。开房的人直接成为成员和房主，连上来之后才算在线
-- **牌堆**：房主没有自定义时，按人数自动推荐（前 n + 3 张：狼 ×2、预言家、强盗、捣蛋鬼、村民、酒鬼、失眠者、爪牙、皮匠、猎人、村民、村民）。守夜人要成对才好玩，所以只在自定义配牌里出现
+- **牌堆**：房主没有自定义时，按人数自动推荐。`domain/recommended.py` 里 3–10 人各列了一副（每副人数 + 3 张，比如 3 人是狼 ×2、预言家、强盗、捣蛋鬼、村民），每档可以单独调。房间视图里会带上按现在人数推荐的那副（`recommended_deck`），前端配牌时拿它对比和「恢复推荐」，不用自己再存一份。守夜人要成对才好玩，所以推荐里不放，只在自定义配牌里出现
 - **Slot**：放牌的位置。玩家的 slot 就是他的 `player_id`，三张底牌分别是 `C0`、`C1`、`C2`。所有看牌、换牌的目标都用 slot 表示，所以夜间动作只有一种格式：`targets: [slot, ...]`
 - **牌堆构成是公开的**：和桌游一样，大家都知道这局有哪些角色，只是不知道谁是谁
 
@@ -276,8 +277,9 @@ def _transact(self, change):
       "code": "KXQB",
       "host": "p_7f3a",
       "members": [{ "id": "p_7f3a", "name": "阿胡", "online": true, "seat": 0 }],   // 其余成员略
-      "deck": ["werewolf", "werewolf", "seer", "robber", "troublemaker", "villager", "drunk"],
+      "deck": ["werewolf", "werewolf", "seer", "robber", "troublemaker", "drunk", "villager"],
       "auto_deck": true,
+      "recommended_deck": ["werewolf", "werewolf", "seer", "robber", "troublemaker", "drunk", "villager"],   // 按现在人数推荐的牌堆
       "timings": { "deal": 10, "night_step": 12, "day": 300, "vote": 60 }
     },
     "me": {

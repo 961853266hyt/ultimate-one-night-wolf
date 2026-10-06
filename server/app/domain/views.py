@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 from .errors import ErrorCode, RuleError
 from .game import Game, NightLogEntry
+from .recommended import recommended_deck
 from .room import Room
 from .types import Knowledge, Phase, PlayerId, Prompt, RoleId, Slot, Team, Timings
 
@@ -26,6 +27,7 @@ class RoomView(BaseModel):
     members: list[MemberView]
     deck: list[RoleId]
     auto_deck: bool
+    recommended_deck: list[RoleId]  # 按现在的人数推荐的牌堆，房主配牌时拿来对比和「恢复推荐」
     timings: Timings
 
 
@@ -124,6 +126,7 @@ def _room_view(room: Room) -> RoomView:
         ],
         deck=room.deck(),
         auto_deck=room.settings.deck is None,
+        recommended_deck=recommended_deck(len(room.members)),
         timings=room.settings.timings,
     )
 

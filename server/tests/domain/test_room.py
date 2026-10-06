@@ -11,7 +11,8 @@ from app.domain.commands import (
     Vote,
 )
 from app.domain.errors import ErrorCode, RuleError
-from app.domain.room import HOST_GRACE, LOBBY_GRACE, Room, recommended_deck
+from app.domain.recommended import recommended_deck
+from app.domain.room import HOST_GRACE, LOBBY_GRACE, Room
 from app.domain.types import MAX_PLAYERS, Phase, Settings
 from app.domain.types import RoleId as R
 from tests.domain.helpers import NoShuffle, new_room
