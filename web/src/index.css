@@ -33,9 +33,11 @@
 
   --success: oklch(0.527 0.154 150.069);
   --warning: oklch(0.555 0.163 48.998);
-  --werewolf: oklch(0.505 0.213 27.518);
-  --village: oklch(0.488 0.243 264.376);
-  --tanner: oklch(0.555 0.163 48.998);
+
+  /* 阵营色：狼人红、好人蓝、皮匠橙。角色名、阵营名、小圆点都用它们，要换颜色改这里（深色主题在 .dark 里） */
+  --werewolf: oklch(0.505 0.213 27.518); /* red-700 */
+  --village: oklch(0.488 0.243 264.376); /* blue-700 */
+  --tanner: oklch(0.553 0.195 38.402); /* orange-700 */
 }
 
 .dark {
@@ -60,9 +62,11 @@
 
   --success: oklch(0.792 0.209 151.711);
   --warning: oklch(0.828 0.189 84.429);
-  --werewolf: oklch(0.704 0.191 22.216);
-  --village: oklch(0.707 0.165 254.624);
-  --tanner: oklch(0.828 0.189 84.429);
+
+  /* 阵营色在深色底上要亮一些 */
+  --werewolf: oklch(0.704 0.191 22.216); /* red-400 */
+  --village: oklch(0.707 0.165 254.624); /* blue-400 */
+  --tanner: oklch(0.75 0.183 55.934); /* orange-400 */
 }
 
 @theme inline {

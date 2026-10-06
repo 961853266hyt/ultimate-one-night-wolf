@@ -1,6 +1,6 @@
 /**
- * 一张角色牌：完整的官方卡图，点一下盖上一层毛玻璃，显示角色说明；再点一下收起。
- * 角色详情弹窗和看牌时翻开的牌都用它。
+ * 用官方卡图做的角色牌：大牌点一下盖上一层毛玻璃，显示角色说明，再点一下收起；
+ * 另外还有一个小的缩略图。大牌用在角色详情弹窗和看牌时翻开的牌，缩略图用在揭晓时的底牌。
  */
 import { useId } from 'react'
 import type { RoleId } from '@/api/types'
@@ -119,5 +119,41 @@ export function RoleArtCard({
         className="absolute inset-0 rounded-[inherit] outline-none focus-visible:ring-3 focus-visible:ring-white/60 focus-visible:ring-inset"
       />
     </div>
+  )
+}
+
+/** 角色牌的缩略图：卡图，底下压一条角色名。 */
+export function RoleThumbnail({ role, className }: { role: RoleId; className?: string }) {
+  const art = roleArt(role)
+  const { name, team, icon: Icon } = ROLES[role]
+  return (
+    // dark：名字的阵营色取深色主题的值，在黑底上才看得清
+    <span
+      className={cn(
+        'dark relative isolate flex aspect-[200/274] w-18 overflow-hidden rounded-[6px] bg-muted',
+        className,
+      )}
+    >
+      {art ? (
+        // 和大牌一样裁掉卡图四角的白底。缩略图小，按 72px 宽另算：放大 5%、往右下挪 0.5px、圆角 6px
+        <img
+          src={art}
+          alt=""
+          draggable={false}
+          className="size-full translate-[0.5px] scale-[1.05] object-cover"
+        />
+      ) : (
+        <Icon aria-hidden className="m-auto size-7 text-muted-foreground" strokeWidth={1.5} />
+      )}
+      {/* 卡图上的英文名缩小后看不清，底下补一条中文名，颜色表示阵营 */}
+      <span
+        className={cn(
+          'absolute inset-x-0 bottom-0 bg-linear-to-t from-black/85 via-black/60 to-transparent px-1 pt-5 pb-1.5 text-center text-[11px] leading-none font-semibold',
+          TEAMS[team].textClass,
+        )}
+      >
+        {name}
+      </span>
+    </span>
   )
 }

@@ -2,9 +2,9 @@ import { Moon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { RoleId } from '@/api/types'
 import { cn } from '@/lib/utils'
-import { ROLES } from '@/roles/catalog'
 import { CornerMark } from './CornerMark'
-import { RoleName, TeamDot } from './RoleText'
+import { RoleThumbnail } from './RoleArtCard'
+import { RoleButton } from './RoleDetails'
 
 interface CardBackProps {
   /** 决定牌的大小和圆角。 */
@@ -83,11 +83,13 @@ export function CenterCard({ letter, role, note, selected = false, onSelect }: C
   )
 }
 
+/** 翻开的底牌：卡图缩略图，点一下看角色详情。 */
 function CardFace({ role, interactive }: { role: RoleId; interactive: boolean }) {
+  const thumbnail = <RoleThumbnail role={role} />
+  if (!interactive) return thumbnail
   return (
-    <span className="flex h-21 w-15 flex-col items-center justify-center gap-1.5 rounded-lg border border-foreground bg-background text-[13px]">
-      <TeamDot team={ROLES[role].team} />
-      <RoleName role={role} interactive={interactive} />
-    </span>
+    <RoleButton role={role} className="rounded-[6px]">
+      {thumbnail}
+    </RoleButton>
   )
 }
