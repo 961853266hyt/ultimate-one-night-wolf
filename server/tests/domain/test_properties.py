@@ -6,7 +6,7 @@ from collections import Counter
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from app.domain.commands import Configure, NightAction, ReadyToVote, Start, Vote
+from app.domain.commands import Configure, ConfirmCard, NightAction, ReadyToVote, Start, Vote
 from app.domain.night import candidates
 from app.domain.roles import ROLES
 from app.domain.room import Room
@@ -35,6 +35,9 @@ def play(n: int, deck: list, seed: int) -> Room:
 
     now = 0.0
     while room.phase is not Phase.REVEAL:
+        if room.phase is Phase.DEAL:
+            for player in game.players:  # 看牌不限时，所有人都点了「我记住了」才入夜
+                room.handle(player, ConfirmCard(), now, rng)
         if room.phase is Phase.NIGHT:
             for player in game.wakers():
                 prompt = game.prompt_for(player)

@@ -132,20 +132,29 @@ def test_only_players_of_this_game_can_act():
     assert error.value.code is ErrorCode.NOT_PLAYING
 
 
-def test_ticks_before_the_deadline_change_nothing():
+def test_the_deal_has_no_time_limit():
     game = a_game()
-    game.tick(T.deal - 0.001, NoShuffle(0))
+    assert game.ends_at is None
+    game.tick(10**9, NoShuffle(0))
     assert game.phase is Phase.DEAL
 
 
-def test_each_phase_gets_its_full_time_from_when_it_starts():
+def test_ticks_before_the_deadline_change_nothing():
     game = a_game()
-    game.tick(T.deal + 7, NoShuffle(0))  # 晚了 7 秒才 tick
-    assert game.phase is Phase.NIGHT
-    assert game.ends_at == T.deal + 7 + T.night_step
+    skip(game)  # 入夜，第一步从 now=0 开始
+    game.tick(T.night_step - 0.001, NoShuffle(0))
+    assert game.night_index == 0
+
+
+def test_each_step_gets_its_full_time_from_when_it_starts():
+    game = a_game()
+    skip(game)  # 入夜，第一步从 now=0 开始
+    game.tick(T.night_step + 7, NoShuffle(0))  # 晚了 7 秒才 tick
+    assert game.night_index == 1
+    assert game.ends_at == T.night_step + 7 + T.night_step
 
 
 def test_the_deck_must_have_three_more_cards_than_players():
     with pytest.raises(RuleError) as error:
-        Game.deal(["p0", "p1", "p2"], [R.VILLAGER] * 5, T, 0, NoShuffle(0))
+        Game.deal(["p0", "p1", "p2"], [R.VILLAGER] * 5, T, NoShuffle(0))
     assert error.value.code is ErrorCode.DECK_SIZE

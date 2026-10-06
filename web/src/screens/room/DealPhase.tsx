@@ -1,4 +1,5 @@
-import { PeekRoleCard } from '@/components/game/PeekRole'
+import { useState } from 'react'
+import { RoleCard } from '@/components/game/RoleCard'
 import { SeatGrid, SeatTile } from '@/components/game/SeatGrid'
 import { SeatProgress } from '@/components/game/SeatStatus'
 import { PageContent, PageFooter } from '@/components/layout/Page'
@@ -13,13 +14,21 @@ export function DealPhase({ view, send }: PhaseProps) {
   const confirmed = new Set(view.deal?.confirmed)
   const card = view.me.card
   const done = confirmed.has(view.me.id)
+  const [revealed, setRevealed] = useState(false)
+  // 已经点过「我记住了」，比如刷新了页面，就直接翻开
+  const faceUp = revealed || done
 
   return (
     <>
       <PageContent>
         {card ? (
-          <Section title="你的身份" caption="按住查看，松手自动盖上">
-            <PeekRoleCard role={card} wakeOrder={wakeOrder(view.room.deck, card)} />
+          <Section title="你的身份">
+            <RoleCard
+              role={card}
+              wakeOrder={wakeOrder(view.room.deck, card)}
+              revealed={faceUp}
+              onReveal={() => setRevealed(true)}
+            />
           </Section>
         ) : (
           <PageTitle title="这一局已经开始了" description="等下一局吧" />
@@ -42,7 +51,12 @@ export function DealPhase({ view, send }: PhaseProps) {
 
       {card && (
         <PageFooter>
-          <Button size="xl" disabled={done} onClick={() => send({ type: 'confirm_card' })}>
+          {/* 先翻开看过才能点 */}
+          <Button
+            size="xl"
+            disabled={done || !faceUp}
+            onClick={() => send({ type: 'confirm_card' })}
+          >
             {done ? '等其他人看完…' : '我记住了'}
           </Button>
         </PageFooter>

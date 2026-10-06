@@ -1,10 +1,10 @@
 import pytest
 
-from app.domain.commands import Configure, NightAction, ReadyToVote, Start, Vote
+from app.domain.commands import Configure, ConfirmCard, NightAction, ReadyToVote, Start, Vote
 from app.domain.errors import RuleError
 from app.domain.recommended import recommended_deck
 from app.domain.room import Room
-from app.domain.types import Phase, SawCard, Settings
+from app.domain.types import Phase, SawCard, Settings, Timings
 from app.domain.types import RoleId as R
 from app.domain.views import view_for
 from tests.domain.helpers import NoShuffle, new_room
@@ -26,6 +26,10 @@ def advance_to(room: Room, phase: Phase, step: R | None = None) -> None:
     game = room.game
     assert game is not None
     while game.phase is not phase or (step is not None and game.night_role is not step):
+        if game.phase is Phase.DEAL:
+            for player in game.players:  # 看牌不限时，所有人都点了「我记住了」才入夜
+                room.handle(player, ConfirmCard(), 0, RNG)
+            continue
         if game.phase is Phase.DAY:
             for player in game.players:  # 白天不限时，所有人都同意投票才往下走
                 room.handle(player, ReadyToVote(), 0, RNG)
@@ -109,7 +113,9 @@ def test_the_reveal_opens_everything():
 
 def test_the_deadline_is_sent_in_milliseconds():
     room = started_room()
-    assert view_for(room, "p0").ends_at == 10_000
+    assert view_for(room, "p0").ends_at is None  # 看牌不限时
+    advance_to(room, Phase.NIGHT)  # 在 now=0 入夜
+    assert view_for(room, "p0").ends_at == Timings().night_step * 1000
 
 
 def test_non_members_get_no_view():

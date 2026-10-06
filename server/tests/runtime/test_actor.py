@@ -70,17 +70,24 @@ async def test_a_rejected_command_only_answers_the_sender(harness):
 async def test_the_clock_moves_the_game_forward(harness):
     await harness.join("p0", "p1", "p2")
     await harness.send("p0", Start())
-    await harness.advance()
-    assert {socket.view()["phase"] for socket in harness.sockets.values()} == {"night"}
+    for player in ("p0", "p1", "p2"):
+        await harness.send(player, ConfirmCard())
+    await harness.advance()  # 夜里第一步到点
+    assert {socket.view()["night"]["index"] for socket in harness.sockets.values()} == {2}
 
 
 async def test_a_command_that_arrives_after_the_deadline_sees_the_new_phase(harness):
     await harness.join("p0", "p1", "p2")
+    # 夜里只有狼这一步；p0 是独狼，可以看一张底牌
+    deck = [R.WEREWOLF, R.VILLAGER, R.VILLAGER, R.VILLAGER, R.HUNTER, R.WEREWOLF]
+    await harness.send("p0", Configure(settings=Settings(deck=deck)))
     await harness.send("p0", Start())
-    harness.clock.now += 60  # 发牌早就该结束了，但 actor 还没醒
-    await harness.send("p1", ConfirmCard())
-    assert harness.sockets["p1"].errors() == ["wrong_phase"]
-    assert harness.sockets["p1"].view()["phase"] == "night"
+    for player in ("p0", "p1", "p2"):
+        await harness.send(player, ConfirmCard())
+    harness.clock.now += 60  # 狼的那一步早就该结束了，但 actor 还没醒
+    await harness.send("p0", NightAction(targets=["C0"]))
+    assert harness.sockets["p0"].errors() == ["wrong_phase"]
+    assert harness.sockets["p0"].view()["phase"] == "day"
 
 
 async def test_disconnecting_shows_you_offline_to_everyone_else(harness):

@@ -181,7 +181,7 @@ class Room(BaseModel):
         if not all(m.online for m in self.members):
             raise RuleError(ErrorCode.PLAYERS_OFFLINE)
         players = [m.id for m in self.members]
-        self.game = Game.deal(players, self.deck(), self.settings.timings, now, rng)
+        self.game = Game.deal(players, self.deck(), self.settings.timings, rng)
 
     def _leave(self, player: PlayerId, now: float) -> None:
         """正在对局的人只算离线，座位保留到这局结束；其他情况直接移出。"""

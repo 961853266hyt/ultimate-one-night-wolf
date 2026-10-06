@@ -47,7 +47,6 @@ class Game(BaseModel):
         players: list[PlayerId],
         deck: list[RoleId],
         timings: Timings,
-        now: float,
         rng: random.Random,
     ) -> Self:
         if len(deck) != len(players) + len(CENTER):
@@ -55,12 +54,12 @@ class Game(BaseModel):
         cards = list(deck)
         rng.shuffle(cards)
         dealt = dict(zip([*players, *CENTER], cards, strict=True))
+        # 看牌不限时，所有人都点了「我记住了」才入夜
         return cls(
             players=list(players),
             timings=timings,
             dealt=dealt,
             cards=dict(dealt),
-            ends_at=now + timings.deal,
             night_plan=night.plan_for(deck),
         )
 
@@ -127,19 +126,15 @@ class Game(BaseModel):
     # ------------------------------------------------------------ 时钟
 
     def tick(self, now: float, rng: random.Random) -> None:
-        """到了截止时间就推进一个阶段，新阶段从 now 开始计时。"""
-        if self.ends_at is None or now < self.ends_at:
+        """夜里这一步到了截止时间就进入下一步，新的一步从 now 开始计时。只有夜里限时。"""
+        if self.phase is not Phase.NIGHT or self.ends_at is None or now < self.ends_at:
             return
-        match self.phase:
-            case Phase.DEAL:
-                self._enter_night(now)
-            case Phase.NIGHT:
-                self._finish_step(rng)
-                if self.night_index + 1 < len(self.night_plan):
-                    self.night_index += 1
-                    self._enter_step(now)
-                else:
-                    self._end_night(now)
+        self._finish_step(rng)
+        if self.night_index + 1 < len(self.night_plan):
+            self.night_index += 1
+            self._enter_step(now)
+        else:
+            self._end_night(now)
 
     # ------------------------------------------------------------ 内部
 

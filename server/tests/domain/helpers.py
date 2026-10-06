@@ -12,14 +12,21 @@ class NoShuffle(random.Random):
         pass
 
 
-def new_game(*roles: RoleId, now: float = 0) -> Game:
+def new_game(*roles: RoleId) -> Game:
     """roles 依次是 p0、p1……的牌，最后 3 张是底牌 C0、C1、C2。"""
     players = [f"p{i}" for i in range(len(roles) - 3)]
-    return Game.deal(players, list(roles), Timings(), now, NoShuffle(0))
+    return Game.deal(players, list(roles), Timings(), NoShuffle(0))
 
 
 def skip(game: Game) -> float:
-    """跳到当前阶段的截止时间并推进，返回新的 now。"""
+    """推进到下一个阶段或夜里的下一步，返回新的 now。
+
+    看牌不限时，所有人在 now=0 点「我记住了」；夜里跳到这一步的截止时间。
+    """
+    if game.phase is Phase.DEAL:
+        for player in game.players:
+            game.confirm_card(player, now=0)
+        return 0.0
     now = game.ends_at
     assert now is not None
     game.tick(now, NoShuffle(0))

@@ -43,10 +43,9 @@ class Phase(StrEnum):
 
 
 class Timings(BaseModel):
-    """各阶段时长，单位秒。白天讨论和投票都不限时，所以只有看牌和夜里每一步。"""
+    """各阶段时长，单位秒。看牌、白天讨论和投票都不限时，所以只有夜里每一步。"""
 
-    deal: int = Field(default=10, ge=3, le=60)
-    night_step: int = Field(default=12, ge=5, le=60)
+    night_step: int = Field(default=20, ge=5, le=60)
 
 
 class Settings(BaseModel):

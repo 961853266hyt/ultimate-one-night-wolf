@@ -6,24 +6,32 @@ import { TeamDot } from './RoleText'
 
 interface RoleCardProps {
   role: RoleId
-  faceUp: boolean
   /** 这局夜里第几个醒；夜里不醒就是 null。 */
   wakeOrder: number | null
+  revealed: boolean
+  onReveal: () => void
 }
 
-/** 一张大的身份牌。扣着时是牌背，翻开时是角色、阵营和能力说明。 */
-export function RoleCard({ role, faceUp, wakeOrder }: RoleCardProps) {
-  if (!faceUp) {
+/** 看牌阶段的大身份牌。扣着时点一下翻开，翻开后一直开着：角色、阵营和能力说明。 */
+export function RoleCard({ role, wakeOrder, revealed, onReveal }: RoleCardProps) {
+  if (!revealed) {
     return (
-      <CardBack className="h-74 w-60 rounded-2xl" iconClassName="size-9">
-        <span className="text-xs text-background/60">按住查看</span>
-      </CardBack>
+      <button
+        type="button"
+        onClick={onReveal}
+        aria-label="翻开你的身份"
+        className="rounded-2xl outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+      >
+        <CardBack className="h-74 w-60 rounded-2xl" iconClassName="size-9">
+          <span className="text-xs text-background/60">点一下翻开</span>
+        </CardBack>
+      </button>
     )
   }
 
   const { name, team, ability } = ROLES[role]
   return (
-    <div className="flex h-74 w-60 flex-col rounded-2xl border border-foreground bg-background p-4">
+    <div className="flex h-74 w-60 flex-col rounded-2xl border border-foreground bg-background p-4 duration-300 animate-in fade-in-0 zoom-in-95 motion-reduce:animate-none">
       <div className="flex items-center justify-between text-xs text-muted-foreground">
         <span className="inline-flex items-center gap-1.5">
           <TeamDot team={team} />

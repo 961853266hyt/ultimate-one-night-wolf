@@ -31,6 +31,9 @@ def finish_game(room: Room) -> None:
     """用最快的方式把房间里的这一局打到揭晓。"""
     game = room.game
     assert game is not None
+    if game.phase is Phase.DEAL:
+        for player in game.players:  # 看牌不限时，所有人都点了「我记住了」才入夜
+            room.handle(player, ConfirmCard(), 0, RNG)
     while game.phase is not Phase.DAY:
         assert game.ends_at is not None
         room.tick(game.ends_at, RNG)
