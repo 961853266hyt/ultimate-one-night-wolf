@@ -6,6 +6,7 @@ from app.domain.commands import (
     Kick,
     Leave,
     NightAction,
+    ReadyToVote,
     Rematch,
     Start,
     Vote,
@@ -30,9 +31,11 @@ def finish_game(room: Room) -> None:
     """用最快的方式把房间里的这一局打到揭晓。"""
     game = room.game
     assert game is not None
-    while game.phase is not Phase.VOTE:
+    while game.phase is not Phase.DAY:
         assert game.ends_at is not None
         room.tick(game.ends_at, RNG)
+    for player in game.players:
+        room.handle(player, ReadyToVote(), 0, RNG)
     for i, voter in enumerate(game.players):
         room.handle(voter, Vote(target=game.players[i - 1]), 0, RNG)
 

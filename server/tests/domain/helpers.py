@@ -34,8 +34,13 @@ def night_until(game: Game, role: RoleId) -> None:
 
 
 def until_phase(game: Game, phase: Phase) -> None:
+    now = 0.0
     while game.phase is not phase:
-        skip(game)
+        if game.phase is Phase.DAY:
+            for player in game.players:  # 白天不限时，所有人都同意投票才往下走
+                game.ready_to_vote(player, now)
+        else:
+            now = skip(game)
 
 
 def new_room(n: int, now: float = 0) -> Room:

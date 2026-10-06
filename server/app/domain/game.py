@@ -138,10 +138,6 @@ class Game(BaseModel):
                     self._enter_step(now)
                 else:
                     self._enter_day(now)
-            case Phase.DAY:
-                self._enter_vote(now)
-            case Phase.VOTE:
-                self._reveal()
 
     # ------------------------------------------------------------ 内部
 
@@ -186,11 +182,11 @@ class Game(BaseModel):
 
     def _enter_day(self, now: float) -> None:
         self.phase = Phase.DAY
-        self.ends_at = now + self.timings.day
+        self.ends_at = None  # 讨论不限时，所有人都同意投票才进入投票
 
     def _enter_vote(self, now: float) -> None:
         self.phase = Phase.VOTE
-        self.ends_at = now + self.timings.vote
+        self.ends_at = None  # 投票也不限时，所有人都投完才揭晓
 
     def _reveal(self) -> None:
         self.result = rules.resolve(self.cards, self.players, self.votes)

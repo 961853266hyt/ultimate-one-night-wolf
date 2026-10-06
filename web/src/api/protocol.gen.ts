@@ -61,13 +61,11 @@ export interface Settings {
   timings: Timings;
 }
 /**
- * 各阶段时长，单位秒。
+ * 各阶段时长，单位秒。白天讨论和投票都不限时，所以只有看牌和夜里每一步。
  */
 export interface Timings {
   deal: number;
   night_step: number;
-  day: number;
-  vote: number;
 }
 export interface Kick {
   type: "kick";

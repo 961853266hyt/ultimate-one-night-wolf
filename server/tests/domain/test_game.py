@@ -4,7 +4,7 @@ from app.domain.errors import ErrorCode, RuleError
 from app.domain.game import Game
 from app.domain.types import Phase, Team, Timings
 from app.domain.types import RoleId as R
-from tests.domain.helpers import NoShuffle, new_game, night_until, skip, until_phase
+from tests.domain.helpers import NoShuffle, new_game, night_until, until_phase
 
 T = Timings()
 
@@ -54,16 +54,24 @@ def test_the_day_ends_once_everyone_is_ready_to_vote():
     for player in game.players:
         game.ready_to_vote(player, now=500)
     assert game.phase is Phase.VOTE
-    assert game.ends_at == 500 + T.vote
+    assert game.ends_at is None
 
 
-def test_voting_also_ends_when_time_runs_out():
+def test_the_day_has_no_time_limit():
+    game = a_game()
+    until_phase(game, Phase.DAY)
+    assert game.ends_at is None
+    game.tick(10**9, NoShuffle(0))
+    assert game.phase is Phase.DAY
+
+
+def test_voting_has_no_time_limit():
     game = a_game()
     until_phase(game, Phase.VOTE)
     game.vote("p1", "p0", now=1000)
-    skip(game)
-    assert game.phase is Phase.REVEAL
     assert game.ends_at is None
+    game.tick(10**9, NoShuffle(0))
+    assert game.phase is Phase.VOTE
 
 
 @pytest.mark.parametrize("target", ["p0", "p9"])
@@ -99,11 +107,9 @@ def test_ticks_before_the_deadline_change_nothing():
 
 def test_each_phase_gets_its_full_time_from_when_it_starts():
     game = a_game()
-    until_phase(game, Phase.DAY)
-    deadline = game.ends_at
-    assert deadline is not None
-    game.tick(deadline + 7, NoShuffle(0))  # 晚了 7 秒才 tick
-    assert game.ends_at == deadline + 7 + T.vote
+    game.tick(T.deal + 7, NoShuffle(0))  # 晚了 7 秒才 tick
+    assert game.phase is Phase.NIGHT
+    assert game.ends_at == T.deal + 7 + T.night_step
 
 
 def test_the_deck_must_have_three_more_cards_than_players():

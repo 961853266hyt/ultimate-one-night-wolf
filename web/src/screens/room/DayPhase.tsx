@@ -35,7 +35,7 @@ export function DayPhase({ view, send }: PhaseProps) {
           </Section>
         )}
 
-        <Section title="座位" caption={`${ready.size}/${seats.length} 准备投票 · 全部准备好就提前投票`}>
+        <Section title="座位" caption={`${ready.size}/${seats.length} 准备投票 · 都准备好就开始投票`}>
           <SeatGrid>
             {seats.map((seat) => (
               <SeatTile
