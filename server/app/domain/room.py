@@ -20,34 +20,13 @@ from .commands import (
 )
 from .errors import ErrorCode, RuleError
 from .game import Game
+from .recommended import recommended_deck
 from .roles import ROLES
 from .types import CENTER, MAX_PLAYERS, MIN_PLAYERS, Phase, PlayerId, RoleId, Settings
 
 HOST_GRACE = 30  # 房主离线这么久之后，转给下一个在线的人（秒）
 LOBBY_GRACE = 120  # 大厅里离线这么久之后，移出房间
 EMPTY_TTL = 600  # 所有人都离线这么久之后，房间可以销毁
-
-# 自动推荐的牌堆：按人数取前 n + 3 张。守夜人要成对才好玩，所以只在自定义配牌里出现。
-RECOMMENDED: list[RoleId] = [
-    RoleId.WEREWOLF,
-    RoleId.WEREWOLF,
-    RoleId.SEER,
-    RoleId.ROBBER,
-    RoleId.TROUBLEMAKER,
-    RoleId.VILLAGER,
-    RoleId.DRUNK,
-    RoleId.INSOMNIAC,
-    RoleId.MINION,
-    RoleId.TANNER,
-    RoleId.HUNTER,
-    RoleId.VILLAGER,
-    RoleId.VILLAGER,
-]
-
-
-def recommended_deck(n_players: int) -> list[RoleId]:
-    n = min(max(n_players, MIN_PLAYERS), MAX_PLAYERS)
-    return RECOMMENDED[: n + len(CENTER)]
 
 
 class Member(BaseModel):

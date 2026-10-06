@@ -120,6 +120,7 @@ export interface RoomView {
   members: MemberView[];
   deck: RoleId[];
   auto_deck: boolean;
+  recommended_deck: RoleId[];
   timings: Timings;
 }
 export interface MemberView {

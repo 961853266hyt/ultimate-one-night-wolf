@@ -8,7 +8,7 @@ import { useState } from 'react'
 import type { RoleId } from '@/api/types'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
-import { boxCardsOf, CARD_BOX, deckOf, recommendedDeck, sameRoles } from '@/game/deck'
+import { boxCardsOf, CARD_BOX, deckOf, sameRoles } from '@/game/deck'
 import { deckSizeFor, MAX_DECK, MIN_DECK } from '@/game/lobby'
 import { cn } from '@/lib/utils'
 import { ROLES } from '@/roles/catalog'
@@ -21,11 +21,13 @@ interface DeckEditorProps {
   deck: readonly RoleId[]
   /** 现在有几个人，决定要几张牌。 */
   players: number
+  /** 按现在的人数推荐的牌，服务端给的。 */
+  recommended: readonly RoleId[]
   /** 点「完成」时调用。和按人数推荐的一样时传 null，之后有人进出，牌会自动跟着变。 */
   onSave: (deck: RoleId[] | null) => void
 }
 
-export function DeckEditor({ open, onOpenChange, deck, players, onSave }: DeckEditorProps) {
+export function DeckEditor({ open, onOpenChange, deck, players, recommended, onSave }: DeckEditorProps) {
   return (
     <Drawer open={open} onOpenChange={onOpenChange} showSwipeHandle>
       <DrawerContent className="mx-auto w-full max-w-md">
@@ -33,6 +35,7 @@ export function DeckEditor({ open, onOpenChange, deck, players, onSave }: DeckEd
         <DeckEditorBody
           deck={deck}
           players={players}
+          recommended={recommended}
           onSave={(next) => {
             onSave(next)
             onOpenChange(false)
@@ -50,17 +53,12 @@ function idsOf(deck: readonly RoleId[]): string[] {
 
 const SECTION_LABEL = 'text-[13px] font-semibold text-muted-foreground'
 
-interface BodyProps {
-  deck: readonly RoleId[]
-  players: number
-  onSave: (deck: RoleId[] | null) => void
-}
+type BodyProps = Pick<DeckEditorProps, 'deck' | 'players' | 'recommended' | 'onSave'>
 
-function DeckEditorBody({ deck, players, onSave }: BodyProps) {
+function DeckEditorBody({ deck, players, recommended, onSave }: BodyProps) {
   // 存牌盒里的 id 而不是角色：同一种角色的几张也分得清，牌库里点了哪张，就是哪张空出来
   const [picked, setPicked] = useState(() => idsOf(deck))
   const need = deckSizeFor(players)
-  const recommended = recommendedDeck(players)
   const chosen = deckOf(picked)
   const isRecommended = sameRoles(chosen, recommended)
   const missing = need - picked.length

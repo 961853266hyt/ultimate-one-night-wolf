@@ -6,7 +6,6 @@
  */
 import type { RoleId } from '@/api/types'
 import { ROLES } from '@/roles/catalog'
-import { deckSizeFor } from './lobby'
 
 /** 牌盒里的一张牌。 */
 export interface BoxCard {
@@ -36,28 +35,6 @@ export function boxCardsOf(deck: readonly RoleId[]): BoxCard[] {
 /** 选中的几张牌，变回服务端要的牌堆。 */
 export function deckOf(cardIds: readonly string[]): RoleId[] {
   return CARD_BOX.filter((card) => cardIds.includes(card.id)).map((card) => card.role)
-}
-
-/** 按人数推荐时依次放进去的牌。和服务端 server/app/domain/room.py 的 RECOMMENDED 保持一致。 */
-const RECOMMENDED: readonly RoleId[] = [
-  'werewolf',
-  'werewolf',
-  'seer',
-  'robber',
-  'troublemaker',
-  'villager',
-  'drunk',
-  'insomniac',
-  'minion',
-  'tanner',
-  'hunter',
-  'villager',
-  'villager',
-]
-
-/** 按人数推荐的牌堆：从上面的列表里按顺序取够张数。 */
-export function recommendedDeck(players: number): RoleId[] {
-  return RECOMMENDED.slice(0, deckSizeFor(players))
 }
 
 /** 两副牌的角色和张数都一样，不管顺序。 */

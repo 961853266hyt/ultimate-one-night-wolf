@@ -15,7 +15,7 @@ import { inviteFriends } from './invite'
 import type { PhaseProps } from './types'
 
 export function LobbyPhase({ view, send }: PhaseProps) {
-  const { code, deck, auto_deck: autoDeck, timings } = view.room
+  const { code, deck, auto_deck: autoDeck, recommended_deck: recommendedDeck, timings } = view.room
   const seats = seatsOf(view)
   const isHost = view.me.id === view.room.host
   const need = deckSizeFor(seats.length)
@@ -118,6 +118,7 @@ export function LobbyPhase({ view, send }: PhaseProps) {
         onOpenChange={setEditingDeck}
         deck={deck}
         players={seats.length}
+        recommended={recommendedDeck}
         onSave={saveDeck}
       />
     </>
