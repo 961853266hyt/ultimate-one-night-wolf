@@ -14,11 +14,13 @@ MAX_PLAYERS = 10
 
 
 class RoleId(StrEnum):
+    DOPPELGANGER = "doppelganger"
     WEREWOLF = "werewolf"
     MINION = "minion"
     MASON = "mason"
     SEER = "seer"
     ROBBER = "robber"
+    WITCH = "witch"
     TROUBLEMAKER = "troublemaker"
     DRUNK = "drunk"
     INSOMNIAC = "insomniac"
@@ -82,17 +84,27 @@ class Swapped(BaseModel):
     slots: tuple[Slot, Slot]
 
 
-Knowledge = Annotated[SawCard | SawPlayers | Swapped, Field(discriminator="type")]
+class Copied(BaseModel):
+    """化身幽灵看了 slot 上的牌，变成了 role。"""
+
+    type: Literal["copied"] = "copied"
+    step: RoleId
+    slot: Slot
+    role: RoleId
+
+
+Knowledge = Annotated[SawCard | SawPlayers | Swapped | Copied, Field(discriminator="type")]
 
 
 # ---------------------------------------------------------------- 夜里能做的选择
 
 
 class TargetOption(BaseModel):
-    """选 count 个目标。player 指其他玩家（不含自己），center 指底牌。"""
+    """选 count 个目标。player 指其他玩家，include_self 时也可以选自己；center 指底牌。"""
 
     kind: Literal["player", "center"]
     count: int
+    include_self: bool = False
 
 
 class Prompt(BaseModel):

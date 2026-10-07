@@ -4,6 +4,7 @@ from .base import Role, Table
 
 class Drunk(Role):
     id = RoleId.DRUNK
+    acts_with_doppelganger = True
 
     def choices(self, table: Table, me: PlayerId) -> Prompt | None:
         return Prompt(options=[TargetOption(kind="center", count=1)], required=True)

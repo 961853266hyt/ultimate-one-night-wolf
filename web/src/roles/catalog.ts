@@ -8,6 +8,8 @@ import {
   AlarmClock,
   Crosshair,
   Eye,
+  FlaskRound,
+  Ghost,
   Hammer,
   HandCoins,
   Handshake,
@@ -18,7 +20,7 @@ import {
   Wine,
   type LucideIcon,
 } from 'lucide-react'
-import type { RoleId, Team } from '@/api/types'
+import type { Prompt, RoleId, Team } from '@/api/types'
 
 export interface RoleInfo {
   name: string
@@ -33,15 +35,30 @@ export interface RoleInfo {
   notes?: readonly string[]
   /** 一局最多放几张，和服务端的 max_copies 一致。 */
   maxCopies: number
-  /**
-   * 揭晓时怎么描述这个角色夜里做的事，targets 是目标的称呼，比如「2 号阿杰」「A 号底牌」。
-   * 只看牌、不动牌的角色不用写：看到了什么会自动补上。
-   */
-  describeAction?: (targets: string[]) => string
+  /** 夜里轮到你时的提示。不写就按 Prompt 自动生成，比如「选 1 名其他玩家」。 */
+  promptHint?: (prompt: Prompt) => string
+  /** 阵营不固定时，代替阵营名显示的说明，比如化身幽灵。 */
+  teamNote?: string
 }
 
 // 顺序就是界面上的排列顺序：先按夜里醒来的顺序，不醒的放最后。配牌时的牌库就按这个顺序摆
 export const ROLES: Record<RoleId, RoleInfo> = {
+  doppelganger: {
+    name: '化身幽灵',
+    team: 'village', // 没化身时算好人；化身之后跟着化身成的角色走
+    teamNote: '阵营跟着化身的角色',
+    icon: Ghost,
+    summary: '看 1 名玩家的牌，变成那个角色',
+    ability:
+      '夜晚在其他角色之前睁眼，查看一名玩家的牌，化身为看到的角色（获得其技能，但是自己还是保持化身幽灵的卡牌）。如果看到的是狼人、爪牙、守夜人、失眠者，则夜晚与其一起睁眼操作；如果看到的是其他有技能的角色，则立即执行操作。',
+    notes: [
+      '化身幽灵的阵营，与其化身的角色一致。',
+      '如果化身为狼人，则在狼人阶段与狼队友一起睁眼操作。',
+      '如果化身为强盗，并且抢到狼人卡牌，化身幽灵不会在狼人阶段一起睁眼操作。',
+    ],
+    maxCopies: 1,
+    promptHint: () => '看 1 名其他玩家的牌，你就变成那个角色（必须选）',
+  },
   werewolf: {
     name: '狼人',
     team: 'werewolf',
@@ -84,7 +101,22 @@ export const ROLES: Record<RoleId, RoleInfo> = {
     ability: '夜里可以和一名其他玩家换牌，然后看看你换到了什么。',
     notes: ['换到的牌决定你最后的阵营。被换的人拿到强盗牌，自己并不知道。'],
     maxCopies: 1,
-    describeAction: ([target]) => `和${target}换了牌`,
+  },
+  witch: {
+    name: '女巫',
+    team: 'village',
+    icon: FlaskRound,
+    summary: '看 1 张底牌，再把它换给任意一人',
+    ability: '夜里可以看一张底牌。看了就必须把这张牌和任意一名玩家的牌交换，也可以换给自己。',
+    notes: [
+      '换给自己，你就成了那张牌的角色；换给别人，他自己并不知道。',
+      '看了却到时间还没换，系统会随机替你选一名玩家。',
+    ],
+    maxCopies: 1,
+    promptHint: (prompt) =>
+      prompt.options[0]?.kind === 'center'
+        ? '可以看 1 张底牌，看了就必须把它换给一名玩家（也可以是你自己）'
+        : '把刚看的底牌换给一名玩家，也可以换给自己（必须选）',
   },
   troublemaker: {
     name: '捣蛋鬼',
@@ -94,7 +126,6 @@ export const ROLES: Record<RoleId, RoleInfo> = {
     ability: '夜里可以交换另外两名玩家的牌，但不能看。',
     notes: ['被交换的两个人都不知道自己的牌变了。'],
     maxCopies: 1,
-    describeAction: (targets) => `交换了${targets.join('和')}的牌`,
   },
   drunk: {
     name: '酒鬼',
@@ -104,7 +135,6 @@ export const ROLES: Record<RoleId, RoleInfo> = {
     ability: '夜里必须把自己的牌和一张底牌交换，并且不能看换到了什么。',
     notes: ['到时间还没选，系统会随机替你选一张。'],
     maxCopies: 1,
-    describeAction: ([target]) => `和${target}换了牌`,
   },
   insomniac: {
     name: '失眠者',

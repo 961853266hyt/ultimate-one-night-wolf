@@ -26,9 +26,17 @@ export function isComplete(prompt: Prompt, selected: string[]): boolean {
   )
 }
 
+/** 能不能选自己的座位，比如女巫可以把底牌换给自己。 */
+export function canPickSelf(prompt: Prompt): boolean {
+  return prompt.options.some((option) => option.kind === 'player' && option.include_self)
+}
+
 export function describePrompt(prompt: Prompt): string {
-  const choices = prompt.options.map(
-    (option) => `${option.count} ${option.kind === 'player' ? '名其他玩家' : '张底牌'}`,
-  )
+  const choices = prompt.options.map((option) => `${option.count} ${noun(option)}`)
   return `选 ${choices.join('，或者 ')}${prompt.required ? '（必须选）' : ''}`
+}
+
+function noun(option: TargetOption): string {
+  if (option.kind === 'center') return '张底牌'
+  return option.include_self ? '名玩家（可以是你自己）' : '名其他玩家'
 }

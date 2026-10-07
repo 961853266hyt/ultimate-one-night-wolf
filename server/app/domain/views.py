@@ -60,6 +60,7 @@ class VoteView(BaseModel):
 class ResultView(BaseModel):
     dealt: dict[Slot, RoleId]
     final: dict[Slot, RoleId]
+    doppelganger: RoleId | None  # 化身幽灵化身成的角色；谁最后拿着化身幽灵的牌，谁就算这个角色
     knowledge: dict[PlayerId, list[Knowledge]]
     night_log: list[NightLogEntry]
     votes: dict[PlayerId, PlayerId]
@@ -147,6 +148,7 @@ def _result_view(game: Game) -> ResultView:
     return ResultView(
         dealt=game.dealt,
         final=game.cards,
+        doppelganger=next(iter(game.copies.values()), None),
         knowledge=game.knowledge,
         night_log=game.night_log,
         votes=game.votes,
