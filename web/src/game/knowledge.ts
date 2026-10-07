@@ -1,5 +1,5 @@
 /** 夜里得到的信息，变成给人看的「线索」。 */
-import type { Knowledge, PlayerView, RoleId } from '@/api/types'
+import { CENTER, type Copied, type Knowledge, type PlayerView, type RoleId } from '@/api/types'
 import { mention, type Phrase } from './phrase'
 import { slotLabeler, type SlotLabeler } from './seats'
 
@@ -40,6 +40,20 @@ export function describeKnowledge(fact: Knowledge, me: string, label: SlotLabele
       return [`你交换了${label(a)}和${label(b)}的牌`]
     }
     case 'copied':
-      return [`你看了${label(fact.slot)}的牌，化身成了`, mention(fact.role)]
+      return ['你', ...describeCopy(fact, label)]
   }
+}
+
+/**
+ * 「看了 A 号底牌，变成了狼人」（模仿者）、「看了 2 号阿杰的牌，化身成了预言家」（化身幽灵）。
+ * 前面不带主语，线索里补「你」，夜间记录里补是谁。
+ */
+export function describeCopy(fact: Copied, label: SlotLabeler): Phrase {
+  const looked = isCenter(fact.slot) ? label(fact.slot) : `${label(fact.slot)}的牌`
+  const became = fact.step === 'copycat' ? '变成了' : '化身成了'
+  return [`看了${looked}，${became}`, mention(fact.role)]
+}
+
+function isCenter(slot: string): boolean {
+  return (CENTER as readonly string[]).includes(slot)
 }

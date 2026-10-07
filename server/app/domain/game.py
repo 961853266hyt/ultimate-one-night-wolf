@@ -37,7 +37,8 @@ class Game(BaseModel):
     acted: set[PlayerId] = Field(default_factory=set)  # 当前这一步里行动过的人
     knowledge: dict[PlayerId, list[Knowledge]] = Field(default_factory=dict)
     night_log: list[NightLogEntry] = Field(default_factory=list)
-    copies: dict[PlayerId, RoleId] = Field(default_factory=dict)  # 化身幽灵化身成了什么
+    # 模仿者、化身幽灵变成过的角色，按先后。模仿者模仿了底牌里的化身幽灵，再去化身，就会变两次
+    copies: dict[PlayerId, list[RoleId]] = Field(default_factory=dict)
     confirmed: set[PlayerId] = Field(default_factory=set)  # deal 阶段看好牌的人
     ready: set[PlayerId] = Field(default_factory=set)  # day 阶段同意投票的人
     votes: dict[PlayerId, PlayerId] = Field(default_factory=dict)
@@ -72,8 +73,9 @@ class Game(BaseModel):
         return self.night_plan[self.night_index] if self.phase is Phase.NIGHT else None
 
     def acting_role(self, player: PlayerId) -> RoleId:
-        """夜里以什么身份行动：发到的牌，而不是现在手里的牌；化身幽灵化身之后是化身成的角色。"""
-        return self.copies.get(player, self.dealt[player])
+        """夜里以什么身份行动：发到的牌，而不是现在手里的牌；模仿者、化身幽灵变过之后是最后变成的角色。"""
+        became = self.copies.get(player)
+        return became[-1] if became else self.dealt[player]
 
     def players_acting_as(self, role: RoleId) -> list[PlayerId]:
         return [p for p in self.players if self.acting_role(p) == role]
@@ -82,9 +84,12 @@ class Game(BaseModel):
         role = self.night_role
         if role is None:
             return []
+        # 模仿者、化身幽灵那一步按「是不是这个角色」算，不按现在的身份：变了之后，
+        # 化身幽灵还要接着做化身成的角色的事
+        if role is RoleId.COPYCAT:
+            return [p for p in self.players if self.dealt[p] is RoleId.COPYCAT]
         if role is RoleId.DOPPELGANGER:
-            # 按发到的牌算：化身之后还要接着做化身成的角色的事
-            return [p for p in self.players if self.dealt[p] is RoleId.DOPPELGANGER]
+            return [p for p in self.players if self._is_doppelganger(p)]
         return [p for p in self.players_acting_as(role) if not self._acted_with_doppelganger(p)]
 
     def my_actions(self, player: PlayerId) -> list[list[Slot]]:
@@ -92,13 +97,25 @@ class Game(BaseModel):
         step = self.night_role
         return [e.targets for e in self.night_log if e.step is step and e.player == player]
 
+    def counts_as(self) -> dict[RoleId, RoleId]:
+        """模仿者、化身幽灵的牌最后算作什么：发到这张牌的人最后变成的角色。没变过的不在里面。
+
+        化身幽灵化身成了模仿者，就算模仿者变成的角色。
+        """
+        became = {self.dealt[p]: roles[-1] for p, roles in self.copies.items()}
+        resolved: dict[RoleId, RoleId] = {}
+        for card, role in became.items():
+            seen = {card}
+            while role in became and role not in seen:
+                seen.add(role)
+                role = became[role]
+            resolved[card] = role
+        return resolved
+
     def final_roles(self) -> dict[Slot, RoleId]:
-        """算胜负用的牌：化身幽灵的牌算作他化身成的角色，谁拿着都一样。"""
-        copied = next(iter(self.copies.values()), None)
-        if copied is None:
-            return dict(self.cards)
-        doppel = RoleId.DOPPELGANGER
-        return {slot: copied if role is doppel else role for slot, role in self.cards.items()}
+        """算胜负用的牌：模仿者、化身幽灵的牌算作他们变成的角色，谁最后拿着都一样。"""
+        counts = self.counts_as()
+        return {slot: counts.get(role, role) for slot, role in self.cards.items()}
 
     def prompt_for(self, player: PlayerId) -> Prompt | None:
         role = self.night_role
@@ -110,7 +127,7 @@ class Game(BaseModel):
         self.cards[a], self.cards[b] = self.cards[b], self.cards[a]
 
     def become(self, player: PlayerId, role: RoleId) -> None:
-        self.copies[player] = role
+        self.copies.setdefault(player, []).append(role)
 
     # ------------------------------------------------------------ 玩家指令
 
@@ -175,10 +192,19 @@ class Game(BaseModel):
         self.night_index = 0
         self._enter_step(now)
 
+    def _is_doppelganger(self, player: PlayerId) -> bool:
+        """发到化身幽灵的，或者模仿者模仿了底牌里的化身幽灵。"""
+        doppel = RoleId.DOPPELGANGER
+        return self.dealt[player] is doppel or doppel in self.copies.get(player, [])
+
     def _acted_with_doppelganger(self, player: PlayerId) -> bool:
-        """化身成预言家这类角色的，在化身幽灵那一步已经做过了，到那个角色那一步不再醒。"""
-        copied = self.copies.get(player)
-        return copied is not None and ROLES[copied].acts_with_doppelganger
+        """化身成预言家这类角色的，在化身幽灵那一步已经做过了，到那个角色那一步不再醒。
+
+        模仿者模仿成预言家不算：她就是要到预言家那一步才醒。
+        """
+        return (
+            self._is_doppelganger(player) and ROLES[self.acting_role(player)].acts_with_doppelganger
+        )
 
     def _enter_step(self, now: float) -> None:
         self.acted = set()
