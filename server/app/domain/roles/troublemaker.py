@@ -4,6 +4,7 @@ from .base import Role, Table
 
 class Troublemaker(Role):
     id = RoleId.TROUBLEMAKER
+    acts_with_doppelganger = True
 
     def choices(self, table: Table, me: PlayerId) -> Prompt | None:
         return Prompt(options=[TargetOption(kind="player", count=2)])

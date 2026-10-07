@@ -9,6 +9,7 @@ from .types import CENTER, PlayerId, Prompt, RoleId, Slot, TargetOption
 # 夜里的唤醒顺序，照官方规则书。不在这里的角色夜里不醒。
 # 位置就是顺序：新角色要排在谁后面，就插在谁的下一行。
 NIGHT_ORDER: tuple[RoleId, ...] = (
+    RoleId.DOPPELGANGER,
     RoleId.WEREWOLF,
     RoleId.MINION,
     RoleId.MASON,

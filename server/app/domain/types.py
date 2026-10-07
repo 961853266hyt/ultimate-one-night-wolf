@@ -14,6 +14,7 @@ MAX_PLAYERS = 10
 
 
 class RoleId(StrEnum):
+    DOPPELGANGER = "doppelganger"
     WEREWOLF = "werewolf"
     MINION = "minion"
     MASON = "mason"
@@ -83,7 +84,16 @@ class Swapped(BaseModel):
     slots: tuple[Slot, Slot]
 
 
-Knowledge = Annotated[SawCard | SawPlayers | Swapped, Field(discriminator="type")]
+class Copied(BaseModel):
+    """化身幽灵看了 slot 上的牌，变成了 role。"""
+
+    type: Literal["copied"] = "copied"
+    step: RoleId
+    slot: Slot
+    role: RoleId
+
+
+Knowledge = Annotated[SawCard | SawPlayers | Swapped | Copied, Field(discriminator="type")]
 
 
 # ---------------------------------------------------------------- 夜里能做的选择

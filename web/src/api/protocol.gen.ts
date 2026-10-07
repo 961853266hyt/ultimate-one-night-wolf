@@ -8,6 +8,7 @@
 export type ClientMessage =
   Hello | Configure | Kick | Start | Leave | ConfirmCard | NightAction | ReadyToVote | Vote | Rematch;
 export type RoleId =
+  | "doppelganger"
   | "werewolf"
   | "minion"
   | "mason"
@@ -131,7 +132,7 @@ export interface MeView {
   id: string;
   seat: number | null;
   card: RoleId | null;
-  knowledge: (SawCard | SawPlayers | Swapped)[];
+  knowledge: (SawCard | SawPlayers | Swapped | Copied)[];
 }
 /**
  * 看到了某个位置上的牌。
@@ -162,6 +163,15 @@ export interface Swapped {
    * @maxItems 2
    */
   slots: [string, string];
+}
+/**
+ * 化身幽灵看了 slot 上的牌，变成了 role。
+ */
+export interface Copied {
+  type: "copied";
+  step: RoleId;
+  slot: string;
+  role: RoleId;
 }
 /**
  * 玩家此刻能做的选择：从 options 里挑一种。required 的选择超时后由系统随机代选。
@@ -200,8 +210,9 @@ export interface ResultView {
   final: {
     [k: string]: RoleId;
   };
+  doppelganger: RoleId | null;
   knowledge: {
-    [k: string]: (SawCard | SawPlayers | Swapped)[];
+    [k: string]: (SawCard | SawPlayers | Swapped | Copied)[];
   };
   night_log: NightLogEntry[];
   votes: {
@@ -216,7 +227,7 @@ export interface NightLogEntry {
   player: string;
   targets: string[];
   auto: boolean;
-  learned: (SawCard | SawPlayers | Swapped)[];
+  learned: (SawCard | SawPlayers | Swapped | Copied)[];
 }
 export interface ErrorMessage {
   type: "error";

@@ -10,13 +10,22 @@ class Table(Protocol):
 
     players: list[PlayerId]
     cards: dict[Slot, RoleId]
-    acted: set[PlayerId]
-    # 每个人夜里得知的信息。分两次行动的角色（女巫）靠它记住做到哪一步了
-    knowledge: dict[PlayerId, list[Knowledge]]
+
+    def my_actions(self, me: PlayerId) -> list[list[Slot]]:
+        """这一步里 me 已经做过的行动，每次选的目标。分几次行动的角色靠它知道做到哪了。"""
+        ...
+
+    def acting_role(self, player: PlayerId) -> RoleId:
+        """夜里以什么身份行动：发到的牌；化身幽灵化身之后是化身成的角色。"""
+        ...
 
     def players_acting_as(self, role: RoleId) -> list[PlayerId]: ...
 
     def swap(self, a: Slot, b: Slot) -> None: ...
+
+    def become(self, player: PlayerId, role: RoleId) -> None:
+        """化身幽灵化身成 role。"""
+        ...
 
 
 class Role:
@@ -25,6 +34,9 @@ class Role:
     id: ClassVar[RoleId]
     team: ClassVar[Team] = Team.VILLAGE
     max_copies: ClassVar[int] = 1
+    # 化身幽灵化身成这个角色时，是在化身幽灵那一步马上行动（预言家、强盗……），
+    # 还是等到这个角色那一步再一起醒（狼人、爪牙、守夜人、失眠者）
+    acts_with_doppelganger: ClassVar[bool] = False
 
     def wake_info(self, table: Table, me: PlayerId) -> list[Knowledge]:
         """醒来时直接得到的信息。"""
@@ -32,7 +44,7 @@ class Role:
 
     def prompt(self, table: Table, me: PlayerId) -> Prompt | None:
         """此刻能做的选择。每次行动后都会重新求值；默认每一步只能行动一次。"""
-        if me in table.acted:
+        if table.my_actions(me):
             return None
         return self.choices(table, me)
 

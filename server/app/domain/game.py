@@ -37,6 +37,7 @@ class Game(BaseModel):
     acted: set[PlayerId] = Field(default_factory=set)  # 当前这一步里行动过的人
     knowledge: dict[PlayerId, list[Knowledge]] = Field(default_factory=dict)
     night_log: list[NightLogEntry] = Field(default_factory=list)
+    copies: dict[PlayerId, RoleId] = Field(default_factory=dict)  # 化身幽灵化身成了什么
     confirmed: set[PlayerId] = Field(default_factory=set)  # deal 阶段看好牌的人
     ready: set[PlayerId] = Field(default_factory=set)  # day 阶段同意投票的人
     votes: dict[PlayerId, PlayerId] = Field(default_factory=dict)
@@ -71,15 +72,33 @@ class Game(BaseModel):
         return self.night_plan[self.night_index] if self.phase is Phase.NIGHT else None
 
     def acting_role(self, player: PlayerId) -> RoleId:
-        """夜里以什么身份行动：发到的牌，而不是现在手里的牌。"""
-        return self.dealt[player]
+        """夜里以什么身份行动：发到的牌，而不是现在手里的牌；化身幽灵化身之后是化身成的角色。"""
+        return self.copies.get(player, self.dealt[player])
 
     def players_acting_as(self, role: RoleId) -> list[PlayerId]:
         return [p for p in self.players if self.acting_role(p) == role]
 
     def wakers(self) -> list[PlayerId]:
         role = self.night_role
-        return [] if role is None else self.players_acting_as(role)
+        if role is None:
+            return []
+        if role is RoleId.DOPPELGANGER:
+            # 按发到的牌算：化身之后还要接着做化身成的角色的事
+            return [p for p in self.players if self.dealt[p] is RoleId.DOPPELGANGER]
+        return [p for p in self.players_acting_as(role) if not self._acted_with_doppelganger(p)]
+
+    def my_actions(self, player: PlayerId) -> list[list[Slot]]:
+        """这一步里 player 已经做过的行动，每次选的目标。"""
+        step = self.night_role
+        return [e.targets for e in self.night_log if e.step is step and e.player == player]
+
+    def final_roles(self) -> dict[Slot, RoleId]:
+        """算胜负用的牌：化身幽灵的牌算作他化身成的角色，谁拿着都一样。"""
+        copied = next(iter(self.copies.values()), None)
+        if copied is None:
+            return dict(self.cards)
+        doppel = RoleId.DOPPELGANGER
+        return {slot: copied if role is doppel else role for slot, role in self.cards.items()}
 
     def prompt_for(self, player: PlayerId) -> Prompt | None:
         role = self.night_role
@@ -89,6 +108,9 @@ class Game(BaseModel):
 
     def swap(self, a: Slot, b: Slot) -> None:
         self.cards[a], self.cards[b] = self.cards[b], self.cards[a]
+
+    def become(self, player: PlayerId, role: RoleId) -> None:
+        self.copies[player] = role
 
     # ------------------------------------------------------------ 玩家指令
 
@@ -153,6 +175,11 @@ class Game(BaseModel):
         self.night_index = 0
         self._enter_step(now)
 
+    def _acted_with_doppelganger(self, player: PlayerId) -> bool:
+        """化身成预言家这类角色的，在化身幽灵那一步已经做过了，到那个角色那一步不再醒。"""
+        copied = self.copies.get(player)
+        return copied is not None and ROLES[copied].acts_with_doppelganger
+
     def _enter_step(self, now: float) -> None:
         self.acted = set()
         self.ends_at = now + self.timings.night_step
@@ -161,9 +188,10 @@ class Game(BaseModel):
             self._learn(player, role.wake_info(self, player))
 
     def _finish_step(self, rng: random.Random) -> None:
+        # 必须做的选择到时间还没做，由系统随机代选。化身幽灵代选化身之后，
+        # 化身成的角色要是也有必须做的（比如酒鬼），接着再代选
         for player in self.wakers():
-            prompt = self.prompt_for(player)
-            if prompt is not None and prompt.required:
+            while (prompt := self.prompt_for(player)) is not None and prompt.required:
                 targets = night.random_targets(self.players, player, prompt, rng)
                 self._perform(player, targets, auto=True)
 
@@ -183,7 +211,7 @@ class Game(BaseModel):
 
     def _end_night(self, now: float) -> None:
         # 看的是夜里换完之后的牌：酒鬼可能从底牌换来一张狼
-        if rules.all_village(self.cards, self.players):
+        if rules.all_village(self.final_roles(), self.players):
             self._reveal()  # 没有票，没人出局，好人赢
         else:
             self._enter_day(now)
@@ -197,6 +225,6 @@ class Game(BaseModel):
         self.ends_at = None  # 投票也不限时，所有人都投完才揭晓
 
     def _reveal(self) -> None:
-        self.result = rules.resolve(self.cards, self.players, self.votes)
+        self.result = rules.resolve(self.final_roles(), self.players, self.votes)
         self.phase = Phase.REVEAL
         self.ends_at = None

@@ -2,6 +2,7 @@
 
 from ..types import RoleId
 from .base import Role, Table
+from .doppelganger import Doppelganger
 from .drunk import Drunk
 from .hunter import Hunter
 from .insomniac import Insomniac
@@ -15,9 +16,11 @@ from .villager import Villager
 from .werewolf import Werewolf
 from .witch import Witch
 
-ROLES: dict[RoleId, Role] = {
-    role.id: role
+ROLES: dict[RoleId, Role] = {}
+ROLES.update(
+    (role.id, role)
     for role in (
+        Doppelganger(ROLES),  # 化身之后要查化身成的角色，所以拿着整张注册表
         Werewolf(),
         Minion(),
         Mason(),
@@ -31,6 +34,6 @@ ROLES: dict[RoleId, Role] = {
         Tanner(),
         Villager(),
     )
-}
+)
 
 __all__ = ["ROLES", "Role", "Table"]
