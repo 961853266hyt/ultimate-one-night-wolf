@@ -9,6 +9,7 @@ import {
   Crosshair,
   Eye,
   FlaskRound,
+  Ghost,
   Hammer,
   HandCoins,
   Handshake,
@@ -36,10 +37,27 @@ export interface RoleInfo {
   maxCopies: number
   /** 夜里轮到你时的提示。不写就按 Prompt 自动生成，比如「选 1 名其他玩家」。 */
   promptHint?: (prompt: Prompt) => string
+  /** 阵营不固定时，代替阵营名显示的说明，比如化身幽灵。 */
+  teamNote?: string
 }
 
 // 顺序就是界面上的排列顺序：先按夜里醒来的顺序，不醒的放最后。配牌时的牌库就按这个顺序摆
 export const ROLES: Record<RoleId, RoleInfo> = {
+  doppelganger: {
+    name: '化身幽灵',
+    team: 'village', // 没化身时算好人；化身之后跟着化身成的角色走
+    teamNote: '阵营跟着化身的角色',
+    icon: Ghost,
+    summary: '看 1 名玩家的牌，变成那个角色',
+    ability:
+      '夜里最先醒来，看一名其他玩家的牌，变成那个角色，阵营也跟着变。化身成预言家、强盗、捣蛋鬼、酒鬼、女巫的，马上做那个角色的事；化身成狼人、爪牙、守夜人、失眠者的，到那一步和他们一起醒。',
+    notes: [
+      '你的牌被换走的话，最后拿着这张牌的人就算你化身成的角色。',
+      '到时间还没选，系统会随机替你选一名玩家。',
+    ],
+    maxCopies: 1,
+    promptHint: () => '看 1 名其他玩家的牌，你就变成那个角色（必须选）',
+  },
   werewolf: {
     name: '狼人',
     team: 'werewolf',

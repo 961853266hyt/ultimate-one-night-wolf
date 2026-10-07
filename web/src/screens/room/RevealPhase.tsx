@@ -1,7 +1,7 @@
 import { NightLog } from '@/components/game/NightLog'
 import { CenterCard, CenterCardRow } from '@/components/game/PlayingCard'
 import { ResultBanner } from '@/components/game/ResultBanner'
-import { RoleChange } from '@/components/game/RoleText'
+import { RoleChange, RoleName } from '@/components/game/RoleText'
 import { SeatGrid, SeatTile } from '@/components/game/SeatGrid'
 import { SeatStatus } from '@/components/game/SeatStatus'
 import { PageContent, PageFooter } from '@/components/layout/Page'
@@ -16,6 +16,7 @@ import {
   seatResults,
   type SeatResult,
 } from '@/game/result'
+import type { RoleId } from '@/api/types'
 import { ROLES } from '@/roles/catalog'
 import type { PhaseProps } from './types'
 
@@ -45,7 +46,7 @@ export function RevealPhase({ view, send }: PhaseProps) {
                 key={card.slot}
                 letter={card.letter}
                 role={card.final}
-                note={card.dealt !== card.final ? `原来是${ROLES[card.dealt].name}` : undefined}
+                note={centerNote(card.dealt, card.final, card.copied)}
               />
             ))}
           </CenterCardRow>
@@ -64,6 +65,11 @@ export function RevealPhase({ view, send }: PhaseProps) {
                 <span className="text-xs">
                   <RoleChange from={outcome.dealt} to={outcome.final} />
                 </span>
+                {outcome.copied && (
+                  <span className="text-[11px] text-muted-foreground">
+                    算作 <RoleName role={outcome.copied} />
+                  </span>
+                )}
                 {outcome.votedFor !== null && (
                   <span className="text-[11px] text-muted-foreground">投给 {outcome.votedFor} 号</span>
                 )}
@@ -90,6 +96,15 @@ export function RevealPhase({ view, send }: PhaseProps) {
       </PageFooter>
     </>
   )
+}
+
+/** 底牌下面的小字：「原来是失眠者」「算作狼人」（化身幽灵的牌），两样都有就都写。 */
+function centerNote(dealt: RoleId, final: RoleId, copied: RoleId | null): string | undefined {
+  const parts = [
+    dealt !== final && `原来是${ROLES[dealt].name}`,
+    copied && `算作${ROLES[copied].name}`,
+  ].filter(Boolean)
+  return parts.length ? parts.join(' · ') : undefined
 }
 
 function OutcomeStatus({ outcome, voted }: { outcome: SeatResult; voted: boolean }) {

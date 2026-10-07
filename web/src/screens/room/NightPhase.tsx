@@ -27,6 +27,9 @@ export function NightPhase({ view, send }: PhaseProps) {
   // 这一步醒来得知了什么（狼互认、预言家看牌……）
   const learned = clues.some((clue) => clue.step === night.step)
   const pickSelf = prompt !== null && canPickSelf(prompt)
+  // 化身幽灵化身之后，这一步接着做化身成的角色的事，提示也换成那个角色的
+  const copied = view.me.knowledge.find((fact) => fact.type === 'copied')?.role
+  const hintRole = night.step === 'doppelganger' && copied ? copied : night.step
 
   const confirm = () => {
     if (prompt) send({ type: 'night_action', targets: targets.selected })
@@ -40,7 +43,7 @@ export function NightPhase({ view, send }: PhaseProps) {
           <PhaseProgress current={night.index} total={night.total} label="夜晚进度" />
           <PageTitle
             title={`${ROLES[night.step].name}请睁眼`}
-            description={hint(night.step, prompt, learned)}
+            description={hint(hintRole, prompt, learned)}
           />
         </div>
 

@@ -3,6 +3,7 @@ import type { RoleId } from '@/api/types'
 
 /** 和服务端 server/app/domain/night.py 的 NIGHT_ORDER 保持一致。不在这里的角色夜里不醒。 */
 export const NIGHT_ORDER: readonly RoleId[] = [
+  'doppelganger',
   'werewolf',
   'minion',
   'mason',

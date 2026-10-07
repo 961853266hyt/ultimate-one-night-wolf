@@ -33,7 +33,7 @@ export function RoleArtCard({
 }: RoleArtCardProps) {
   const detailsId = useId()
   const art = roleArt(role)
-  const { name, team, icon: Icon, ability, notes } = ROLES[role]
+  const { name, team, icon: Icon, ability, notes, teamNote } = ROLES[role]
   const { name: teamName, textClass } = TEAMS[team]
 
   return (
@@ -85,9 +85,13 @@ export function RoleArtCard({
               <p id={titleId} className="text-2xl leading-8 font-semibold tracking-wide">
                 {name}
               </p>
-              {/* 皮匠自成一队，队名就是角色名，不重复写 */}
-              {teamName !== name && (
-                <span className={cn('shrink-0 text-xs', textClass)}>{teamName}</span>
+              {/* 化身幽灵的阵营不固定，写一句说明；皮匠自成一队，队名就是角色名，不重复写 */}
+              {teamNote ? (
+                <span className="shrink-0 text-xs text-muted-foreground">{teamNote}</span>
+              ) : (
+                teamName !== name && (
+                  <span className={cn('shrink-0 text-xs', textClass)}>{teamName}</span>
+                )
               )}
             </div>
             {wakeOrder !== undefined && (
@@ -125,7 +129,7 @@ export function RoleArtCard({
 /** 角色牌的缩略图：卡图，底下压一条角色名。 */
 export function RoleThumbnail({ role, className }: { role: RoleId; className?: string }) {
   const art = roleArt(role)
-  const { name, team, icon: Icon } = ROLES[role]
+  const { name, team, icon: Icon, teamNote } = ROLES[role]
   return (
     // dark：名字的阵营色取深色主题的值，在黑底上才看得清
     <span
@@ -145,11 +149,11 @@ export function RoleThumbnail({ role, className }: { role: RoleId; className?: s
       ) : (
         <Icon aria-hidden className="m-auto size-7 text-muted-foreground" strokeWidth={1.5} />
       )}
-      {/* 卡图上的英文名缩小后看不清，底下补一条中文名，颜色表示阵营 */}
+      {/* 卡图上的英文名缩小后看不清，底下补一条中文名，颜色表示阵营；阵营不固定的用白色 */}
       <span
         className={cn(
           'absolute inset-x-0 bottom-0 bg-linear-to-t from-black/85 via-black/60 to-transparent px-1 pt-5 pb-1.5 text-center text-[11px] leading-none font-semibold',
-          TEAMS[team].textClass,
+          teamNote ? 'text-white' : TEAMS[team].textClass,
         )}
       >
         {name}
