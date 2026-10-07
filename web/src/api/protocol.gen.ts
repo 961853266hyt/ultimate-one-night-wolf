@@ -13,6 +13,7 @@ export type RoleId =
   | "mason"
   | "seer"
   | "robber"
+  | "witch"
   | "troublemaker"
   | "drunk"
   | "insomniac"
@@ -170,11 +171,12 @@ export interface Prompt {
   required: boolean;
 }
 /**
- * 选 count 个目标。player 指其他玩家（不含自己），center 指底牌。
+ * 选 count 个目标。player 指其他玩家，include_self 时也可以选自己；center 指底牌。
  */
 export interface TargetOption {
   kind: "player" | "center";
   count: number;
+  include_self: boolean;
 }
 export interface DealView {
   confirmed: string[];
@@ -214,6 +216,7 @@ export interface NightLogEntry {
   player: string;
   targets: string[];
   auto: boolean;
+  learned: (SawCard | SawPlayers | Swapped)[];
 }
 export interface ErrorMessage {
   type: "error";

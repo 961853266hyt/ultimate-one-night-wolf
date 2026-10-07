@@ -110,6 +110,74 @@ def test_robber_takes_the_card_and_sees_it():
     assert game.knowledge["p1"] == robbed_knew
 
 
+def witch_game():
+    """p0 女巫，p1 狼，p2 村民；底牌：预言家、酒鬼、狼。"""
+    game = new_game(R.WITCH, R.WEREWOLF, R.VILLAGER, R.SEER, R.DRUNK, R.WEREWOLF)
+    night_until(game, R.WITCH)
+    return game
+
+
+def test_witch_looks_at_a_center_card_then_must_give_it_to_a_player():
+    game = witch_game()
+    game.night_action("p0", ["C0"])
+    assert game.knowledge["p0"] == [SawCard(step=R.WITCH, slot="C0", role=R.SEER)]
+    prompt = game.prompt_for("p0")
+    assert prompt is not None and prompt.required
+
+    game.night_action("p0", ["p2"])
+    assert (game.cards["C0"], game.cards["p2"]) == (R.VILLAGER, R.SEER)
+    assert game.knowledge["p0"][-1] == Swapped(step=R.WITCH, slots=("C0", "p2"))
+    assert game.prompt_for("p0") is None
+
+
+def test_witch_may_give_the_card_to_herself():
+    game = witch_game()
+    game.night_action("p0", ["C2"])
+    game.night_action("p0", ["p0"])
+    assert (game.cards["p0"], game.cards["C2"]) == (R.WEREWOLF, R.WITCH)
+    assert game.knowledge["p0"][-2:] == [
+        Swapped(step=R.WITCH, slots=("C2", "p0")),
+        SawCard(step=R.WITCH, slot="p0", role=R.WEREWOLF),
+    ]
+
+
+def test_witch_must_look_at_a_center_card_first():
+    game = witch_game()
+    with pytest.raises(RuleError) as error:
+        game.night_action("p0", ["p1"])
+    assert error.value.code is ErrorCode.BAD_TARGETS
+
+
+def test_a_witch_who_does_not_look_changes_nothing():
+    game = witch_game()
+    skip(game)
+    assert game.night_log == []
+    assert game.cards == game.dealt
+
+
+def test_a_witch_who_looks_but_does_not_swap_is_swapped_at_random():
+    game = witch_game()
+    game.night_action("p0", ["C0"])
+    skip(game)
+
+    look, swap = game.night_log
+    assert not look.auto and swap.auto
+    [target] = swap.targets
+    assert game.cards[target] is R.SEER  # 看到的那张换到了被选中的人手里
+
+
+def test_each_night_log_entry_keeps_what_that_action_revealed():
+    game = witch_game()
+    game.night_action("p0", ["C0"])
+    game.night_action("p0", ["p0"])
+    look, swap = game.night_log
+    assert look.learned == [SawCard(step=R.WITCH, slot="C0", role=R.SEER)]
+    assert swap.learned == [
+        Swapped(step=R.WITCH, slots=("C0", "p0")),
+        SawCard(step=R.WITCH, slot="p0", role=R.SEER),
+    ]
+
+
 def test_troublemaker_swaps_two_others_without_looking():
     game = new_game(R.TROUBLEMAKER, R.WEREWOLF, R.VILLAGER, R.SEER, R.DRUNK, R.WEREWOLF)
     night_until(game, R.TROUBLEMAKER)

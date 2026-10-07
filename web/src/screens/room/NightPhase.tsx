@@ -1,4 +1,4 @@
-import { CENTER, type Prompt } from '@/api/types'
+import { CENTER, type Prompt, type RoleId } from '@/api/types'
 import { CluesDrawer } from '@/components/game/Clues'
 import { PhaseProgress } from '@/components/game/PhaseProgress'
 import { CenterCard, CenterCardRow } from '@/components/game/PlayingCard'
@@ -8,7 +8,7 @@ import { PageTitle, Section } from '@/components/layout/Section'
 import { Button } from '@/components/ui/button'
 import { cluesOf } from '@/game/knowledge'
 import { centerLetter, seatsOf } from '@/game/seats'
-import { describePrompt } from '@/game/targets'
+import { canPickSelf, describePrompt } from '@/game/targets'
 import { useNightTargets } from '@/game/useNightTargets'
 import { ROLES } from '@/roles/catalog'
 import type { PhaseProps } from './types'
@@ -26,6 +26,7 @@ export function NightPhase({ view, send }: PhaseProps) {
   const clues = cluesOf(view)
   // 这一步醒来得知了什么（狼互认、预言家看牌……）
   const learned = clues.some((clue) => clue.step === night.step)
+  const pickSelf = prompt !== null && canPickSelf(prompt)
 
   const confirm = () => {
     if (prompt) send({ type: 'night_action', targets: targets.selected })
@@ -37,7 +38,10 @@ export function NightPhase({ view, send }: PhaseProps) {
       <PageContent>
         <div className="flex flex-col gap-6">
           <PhaseProgress current={night.index} total={night.total} label="夜晚进度" />
-          <PageTitle title={`${ROLES[night.step].name}请睁眼`} description={hint(prompt, learned)} />
+          <PageTitle
+            title={`${ROLES[night.step].name}请睁眼`}
+            description={hint(night.step, prompt, learned)}
+          />
         </div>
 
         <Section title="牌堆">
@@ -60,7 +64,7 @@ export function NightPhase({ view, send }: PhaseProps) {
                 key={seat.id}
                 seat={seat}
                 selected={targets.selected.includes(seat.id)}
-                onSelect={seat.isMe ? undefined : () => targets.tap(seat.id)}
+                onSelect={seat.isMe && !pickSelf ? undefined : () => targets.tap(seat.id)}
               />
             ))}
           </SeatGrid>
@@ -77,8 +81,8 @@ export function NightPhase({ view, send }: PhaseProps) {
   )
 }
 
-function hint(prompt: Prompt | null, learned: boolean): string {
-  if (prompt) return describePrompt(prompt)
+function hint(step: RoleId, prompt: Prompt | null, learned: boolean): string {
+  if (prompt) return ROLES[step].promptHint?.(prompt) ?? describePrompt(prompt)
   if (learned) return '你得知了新线索，点开下面的「我的线索」看看'
   return '没轮到你 · 随便点点，别让旁人看出来'
 }

@@ -35,7 +35,9 @@ export function describeKnowledge(fact: Knowledge, me: string, label: SlotLabele
     }
     case 'swapped': {
       const [a, b] = fact.slots
-      return a === me ? [`你和${label(b)}换了牌`] : [`你交换了${label(a)}和${label(b)}的牌`]
+      if (a === me) return [`你和${label(b)}换了牌`]
+      if (b === me) return [`你和${label(a)}换了牌`] // 女巫把底牌换给了自己
+      return [`你交换了${label(a)}和${label(b)}的牌`]
     }
   }
 }

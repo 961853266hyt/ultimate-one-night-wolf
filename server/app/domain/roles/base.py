@@ -11,6 +11,8 @@ class Table(Protocol):
     players: list[PlayerId]
     cards: dict[Slot, RoleId]
     acted: set[PlayerId]
+    # 每个人夜里得知的信息。分两次行动的角色（女巫）靠它记住做到哪一步了
+    knowledge: dict[PlayerId, list[Knowledge]]
 
     def players_acting_as(self, role: RoleId) -> list[PlayerId]: ...
 

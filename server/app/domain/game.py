@@ -22,6 +22,7 @@ class NightLogEntry(BaseModel):
     player: PlayerId
     targets: list[Slot]
     auto: bool = False  # 超时后由系统代选
+    learned: list[Knowledge] = Field(default_factory=list)  # 这次行动得知的信息，揭晓时逐条描述
 
 
 class Game(BaseModel):
@@ -168,9 +169,12 @@ class Game(BaseModel):
 
     def _perform(self, player: PlayerId, targets: list[Slot], auto: bool = False) -> None:
         role = ROLES[self.night_plan[self.night_index]]
-        self._learn(player, role.act(self, player, targets))
+        facts = role.act(self, player, targets)
+        self._learn(player, facts)
         self.acted.add(player)
-        entry = NightLogEntry(step=role.id, player=player, targets=targets, auto=auto)
+        entry = NightLogEntry(
+            step=role.id, player=player, targets=targets, auto=auto, learned=facts
+        )
         self.night_log.append(entry)
 
     def _learn(self, player: PlayerId, facts: list[Knowledge]) -> None:

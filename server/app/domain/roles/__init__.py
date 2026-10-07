@@ -13,6 +13,7 @@ from .tanner import Tanner
 from .troublemaker import Troublemaker
 from .villager import Villager
 from .werewolf import Werewolf
+from .witch import Witch
 
 ROLES: dict[RoleId, Role] = {
     role.id: role
@@ -22,6 +23,7 @@ ROLES: dict[RoleId, Role] = {
         Mason(),
         Seer(),
         Robber(),
+        Witch(),
         Troublemaker(),
         Drunk(),
         Insomniac(),

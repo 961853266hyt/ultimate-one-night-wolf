@@ -14,6 +14,10 @@ def test_the_plan_covers_waking_roles_in_the_deck_in_wake_order():
     assert plan_for(deck) == [R.WEREWOLF, R.SEER, R.INSOMNIAC]
 
 
+def test_the_witch_wakes_between_the_robber_and_the_troublemaker():
+    assert plan_for([R.TROUBLEMAKER, R.WITCH, R.ROBBER]) == [R.ROBBER, R.WITCH, R.TROUBLEMAKER]
+
+
 def test_every_step_lasts_the_same_time_even_for_roles_in_the_center():
     # 预言家和强盗都在底牌里，但这两步照样走满
     game = new_game(R.WEREWOLF, R.VILLAGER, R.DRUNK, R.SEER, R.ROBBER, R.WEREWOLF)

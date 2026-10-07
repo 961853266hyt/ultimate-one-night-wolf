@@ -8,6 +8,7 @@ export const NIGHT_ORDER: readonly RoleId[] = [
   'mason',
   'seer',
   'robber',
+  'witch',
   'troublemaker',
   'drunk',
   'insomniac',

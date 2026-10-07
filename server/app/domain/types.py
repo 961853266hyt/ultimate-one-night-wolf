@@ -19,6 +19,7 @@ class RoleId(StrEnum):
     MASON = "mason"
     SEER = "seer"
     ROBBER = "robber"
+    WITCH = "witch"
     TROUBLEMAKER = "troublemaker"
     DRUNK = "drunk"
     INSOMNIAC = "insomniac"
@@ -89,10 +90,11 @@ Knowledge = Annotated[SawCard | SawPlayers | Swapped, Field(discriminator="type"
 
 
 class TargetOption(BaseModel):
-    """选 count 个目标。player 指其他玩家（不含自己），center 指底牌。"""
+    """选 count 个目标。player 指其他玩家，include_self 时也可以选自己；center 指底牌。"""
 
     kind: Literal["player", "center"]
     count: int
+    include_self: bool = False
 
 
 class Prompt(BaseModel):
