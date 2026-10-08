@@ -16,7 +16,7 @@ class Table(Protocol):
         ...
 
     def acting_role(self, player: PlayerId) -> RoleId:
-        """夜里以什么身份行动：发到的牌；化身幽灵化身之后是化身成的角色。"""
+        """夜里以什么身份行动：发到的牌；模仿者、化身幽灵变过之后是变成的角色。"""
         ...
 
     def players_acting_as(self, role: RoleId) -> list[PlayerId]: ...
@@ -24,7 +24,7 @@ class Table(Protocol):
     def swap(self, a: Slot, b: Slot) -> None: ...
 
     def become(self, player: PlayerId, role: RoleId) -> None:
-        """化身幽灵化身成 role。"""
+        """模仿者或化身幽灵变成 role。"""
         ...
 
 

@@ -2,6 +2,7 @@
 
 from ..types import RoleId
 from .base import Role, Table
+from .copycat import Copycat
 from .doppelganger import Doppelganger
 from .drunk import Drunk
 from .hunter import Hunter
@@ -20,6 +21,7 @@ ROLES: dict[RoleId, Role] = {}
 ROLES.update(
     (role.id, role)
     for role in (
+        Copycat(),
         Doppelganger(ROLES),  # 化身之后要查化身成的角色，所以拿着整张注册表
         Werewolf(),
         Minion(),

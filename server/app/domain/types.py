@@ -14,6 +14,7 @@ MAX_PLAYERS = 10
 
 
 class RoleId(StrEnum):
+    COPYCAT = "copycat"
     DOPPELGANGER = "doppelganger"
     WEREWOLF = "werewolf"
     MINION = "minion"
@@ -85,7 +86,7 @@ class Swapped(BaseModel):
 
 
 class Copied(BaseModel):
-    """化身幽灵看了 slot 上的牌，变成了 role。"""
+    """模仿者或化身幽灵看了 slot 上的牌，变成了 role。step 是在谁的那一步变的。"""
 
     type: Literal["copied"] = "copied"
     step: RoleId

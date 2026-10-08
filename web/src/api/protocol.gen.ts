@@ -8,6 +8,7 @@
 export type ClientMessage =
   Hello | Configure | Kick | Start | Leave | ConfirmCard | NightAction | ReadyToVote | Vote | Rematch;
 export type RoleId =
+  | "copycat"
   | "doppelganger"
   | "werewolf"
   | "minion"
@@ -165,7 +166,7 @@ export interface Swapped {
   slots: [string, string];
 }
 /**
- * 化身幽灵看了 slot 上的牌，变成了 role。
+ * 模仿者或化身幽灵看了 slot 上的牌，变成了 role。step 是在谁的那一步变的。
  */
 export interface Copied {
   type: "copied";
@@ -210,7 +211,9 @@ export interface ResultView {
   final: {
     [k: string]: RoleId;
   };
-  doppelganger: RoleId | null;
+  counts_as: {
+    [k: string]: RoleId;
+  };
   knowledge: {
     [k: string]: (SawCard | SawPlayers | Swapped | Copied)[];
   };

@@ -9,17 +9,18 @@ import {
   type Swapped,
 } from '@/api/types'
 import { TEAMS } from '@/roles/catalog'
+import { describeCopy } from './knowledge'
 import { joinPhrases, mention, type Phrase } from './phrase'
 import { centerLetter, seatsOf, slotLabeler, type Seat, type SlotLabeler } from './seats'
 
-/** 一张牌最后算作什么角色：化身幽灵的牌算作他化身成的角色，谁拿着都一样。 */
+/** 一张牌最后算作什么角色：模仿者、化身幽灵的牌算作他们变成的角色，谁拿着都一样。 */
 export function countsAs(result: ResultView, role: RoleId): RoleId {
-  return role === 'doppelganger' ? (result.doppelganger ?? role) : role
+  return result.counts_as[role] ?? role
 }
 
-/** 这张牌是化身幽灵、而且化身过时，算作的角色；否则是 null。 */
+/** 这张牌是模仿者或化身幽灵、而且变过时，算作的角色；否则是 null。 */
 function copiedRole(result: ResultView, role: RoleId): RoleId | null {
-  return role === 'doppelganger' ? result.doppelganger : null
+  return result.counts_as[role] ?? null
 }
 
 export interface SeatResult {
@@ -142,7 +143,7 @@ export function nightLog(view: PlayerView, result: ResultView): NightLogLine[] {
     const clauses: Phrase[] = [
       ...entry.learned
         .filter((fact): fact is Copied => fact.type === 'copied')
-        .map((fact): Phrase => [`看了${label(fact.slot)}的牌，化身成了`, mention(fact.role)]),
+        .map((fact) => describeCopy(fact, label)),
       ...entry.learned
         .filter((fact): fact is Swapped => fact.type === 'swapped')
         .map((fact): Phrase => [describeSwap(fact, actor, label)]),

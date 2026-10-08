@@ -1,4 +1,4 @@
-import { CENTER, type Prompt, type RoleId } from '@/api/types'
+import { CENTER, type Copied, type Prompt, type RoleId } from '@/api/types'
 import { CluesDrawer } from '@/components/game/Clues'
 import { PhaseProgress } from '@/components/game/PhaseProgress'
 import { CenterCard, CenterCardRow } from '@/components/game/PlayingCard'
@@ -27,8 +27,11 @@ export function NightPhase({ view, send }: PhaseProps) {
   // 这一步醒来得知了什么（狼互认、预言家看牌……）
   const learned = clues.some((clue) => clue.step === night.step)
   const pickSelf = prompt !== null && canPickSelf(prompt)
-  // 化身幽灵化身之后，这一步接着做化身成的角色的事，提示也换成那个角色的
-  const copied = view.me.knowledge.find((fact) => fact.type === 'copied')?.role
+  // 化身幽灵化身之后，这一步接着做化身成的角色的事，提示也换成那个角色的。
+  // 只看在化身幽灵那一步的化身：模仿者模仿了化身幽灵，之前还有一次模仿
+  const copied = view.me.knowledge.find(
+    (fact): fact is Copied => fact.type === 'copied' && fact.step === 'doppelganger',
+  )?.role
   const hintRole = night.step === 'doppelganger' && copied ? copied : night.step
 
   const confirm = () => {

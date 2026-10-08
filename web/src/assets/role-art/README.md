@@ -3,7 +3,7 @@
 这里放角色头像，文件名是角色 id，格式 webp / png / jpg 都行：
 
 ```
-doppelganger  werewolf  minion  mason  seer  robber
+copycat  doppelganger  werewolf  minion  mason  seer  robber
 witch  troublemaker  drunk  insomniac  hunter  tanner  villager
 ```
 
