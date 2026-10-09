@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { NameField } from './NameField'
 
+const SOURCE_URL = 'https://github.com/961853266hyt/ultimate-one-night-wolf'
+
 export function HomeScreen({ session }: { session: Session }) {
   const [name, setName] = useState(loadName)
   const [code, setCode] = useState('')
@@ -39,7 +41,6 @@ export function HomeScreen({ session }: { session: Session }) {
           <Moon aria-hidden className="size-7" strokeWidth={1.6} />
         </span>
         <h1 className="text-[40px] leading-tight font-semibold tracking-wide">一夜狼</h1>
-        <p className="text-[15px] text-muted-foreground">一晚上，一次投票，定胜负</p>
       </header>
 
       <form onSubmit={create} className="flex flex-col gap-3">
@@ -71,7 +72,15 @@ export function HomeScreen({ session }: { session: Session }) {
         </Button>
       </form>
 
-      <p className="mt-7 text-center text-xs text-muted-foreground">3–10 人 · 面对面玩，每人一部手机</p>
+      <footer className="mt-7 flex items-center justify-center gap-2 text-[13px] text-muted-foreground/70">
+        <span>v{__APP_VERSION__}</span>
+        <span aria-hidden>·</span>
+        <span>by geli</span>
+        <span aria-hidden>·</span>
+        <a href={SOURCE_URL} target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline">
+          GitHub
+        </a>
+      </footer>
     </Page>
   )
 }

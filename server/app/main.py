@@ -12,6 +12,7 @@ from .api import http, ws
 from .api.auth import Auth
 from .config import Config
 from .runtime.manager import RoomManager
+from .version import VERSION
 
 
 def create_app(config: Config | None = None) -> FastAPI:
@@ -23,15 +24,15 @@ def create_app(config: Config | None = None) -> FastAPI:
         yield
         await manager.close()
 
-    app = FastAPI(title="ultimate-one-night-wolf", lifespan=lifespan)
+    app = FastAPI(title="ultimate-one-night-wolf", version=VERSION, lifespan=lifespan)
     app.state.auth = Auth(config.secret_key)
     app.state.manager = manager
     app.include_router(http.router)
     app.include_router(ws.router)
 
     @app.get("/healthz")
-    async def healthz() -> dict[str, bool]:
-        return {"ok": True}
+    async def healthz() -> dict[str, bool | str]:
+        return {"ok": True, "version": VERSION}
 
     # 部署时由同一个进程托管前端构建产物（本地开发走 vite，不设这个变量）
     static_dir = os.environ.get("UONW_STATIC_DIR")

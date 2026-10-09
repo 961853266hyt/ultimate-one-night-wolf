@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -61,3 +64,9 @@ def test_the_role_catalog_covers_every_role(client):
     assert roles["doppelganger"]["night_order"] == 2
     assert roles["werewolf"]["night_order"] == 3
     assert roles["villager"]["night_order"] is None
+
+
+def test_the_server_and_web_client_share_a_version(client):
+    package = Path(__file__).resolve().parents[3] / "web" / "package.json"
+    web_version = json.loads(package.read_text(encoding="utf-8"))["version"]
+    assert client.get("/healthz").json() == {"ok": True, "version": web_version}
