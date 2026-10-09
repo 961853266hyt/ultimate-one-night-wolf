@@ -2,12 +2,14 @@ import { Moon } from 'lucide-react'
 import { useState, useTransition, type FormEvent } from 'react'
 import { toast } from 'sonner'
 import { createRoom, goToRoom, isRoomCode, loadName, saveName, type Session } from '@/api/session'
+import { GitHubIcon } from '@/components/icons/GitHubIcon'
 import { Page } from '@/components/layout/Page'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { NameField } from './NameField'
 
-const SOURCE_URL = 'https://github.com/961853266hyt/ultimate-one-night-wolf'
+const AUTHOR_URL = 'https://github.com/961853266hyt'
+const SOURCE_URL = `${AUTHOR_URL}/ultimate-one-night-wolf`
 
 export function HomeScreen({ session }: { session: Session }) {
   const [name, setName] = useState(loadName)
@@ -75,10 +77,21 @@ export function HomeScreen({ session }: { session: Session }) {
       <footer className="mt-7 flex items-center justify-center gap-2 text-[13px] text-muted-foreground/70">
         <span>v{__APP_VERSION__}</span>
         <span aria-hidden>·</span>
-        <span>by geli</span>
+        <span>
+          by{' '}
+          <a href={AUTHOR_URL} target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline">
+            geli
+          </a>
+        </span>
         <span aria-hidden>·</span>
-        <a href={SOURCE_URL} target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline">
-          GitHub
+        <a
+          href={SOURCE_URL}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="GitHub 源码"
+          className="-m-1 p-1 transition-colors hover:text-foreground"
+        >
+          <GitHubIcon className="size-3.5" />
         </a>
       </footer>
     </Page>
