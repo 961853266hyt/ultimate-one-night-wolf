@@ -22,7 +22,7 @@ export function NamePromptScreen({ code, onSubmit }: NamePromptScreenProps) {
   return (
     <Page className="justify-center px-5">
       <form onSubmit={submit} className="flex flex-col gap-8">
-        <PageTitle title={`进入房间 ${code}`} description="先告诉大家怎么称呼你" />
+        <PageTitle title={`进入房间 ${code}`} />
         <div className="flex flex-col gap-3">
           <NameField value={name} onChange={setName} autoFocus />
           <Button type="submit" size="xl" disabled={!trimmed}>
