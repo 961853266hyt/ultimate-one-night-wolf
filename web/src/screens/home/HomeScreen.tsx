@@ -24,7 +24,7 @@ export function HomeScreen({ session }: { session: Session }) {
         saveName(trimmed)
         goToRoom(await createRoom(session, trimmed))
       } catch {
-        toast.error('开房失败，请稍后再试')
+        toast.error('创建失败，请重试')
       }
     })
   }
@@ -48,13 +48,13 @@ export function HomeScreen({ session }: { session: Session }) {
       <form onSubmit={create} className="flex flex-col gap-3">
         <NameField value={name} onChange={setName} />
         <Button type="submit" size="xl" disabled={!trimmed || creating}>
-          {creating ? '正在开房…' : '开一个房间'}
+          {creating ? '创建中…' : '创建房间'}
         </Button>
       </form>
 
       <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
         <span className="h-px flex-1 bg-border" />
-        或加入朋友的房间
+        or
         <span className="h-px flex-1 bg-border" />
       </div>
 
