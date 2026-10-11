@@ -78,13 +78,7 @@ export function LobbyPhase({ view, send }: PhaseProps) {
       </PageContent>
 
       <PageFooter>
-        <p className="text-center text-xs text-muted-foreground">
-          {isHost
-            ? (blocker ?? '人齐了就开始吧')
-            : deck.length === need
-              ? '等房主开始游戏…'
-              : '等房主把牌调整好…'}
-        </p>
+        {isHost && blocker && <p className="text-center text-xs text-muted-foreground">{blocker}</p>}
         <div className="flex gap-2.5">
           <Button variant="outline" size="xl" className="flex-1" onClick={invite}>
             <UserPlus aria-hidden />

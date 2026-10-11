@@ -11,8 +11,13 @@ export interface Session {
 }
 
 const profile = new URLSearchParams(location.search).get('as') ?? ''
-const SESSION_KEY = `uonw.session${profile}`
-const NAME_KEY = `uonw.name${profile}`
+const SESSION_KEY = storageKey('session')
+const NAME_KEY = storageKey('name')
+
+/** localStorage 的键，按 ?as= 分开：同一个浏览器里扮演的几个玩家互不干扰。 */
+export function storageKey(name: string): string {
+  return `uonw.${name}${profile}`
+}
 
 export async function ensureSession(): Promise<Session> {
   const saved = localStorage.getItem(SESSION_KEY)

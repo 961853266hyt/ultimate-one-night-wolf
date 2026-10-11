@@ -3,6 +3,7 @@ import { toast } from 'sonner'
 import { goHome, type Session } from '@/api/session'
 import type { ErrorMessage, Phase } from '@/api/types'
 import { useRoom } from '@/api/useRoom'
+import { SeatNotesProvider } from '@/components/game/SeatNotes'
 import { FullScreenMessage } from '@/components/layout/FullScreenMessage'
 import { Page } from '@/components/layout/Page'
 import { Button } from '@/components/ui/button'
@@ -72,7 +73,9 @@ export function RoomScreen({ code, session, name }: RoomScreenProps) {
         onLeave={leave}
       />
       {/* 换阶段、夜里换一步时重新挂载，上一步没选完的目标不会带到下一步 */}
-      <CurrentPhase key={`${view.phase}-${view.night?.index ?? 0}`} view={view} send={send} />
+      <SeatNotesProvider view={view}>
+        <CurrentPhase key={`${view.phase}-${view.night?.index ?? 0}`} view={view} send={send} />
+      </SeatNotesProvider>
     </Page>
   )
 }

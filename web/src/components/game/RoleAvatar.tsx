@@ -9,10 +9,19 @@ import { ROLES } from '@/roles/catalog'
  * 纯装饰，角色名由旁边的文字提供。
  */
 export function RoleAvatar({ role, className }: { role: RoleId; className?: string }) {
+  return (
+    <Avatar aria-hidden className={cn('overflow-hidden', className)}>
+      <RoleFace role={role} />
+    </Avatar>
+  )
+}
+
+/** 头像里面的角色卡图或图标，放在 Avatar 里用。玩家头像上的标记也用它。 */
+export function RoleFace({ role }: { role: RoleId }) {
   const art = roleArt(role)
   const Icon = ROLES[role].icon
   return (
-    <Avatar aria-hidden className={cn('overflow-hidden', className)}>
+    <>
       {art && (
         // 卡图是整张竖版卡面，顶上印着英文名：裁成正方形，避开标题，稍微放大到脸
         <AvatarImage
@@ -26,6 +35,6 @@ export function RoleAvatar({ role, className }: { role: RoleId; className?: stri
       <AvatarFallback delay={art ? 300 : undefined} className="text-foreground">
         <Icon className="size-[42%]" strokeWidth={1.5} />
       </AvatarFallback>
-    </Avatar>
+    </>
   )
 }
