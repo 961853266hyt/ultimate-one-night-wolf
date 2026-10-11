@@ -32,7 +32,8 @@ interface SeatTileProps {
 
 /**
  * 一个座位：头像和名字，下面可以挂补充信息和状态条。
- * 头像上是座位号；自己给这个人做了标记（见 SeatNotes），就换成标记的角色，座位号挪到名字前面。
+ * 大厅和揭晓时头像上是座位号；开局之后头像显示身份（见 SeatNotes）：标了就是那个角色，
+ * 没标是问号，座位号挪到名字前面。
  */
 export function SeatTile({
   seat,
@@ -44,7 +45,8 @@ export function SeatTile({
   mark,
   onSelect,
 }: SeatTileProps) {
-  const note = useSeatNotes().noteOf(seat.id)
+  const notes = useSeatNotes()
+  const note = notes.roleOf(seat)
   return (
     <li className="flex min-w-0 flex-col items-center gap-1.5">
       <Tappable onTap={onSelect} pressed={selected} label={seatLabel(seat)}>
@@ -55,7 +57,9 @@ export function SeatTile({
             tone={seat.isMe ? 'me' : muted ? 'muted' : 'default'}
             selected={selected}
             mark={mark ?? (selected ? 'check' : undefined)}
-          />
+          >
+            {notes.active && !note ? <span className="text-muted-foreground">?</span> : undefined}
+          </PlayerAvatar>
           {badge && <Badge className="absolute -top-2 -left-6">{badge}</Badge>}
         </span>
         <span
@@ -65,7 +69,9 @@ export function SeatTile({
             selected && 'font-semibold',
           )}
         >
-          {note && <span className="font-mono font-normal text-muted-foreground">{seat.number} </span>}
+          {notes.active && (
+            <span className="font-mono font-normal text-muted-foreground">{seat.number} </span>
+          )}
           {seat.name}
           {seat.isMe && <span className="font-normal text-muted-foreground"> · 你</span>}
         </span>

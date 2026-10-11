@@ -18,9 +18,9 @@ const TONE: Record<Tone, { root: string; fallback: string }> = {
 interface PlayerAvatarProps {
   /** 座位号。 */
   number?: number
-  /** 自己给这个人做的标记：猜他是什么角色。有标记就显示角色头像，盖住座位号。 */
+  /** 这个人的身份：自己标的猜测，或者自己发到的牌。有就显示角色头像，盖住座位号。 */
   note?: RoleId
-  /** 不显示座位号时放别的东西，比如空座位的加号。 */
+  /** 不显示座位号时放别的东西，比如空座位的加号、没标身份时的问号。 */
   children?: ReactNode
   tone?: Tone
   selected?: boolean

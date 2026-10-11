@@ -1,62 +1,115 @@
 /**
- * 给别人的头像做标记：猜他是什么角色，头像就换成那个角色的卡图。
+ * 给座位做标记：猜他是什么角色，头像就换成那个角色的卡图。
+ *
+ * 每个人有两套身份可以标：发到的牌（初始身份）和夜里换完之后的牌（最终身份）。座位标题右边的开关
+ * 切换看哪一套，点头像标的也是正在看的那一套。自己的初始身份就是发到的牌，直接显示，不用标。
  *
  * 只是自己的备忘：存在这台设备上，不发给服务器，别人看不到。刷新不丢，回到大厅（下一局之前）清空。
  * 开局之后到投票都显示；揭晓时大家都亮了牌，就不显示了。
  */
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { storageKey } from '@/api/session'
-import type { PlayerView, RoleId } from '@/api/types'
+import type { Phase, PlayerView, RoleId } from '@/api/types'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import type { Seat } from '@/game/seats'
+import { cn } from '@/lib/utils'
 import { ROLES } from '@/roles/catalog'
 import { CardGrid, CardSlot } from './CardGrid'
 import { CornerMark } from './CornerMark'
 
-type Notes = Record<string, RoleId>
+/** 看哪一套身份：发到的牌，还是夜里换完之后的牌。 */
+export type Identity = 'initial' | 'final'
+
+export const IDENTITY_NAME: Record<Identity, string> = { initial: '初始身份', final: '最终身份' }
+
+type Notes = Record<Identity, Record<string, RoleId>>
+
+const EMPTY: Notes = { initial: {}, final: {} }
 
 interface SeatNotesValue {
-  /** 这个座位的标记，没有就是 undefined。 */
-  noteOf: (seat: string) => RoleId | undefined
-  /** 打开抽屉，给这个座位做标记。 */
+  /** 这一局里头像显示身份：开局之后到投票。不显示时头像照旧是座位号。 */
+  active: boolean
+  /** 正在看的那一套。发牌时只有初始身份。 */
+  identity: Identity
+  /** 能不能切换：发牌之后才能切。 */
+  switchable: boolean
+  setIdentity: (identity: Identity) => void
+  /** 这个座位在正在看的那一套里是什么角色，没标就是 undefined。 */
+  roleOf: (seat: Seat) => RoleId | undefined
+  /** 能不能标：自己的初始身份是确定的，不用标。 */
+  canEdit: (seat: Seat) => boolean
+  /** 打开抽屉，给这个座位标正在看的那一套。 */
   edit: (seat: Seat) => void
 }
 
-const SeatNotesContext = createContext<SeatNotesValue>({ noteOf: () => undefined, edit: () => {} })
+const SeatNotesContext = createContext<SeatNotesValue>({
+  active: false,
+  identity: 'initial',
+  switchable: false,
+  setIdentity: () => {},
+  roleOf: () => undefined,
+  canEdit: () => false,
+  edit: () => {},
+})
 
 export function useSeatNotes(): SeatNotesValue {
   return useContext(SeatNotesContext)
 }
 
+const SWITCHABLE: readonly Phase[] = ['night', 'day', 'vote']
+
 export function SeatNotesProvider({ view, children }: { view: PlayerView; children: ReactNode }) {
   const [notes, setNotes] = useStoredNotes(view.room.code, view.phase === 'lobby')
-  const shown = view.phase !== 'lobby' && view.phase !== 'reveal'
+  const active = view.phase !== 'lobby' && view.phase !== 'reveal'
+  const switchable = SWITCHABLE.includes(view.phase)
+
+  // 每次进白天都先看初始身份；回大厅、开新一局也是
+  const [chosen, setIdentity] = useState<Identity>('initial')
+  useEffect(() => {
+    if (view.phase !== 'night' && view.phase !== 'vote') setIdentity('initial')
+  }, [view.phase])
+  const identity = switchable ? chosen : 'initial'
+
+  // 发牌时牌还没翻开，自己的头像先不露底；入夜之后就显示发到的牌
+  const myCard = view.phase === 'deal' ? null : view.me.card
 
   // 抽屉关上时还留着是谁，收起的动画里标题不会突然变空
   const [editing, setEditing] = useState<Seat | null>(null)
   const [open, setOpen] = useState(false)
 
-  const value = useMemo<SeatNotesValue>(
-    () => ({
-      noteOf: (seat) => (shown ? notes[seat] : undefined),
+  const value = useMemo<SeatNotesValue>(() => {
+    const roleIn = (which: Identity, seat: Seat) =>
+      which === 'initial' && seat.isMe ? (myCard ?? undefined) : notes[which][seat.id]
+    return {
+      active,
+      identity,
+      switchable,
+      setIdentity,
+      roleOf: (seat) => (active ? roleIn(identity, seat) : undefined),
+      canEdit: (seat) => !(seat.isMe && identity === 'initial'),
       edit: (seat) => {
         setEditing(seat)
         setOpen(true)
       },
-    }),
-    [notes, shown],
-  )
+    }
+  }, [active, identity, switchable, notes, myCard])
 
   const pick = (role: RoleId | null) => {
     if (editing) {
       setNotes((current) => {
-        const { [editing.id]: _, ...rest } = current
-        return role ? { ...rest, [editing.id]: role } : rest
+        const { [editing.id]: _, ...rest } = current[identity]
+        return { ...current, [identity]: role ? { ...rest, [editing.id]: role } : rest }
       })
     }
     setOpen(false)
   }
+
+  // 抽屉里顺便写上另一套标了什么，比如标最终身份时看得到初始身份猜的是谁
+  const other: Identity = identity === 'initial' ? 'final' : 'initial'
+  const otherRole =
+    editing && (other === 'initial' && editing.isMe ? myCard : notes[other][editing.id])
+  const otherNote = `${IDENTITY_NAME[other]}：${otherRole ? ROLES[otherRole].name : '未备注'}`
 
   return (
     <SeatNotesContext.Provider value={value}>
@@ -65,11 +118,40 @@ export function SeatNotesProvider({ view, children }: { view: PlayerView; childr
         open={open}
         onOpenChange={setOpen}
         seat={editing}
+        identity={identity}
+        otherNote={switchable ? otherNote : null}
         roles={rolesIn(view.room.deck)}
-        note={editing ? notes[editing.id] : undefined}
+        note={editing ? notes[identity][editing.id] : undefined}
         onPick={pick}
       />
     </SeatNotesContext.Provider>
+  )
+}
+
+/** 座位标题右边的开关：看初始身份还是最终身份。发牌之后才有。 */
+export function IdentitySwitch() {
+  const { switchable, identity, setIdentity } = useSeatNotes()
+  if (!switchable) return null
+  return (
+    <div role="group" aria-label="看哪一套身份" className="flex gap-0.5 rounded-lg bg-muted p-0.5">
+      {(['initial', 'final'] as const).map((option) => (
+        <button
+          key={option}
+          type="button"
+          aria-pressed={identity === option}
+          aria-label={IDENTITY_NAME[option]}
+          onClick={() => setIdentity(option)}
+          className={cn(
+            'h-7 rounded-md px-2.5 text-xs font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
+            identity === option
+              ? 'bg-background text-foreground shadow-sm'
+              : 'text-muted-foreground hover:text-foreground',
+          )}
+        >
+          {option === 'initial' ? '初始' : '最终'}
+        </button>
+      ))}
+    </div>
   )
 }
 
@@ -79,12 +161,13 @@ function useStoredNotes(code: string, inLobby: boolean) {
   const [notes, setNotes] = useState<Notes>(() => load(key))
 
   useEffect(() => {
-    if (inLobby) setNotes({})
+    if (inLobby) setNotes(EMPTY)
   }, [inLobby])
 
   useEffect(() => {
-    if (Object.keys(notes).length) localStorage.setItem(key, JSON.stringify(notes))
-    else localStorage.removeItem(key)
+    const empty = !Object.keys(notes.initial).length && !Object.keys(notes.final).length
+    if (empty) localStorage.removeItem(key)
+    else localStorage.setItem(key, JSON.stringify(notes))
   }, [key, notes])
 
   return [notes, setNotes] as const
@@ -92,9 +175,11 @@ function useStoredNotes(code: string, inLobby: boolean) {
 
 function load(key: string): Notes {
   try {
-    return JSON.parse(localStorage.getItem(key) ?? '{}') as Notes
+    const saved = JSON.parse(localStorage.getItem(key) ?? '{}') as Partial<Notes>
+    // 以前只存一套，格式不一样，直接不要了
+    return { initial: saved.initial ?? {}, final: saved.final ?? {} }
   } catch {
-    return {}
+    return EMPTY
   }
 }
 
@@ -107,18 +192,39 @@ interface NoteDrawerProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   seat: Seat | null
+  /** 标的是哪一套。 */
+  identity: Identity
+  /** 另一套标了什么，写在标题下面作参考；发牌时只有一套，就是 null。 */
+  otherNote: string | null
   roles: readonly RoleId[]
   note: RoleId | undefined
   /** 选了一个角色；null 是清除标记。 */
   onPick: (role: RoleId | null) => void
 }
 
-function NoteDrawer({ open, onOpenChange, seat, roles, note, onPick }: NoteDrawerProps) {
+function NoteDrawer({
+  open,
+  onOpenChange,
+  seat,
+  identity,
+  otherNote,
+  roles,
+  note,
+  onPick,
+}: NoteDrawerProps) {
   return (
     <Drawer open={open} onOpenChange={onOpenChange} showSwipeHandle>
       <DrawerContent className="mx-auto w-full max-w-md">
-        <DrawerHeader>
-          <DrawerTitle>{seat && `给 ${seat.number} 号添加备注`}</DrawerTitle>
+        <DrawerHeader className="items-center gap-1.5">
+          <DrawerTitle>
+            {seat && (seat.isMe ? '给自己添加备注' : `给 ${seat.number} 号添加备注`)}
+          </DrawerTitle>
+          <p className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="rounded-full bg-foreground px-2 py-0.5 font-medium text-background">
+              {IDENTITY_NAME[identity]}
+            </span>
+            {otherNote}
+          </p>
         </DrawerHeader>
         <div className="flex flex-col gap-6 px-5 pt-4 pb-[max(2rem,env(safe-area-inset-bottom))]">
           <CardGrid>

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { ClueCard } from '@/components/game/Clues'
 import { SeatGrid, SeatTile } from '@/components/game/SeatGrid'
+import { IdentitySwitch } from '@/components/game/SeatNotes'
 import { SeatProgress } from '@/components/game/SeatStatus'
 import { PageContent, PageFooter } from '@/components/layout/Page'
 import { PageTitle, Section } from '@/components/layout/Section'
@@ -28,7 +29,11 @@ export function VotePhase({ view, send }: PhaseProps) {
           description="得票最多且至少 2 票的人出局，平票一起出局"
         />
 
-        <Section title="座位" caption={`${voted.size}/${seats.length} 已投票 · 全部投完同时亮票`}>
+        <Section
+          title="座位"
+          caption={`${voted.size}/${seats.length} 已投票 · 全部投完同时亮票`}
+          action={<IdentitySwitch />}
+        >
           <SeatGrid>
             {seats.map((seat) => (
               <SeatTile

@@ -3,6 +3,7 @@ import { CluesDrawer } from '@/components/game/Clues'
 import { PhaseProgress } from '@/components/game/PhaseProgress'
 import { CenterCard, CenterCardRow } from '@/components/game/PlayingCard'
 import { SeatGrid, SeatTile } from '@/components/game/SeatGrid'
+import { IdentitySwitch } from '@/components/game/SeatNotes'
 import { PageContent, PageFooter } from '@/components/layout/Page'
 import { PageTitle, Section } from '@/components/layout/Section'
 import { Button } from '@/components/ui/button'
@@ -63,7 +64,7 @@ export function NightPhase({ view, send }: PhaseProps) {
           </CenterCardRow>
         </Section>
 
-        <Section title="座位">
+        <Section title="座位" action={<IdentitySwitch />}>
           <SeatGrid>
             {seats.map((seat) => (
               <SeatTile

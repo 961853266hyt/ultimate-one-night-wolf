@@ -1,7 +1,7 @@
 import { ClueCard } from '@/components/game/Clues'
 import { NightOrder } from '@/components/game/Deck'
 import { PeekRoleRow } from '@/components/game/PeekRole'
-import { useSeatNotes } from '@/components/game/SeatNotes'
+import { IDENTITY_NAME, IdentitySwitch, useSeatNotes } from '@/components/game/SeatNotes'
 import { SeatGrid, SeatTile } from '@/components/game/SeatGrid'
 import { SeatProgress } from '@/components/game/SeatStatus'
 import { PageContent, PageFooter } from '@/components/layout/Page'
@@ -37,13 +37,17 @@ export function DayPhase({ view, send }: PhaseProps) {
           </Section>
         )}
 
-        <Section title="座位" caption={`${ready.size}/${seats.length} 准备投票 · 点头像添加备注`}>
+        <Section
+          title="座位"
+          caption={`${ready.size}/${seats.length} 准备投票 · 点头像备注${IDENTITY_NAME[notes.identity]}`}
+          action={<IdentitySwitch />}
+        >
           <SeatGrid>
             {seats.map((seat) => (
               <SeatTile
                 key={seat.id}
                 seat={seat}
-                onSelect={seat.isMe ? undefined : () => notes.edit(seat)}
+                onSelect={notes.canEdit(seat) ? () => notes.edit(seat) : undefined}
                 status={
                   <SeatProgress done={ready.has(seat.id)} doneText="可以投了" pendingText="讨论中" />
                 }
