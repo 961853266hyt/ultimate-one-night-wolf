@@ -2,10 +2,14 @@ import { Moon } from 'lucide-react'
 import { useState, useTransition, type FormEvent } from 'react'
 import { toast } from 'sonner'
 import { createRoom, goToRoom, isRoomCode, loadName, saveName, type Session } from '@/api/session'
+import { GitHubIcon } from '@/components/icons/GitHubIcon'
 import { Page } from '@/components/layout/Page'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { NameField } from './NameField'
+
+const AUTHOR_URL = 'https://github.com/961853266hyt'
+const SOURCE_URL = `${AUTHOR_URL}/ultimate-one-night-wolf`
 
 export function HomeScreen({ session }: { session: Session }) {
   const [name, setName] = useState(loadName)
@@ -20,7 +24,7 @@ export function HomeScreen({ session }: { session: Session }) {
         saveName(trimmed)
         goToRoom(await createRoom(session, trimmed))
       } catch {
-        toast.error('开房失败，请稍后再试')
+        toast.error('创建失败，请重试')
       }
     })
   }
@@ -39,19 +43,18 @@ export function HomeScreen({ session }: { session: Session }) {
           <Moon aria-hidden className="size-7" strokeWidth={1.6} />
         </span>
         <h1 className="text-[40px] leading-tight font-semibold tracking-wide">一夜狼</h1>
-        <p className="text-[15px] text-muted-foreground">一晚上，一次投票，定胜负</p>
       </header>
 
       <form onSubmit={create} className="flex flex-col gap-3">
         <NameField value={name} onChange={setName} />
         <Button type="submit" size="xl" disabled={!trimmed || creating}>
-          {creating ? '正在开房…' : '开一个房间'}
+          {creating ? '创建中…' : '创建房间'}
         </Button>
       </form>
 
       <div className="my-5 flex items-center gap-3 text-xs text-muted-foreground">
         <span className="h-px flex-1 bg-border" />
-        或加入朋友的房间
+        or
         <span className="h-px flex-1 bg-border" />
       </div>
 
@@ -71,7 +74,26 @@ export function HomeScreen({ session }: { session: Session }) {
         </Button>
       </form>
 
-      <p className="mt-7 text-center text-xs text-muted-foreground">3–10 人 · 面对面玩，每人一部手机</p>
+      <footer className="mt-7 flex items-center justify-center gap-2 text-[13px] text-muted-foreground/70">
+        <span>v{__APP_VERSION__}</span>
+        <span aria-hidden>·</span>
+        <span>
+          by{' '}
+          <a href={AUTHOR_URL} target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline">
+            geli
+          </a>
+        </span>
+        <span aria-hidden>·</span>
+        <a
+          href={SOURCE_URL}
+          target="_blank"
+          rel="noreferrer"
+          aria-label="GitHub 源码"
+          className="-m-1 p-1 transition-colors hover:text-foreground"
+        >
+          <GitHubIcon className="size-3.5" />
+        </a>
+      </footer>
     </Page>
   )
 }

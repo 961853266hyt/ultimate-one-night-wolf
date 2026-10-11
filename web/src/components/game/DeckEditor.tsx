@@ -1,14 +1,14 @@
 /**
  * 房主调整这局用哪些牌。上面是牌库，点一下放进本局；下面是本局，点「−」放回牌库，点头像看介绍。
  *
- * 改完点「完成」才发给服务端，中途关掉就当没改过。
+ * 守夜人这类要成对放的牌，点一张另一张跟着进出。改完点「完成」才发给服务端，中途关掉就当没改过。
  */
 import { Minus, RotateCcw, X } from 'lucide-react'
 import { useState } from 'react'
 import type { RoleId } from '@/api/types'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
-import { boxCardsOf, CARD_BOX, deckOf, sameRoles } from '@/game/deck'
+import { boxCardsOf, CARD_BOX, cardsMovedWith, deckOf, sameRoles, type BoxCard } from '@/game/deck'
 import { deckSizeFor, MAX_DECK, MIN_DECK } from '@/game/lobby'
 import { cn } from '@/lib/utils'
 import { ROLES } from '@/roles/catalog'
@@ -64,8 +64,14 @@ function DeckEditorBody({ deck, players, recommended, onSave }: BodyProps) {
   const missing = need - picked.length
   const savable = picked.length >= MIN_DECK && picked.length <= MAX_DECK
 
-  const take = (id: string) => setPicked((current) => [...current, id])
-  const putBack = (id: string) => setPicked((current) => current.filter((other) => other !== id))
+  const take = (card: BoxCard) => {
+    const moved = cardsMovedWith(card)
+    setPicked((current) => [...current, ...moved.filter((id) => !current.includes(id))])
+  }
+  const putBack = (card: BoxCard) => {
+    const moved = cardsMovedWith(card)
+    setPicked((current) => current.filter((id) => !moved.includes(id)))
+  }
 
   // 牌数对上是黑色，少了橙色，多了红色
   const countTone = missing > 0 ? 'text-warning' : missing < 0 ? 'text-destructive' : 'text-foreground'
@@ -83,7 +89,7 @@ function DeckEditorBody({ deck, players, recommended, onSave }: BodyProps) {
         <h3 className={SECTION_LABEL}>牌库</h3>
         <CardGrid>
           {CARD_BOX.map((card) => {
-            const { name } = ROLES[card.role]
+            const { name, pairs } = ROLES[card.role]
             return picked.includes(card.id) ? (
               // 放进本局的牌在牌库里留个空位，别的牌不挪地方
               <EmptyCardSlot key={card.id}>
@@ -94,8 +100,8 @@ function DeckEditorBody({ deck, players, recommended, onSave }: BodyProps) {
               <CardSlot
                 key={card.id}
                 role={card.role}
-                onSelect={() => take(card.id)}
-                selectLabel={`把${name}放进本局`}
+                onSelect={() => take(card)}
+                selectLabel={`把${pairs ? '一对' : ''}${name}放进本局`}
               />
             )
           })}
@@ -129,7 +135,7 @@ function DeckEditorBody({ deck, players, recommended, onSave }: BodyProps) {
             <CardSlot
               key={card.id}
               role={card.role}
-              corner={<PutBackButton name={ROLES[card.role].name} onClick={() => putBack(card.id)} />}
+              corner={<PutBackButton role={card.role} onClick={() => putBack(card)} />}
             />
           ))}
           {Array.from({ length: Math.max(0, missing) }, (_, index) => (
@@ -146,12 +152,13 @@ function DeckEditorBody({ deck, players, recommended, onSave }: BodyProps) {
 }
 
 /** 本局里每张牌右上角的「−」：点了放回牌库。 */
-function PutBackButton({ name, onClick }: { name: string; onClick: () => void }) {
+function PutBackButton({ role, onClick }: { role: RoleId; onClick: () => void }) {
+  const { name, pairs } = ROLES[role]
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={`把${name}放回牌库`}
+      aria-label={`把${pairs ? '一对' : ''}${name}放回牌库`}
       // 看得见的圆点只有 20px，能按的范围放大到 28px，手指好点
       className="group/put-back absolute -top-2.5 left-[calc(50%+6px)] flex size-7 items-center justify-center rounded-full outline-none"
     >

@@ -25,6 +25,14 @@ export const CARD_BOX: readonly BoxCard[] = (Object.keys(ROLES) as RoleId[]).fla
   })),
 )
 
+/** 配牌时和这张牌一起进出的牌，包括它自己。成对的角色第 1、2 张是一对，第 3、4 张是一对。 */
+export function cardsMovedWith(card: BoxCard): string[] {
+  if (!ROLES[card.role].pairs) return [card.id]
+  const pair = Math.ceil(card.copy / 2)
+  return CARD_BOX.filter((other) => other.role === card.role && Math.ceil(other.copy / 2) === pair)
+    .map((other) => other.id)
+}
+
 /** 牌堆用的是牌盒里的哪几张：同一种角色从第 1 张开始拿，按牌盒的顺序排好。 */
 export function boxCardsOf(deck: readonly RoleId[]): BoxCard[] {
   const counts = new Map<RoleId, number>()

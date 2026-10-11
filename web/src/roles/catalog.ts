@@ -36,6 +36,8 @@ export interface RoleInfo {
   notes?: readonly string[]
   /** 一局最多放几张，和服务端的 max_copies 一致。 */
   maxCopies: number
+  /** 要成对放，比如守夜人：配牌时点一张，同一对的另一张跟着进出。 */
+  pairs?: boolean
   /** 夜里轮到你时的提示。不写就按 Prompt 自动生成，比如「选 1 名其他玩家」。 */
   promptHint?: (prompt: Prompt) => string
   /** 阵营不固定时，代替阵营名显示的说明，比如化身幽灵。 */
@@ -102,6 +104,7 @@ export const ROLES: Record<RoleId, RoleInfo> = {
     ability: '夜里和另一个守夜人互相确认。',
     notes: ['看不到同伴，就说明另一张守夜人在底牌里。'],
     maxCopies: 2,
+    pairs: true,
   },
   seer: {
     name: '预言家',

@@ -11,19 +11,19 @@ interface NameFieldProps {
   autoFocus?: boolean
 }
 
-/** 「你的名字」输入框，首页和直接打开房间链接时都用它。 */
+/** 「你的名字」输入框，首页和直接打开房间链接时都用它。标签只给屏幕阅读器，看得见的是占位文字。 */
 export function NameField({ value, onChange, autoFocus }: NameFieldProps) {
   const id = useId()
   return (
-    <div className="flex flex-col gap-2">
-      <Label htmlFor={id} className="font-normal text-muted-foreground">
+    <div>
+      <Label htmlFor={id} className="sr-only">
         你的名字
       </Label>
       <Input
         id={id}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        placeholder="朋友们怎么叫你"
+        placeholder="你的名字"
         maxLength={NAME_MAX_LENGTH}
         autoComplete="nickname"
         autoFocus={autoFocus}
