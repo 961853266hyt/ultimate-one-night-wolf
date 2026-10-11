@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { RoleCard } from '@/components/game/RoleCard'
+import { useSeatNotes } from '@/components/game/SeatNotes'
 import { SeatGrid, SeatTile } from '@/components/game/SeatGrid'
 import { SeatProgress } from '@/components/game/SeatStatus'
 import { PageContent, PageFooter } from '@/components/layout/Page'
@@ -15,6 +16,7 @@ export function DealPhase({ view, send }: PhaseProps) {
   const card = view.me.card
   const done = confirmed.has(view.me.id)
   const [revealed, setRevealed] = useState(false)
+  const notes = useSeatNotes()
   // 已经点过「我记住了」，比如刷新了页面，就直接翻开
   const faceUp = revealed || done
 
@@ -34,12 +36,13 @@ export function DealPhase({ view, send }: PhaseProps) {
           <PageTitle title="这一局已经开始了" description="等下一局吧" />
         )}
 
-        <Section title="座位" caption={`${confirmed.size}/${seats.length} 已看好 · 全部看好就入夜`}>
+        <Section title="座位">
           <SeatGrid>
             {seats.map((seat) => (
               <SeatTile
                 key={seat.id}
                 seat={seat}
+                onSelect={notes.canEdit(seat) ? () => notes.edit(seat) : undefined}
                 status={
                   <SeatProgress done={confirmed.has(seat.id)} doneText="已看好" pendingText="看牌中…" />
                 }

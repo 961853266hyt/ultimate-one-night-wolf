@@ -44,7 +44,16 @@ interface SeatProgressProps {
   pendingText: string
 }
 
-/** 等所有人都做完一件事时用：看好牌、准备投票、投票。做完是绿勾，没做完是灰字。 */
+/**
+ * 等所有人都做完一件事时用：看好牌、准备投票、投票。没做完是灰字，做完只剩一个绿勾，
+ * doneText 留给读屏软件。
+ */
 export function SeatProgress({ done, doneText, pendingText }: SeatProgressProps) {
-  return <SeatStatus tone={done ? 'done' : 'waiting'}>{done ? doneText : pendingText}</SeatStatus>
+  if (!done) return <SeatStatus>{pendingText}</SeatStatus>
+  return (
+    <span className={statusVariants({ tone: 'done' })}>
+      <CircleCheck aria-hidden className="size-4" />
+      <span className="sr-only">{doneText}</span>
+    </span>
+  )
 }

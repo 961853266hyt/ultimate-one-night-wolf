@@ -1,7 +1,9 @@
 import type { ReactNode } from 'react'
+import type { RoleId } from '@/api/types'
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { cn } from '@/lib/utils'
 import { CornerMark, type Mark } from './CornerMark'
+import { RoleFace } from './RoleAvatar'
 
 type Tone = 'default' | 'me' | 'muted' | 'empty'
 
@@ -14,18 +16,21 @@ const TONE: Record<Tone, { root: string; fallback: string }> = {
 }
 
 interface PlayerAvatarProps {
-  /** 显示名字的第一个字。 */
-  name?: string
-  /** 不显示名字时放别的东西，比如空座位的加号。 */
+  /** 座位号。 */
+  number?: number
+  /** 这个人的身份：自己标的猜测，或者自己发到的牌。有就显示角色头像，盖住座位号。 */
+  note?: RoleId
+  /** 不显示座位号时放别的东西，比如空座位的加号、没标身份时的问号。 */
   children?: ReactNode
   tone?: Tone
   selected?: boolean
   mark?: Mark
 }
 
-/** 圆形头像，显示名字的第一个字。纯装饰，读屏软件会跳过，名字由旁边的文字提供。 */
+/** 圆形头像，显示座位号或者自己做的角色标记。纯装饰，读屏软件会跳过，名字由旁边的文字提供。 */
 export function PlayerAvatar({
-  name = '',
+  number,
+  note,
   children,
   tone = 'default',
   selected = false,
@@ -40,15 +45,17 @@ export function PlayerAvatar({
         selected && 'ring-2 ring-foreground ring-offset-2 ring-offset-background',
       )}
     >
-      <AvatarFallback className={cn('text-[17px] font-medium', TONE[tone].fallback)}>
-        {children ?? firstCharacter(name)}
-      </AvatarFallback>
+      {note ? (
+        // 卡图放大过，只裁图，不裁角上的记号
+        <span className="flex size-full overflow-hidden rounded-full">
+          <RoleFace role={note} />
+        </span>
+      ) : (
+        <AvatarFallback className={cn('font-mono text-[19px] font-medium', TONE[tone].fallback)}>
+          {children ?? number}
+        </AvatarFallback>
+      )}
       {mark && <CornerMark mark={mark} />}
     </Avatar>
   )
-}
-
-function firstCharacter(name: string): string {
-  // Array.from 按字符而不是按 UTF-16 码元切，名字以 emoji 开头也不会切坏
-  return Array.from(name.trim())[0]?.toUpperCase() ?? '?'
 }
