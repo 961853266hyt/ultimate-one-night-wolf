@@ -1,4 +1,3 @@
-import { Moon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { RoleId } from '@/api/types'
 import { cn } from '@/lib/utils'
@@ -10,21 +9,20 @@ interface CardBackProps {
   /** 决定牌的大小和圆角。 */
   className?: string
   iconClassName?: string
-  /** 月亮下面的小字。 */
+  /** 图标下面的小字。 */
   children?: ReactNode
 }
 
-/** 牌背：黑底、细边框、一弯月亮。 */
+/** 牌背：黑底，中间是网站图标。 */
 export function CardBack({ className, iconClassName, children }: CardBackProps) {
   return (
     <span
       className={cn(
-        'relative flex flex-col items-center justify-center gap-3 rounded-lg bg-foreground text-background',
+        'flex flex-col items-center justify-center gap-3 rounded-lg bg-foreground text-background',
         className,
       )}
     >
-      <span aria-hidden className="absolute inset-1.5 rounded-[inherit] border border-background/20" />
-      <Moon aria-hidden className={cn('size-5', iconClassName)} strokeWidth={1.5} />
+      <img src="/icon.svg" alt="" className={cn('size-10', iconClassName)} />
       {children}
     </span>
   )

@@ -1,4 +1,3 @@
-import { Moon } from 'lucide-react'
 import { useState, useTransition, type FormEvent } from 'react'
 import { toast } from 'sonner'
 import { createRoom, goToRoom, isRoomCode, loadName, saveName, type Session } from '@/api/session'
@@ -39,9 +38,7 @@ export function HomeScreen({ session }: { session: Session }) {
   return (
     <Page className="px-5 pb-[max(1.75rem,env(safe-area-inset-bottom))]">
       <header className="flex flex-1 flex-col items-center justify-center gap-3.5 py-10">
-        <span className="flex size-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground">
-          <Moon aria-hidden className="size-7" strokeWidth={1.6} />
-        </span>
+        <img src="/icon.svg" alt="" className="size-16" />
         <h1 className="text-[40px] leading-tight font-semibold tracking-wide">一夜狼</h1>
       </header>
 
