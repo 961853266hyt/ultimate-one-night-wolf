@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { loadName, roomCodeFromPath, saveName } from '@/api/session'
 import { useSession } from '@/api/useSession'
 import { RoleDetailsProvider } from '@/components/game/RoleDetails'
+import { FullScreenLoading } from '@/components/layout/FullScreenLoading'
 import { FullScreenMessage } from '@/components/layout/FullScreenMessage'
 import { Toaster } from '@/components/ui/sonner'
 import { HomeScreen } from '@/screens/home/HomeScreen'
@@ -24,7 +25,7 @@ function Screens() {
   const code = roomCodeFromPath()
 
   if (failed) return <FullScreenMessage>连不上服务器，请稍后刷新重试</FullScreenMessage>
-  if (!session) return <FullScreenMessage>加载中…</FullScreenMessage>
+  if (!session) return <FullScreenLoading label="加载中…" />
   if (!code) return <HomeScreen session={session} />
   if (!name) {
     return (

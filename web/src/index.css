@@ -109,6 +109,17 @@
   --radius-4xl: calc(var(--radius) * 2.6);
 }
 
+/* 加载动画里一个爪印的出现和消失：踩下、停一会儿、淡掉 */
+@theme {
+  --animate-paw-step: paw-step 2.8s ease-in-out infinite;
+
+  @keyframes paw-step {
+    0% { opacity: 0; }
+    8%, 50% { opacity: 1; }
+    75%, 100% { opacity: 0; }
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

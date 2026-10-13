@@ -6,7 +6,7 @@ interface Props {
   action?: ReactNode
 }
 
-/** 占满一屏、居中的一句话：加载中、连不上、房间解散了…… */
+/** 占满一屏、居中的一句话：连不上、房间解散了……（加载中用 FullScreenLoading） */
 export function FullScreenMessage({ children, action }: Props) {
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center gap-5 p-6 text-center">
