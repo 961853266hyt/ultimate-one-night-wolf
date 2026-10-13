@@ -3,6 +3,8 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/geist-mono";
+/* 中文用霞鹜漫黑：按字符切成小块，页面上用到哪些字才下载哪块 */
+@import "@chinese-fonts/lxgwmanhei/dist/LXGWMarkerGothic/result.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -70,8 +72,8 @@
 }
 
 @theme inline {
-  /* 西文用 Geist，中文落到各系统自带的黑体 */
-  --font-sans: "Geist Variable", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  /* 西文用 Geist，中文用霞鹜漫黑；字体还没下载完时先用各系统自带的黑体 */
+  --font-sans: "Geist Variable", "LXGW Marker Gothic", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
   --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-heading: var(--font-sans);
 
