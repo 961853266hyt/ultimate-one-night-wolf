@@ -4,6 +4,7 @@ import { goHome, type Session } from '@/api/session'
 import type { ErrorMessage, Phase } from '@/api/types'
 import { useRoom } from '@/api/useRoom'
 import { SeatNotesProvider } from '@/components/game/SeatNotes'
+import { FullScreenLoading } from '@/components/layout/FullScreenLoading'
 import { FullScreenMessage } from '@/components/layout/FullScreenMessage'
 import { Page } from '@/components/layout/Page'
 import { Button } from '@/components/ui/button'
@@ -51,7 +52,7 @@ export function RoomScreen({ code, session, name }: RoomScreenProps) {
     )
   }
   if (!room.view) {
-    return <FullScreenMessage>{room.connected ? '正在进入房间…' : '正在连接…'}</FullScreenMessage>
+    return <FullScreenLoading label={room.connected ? '正在进入房间…' : '正在连接…'} />
   }
 
   const { view, send } = room
