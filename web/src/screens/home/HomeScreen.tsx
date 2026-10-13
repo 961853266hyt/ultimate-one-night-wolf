@@ -1,14 +1,11 @@
 import { useState, useTransition, type FormEvent } from 'react'
 import { toast } from 'sonner'
 import { createRoom, goToRoom, isRoomCode, loadName, saveName, type Session } from '@/api/session'
-import { GitHubIcon } from '@/components/icons/GitHubIcon'
 import { Page } from '@/components/layout/Page'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { HomeMenu } from './HomeMenu'
 import { NameField } from './NameField'
-
-const AUTHOR_URL = 'https://github.com/961853266hyt'
-const SOURCE_URL = `${AUTHOR_URL}/ultimate-one-night-wolf`
 
 export function HomeScreen({ session }: { session: Session }) {
   const [name, setName] = useState(loadName)
@@ -37,10 +34,15 @@ export function HomeScreen({ session }: { session: Session }) {
 
   return (
     <Page className="px-5 pb-[max(1.75rem,env(safe-area-inset-bottom))]">
-      <header className="flex flex-1 flex-col items-center justify-center gap-3.5 py-10">
+      {/* 顶栏只有右边的菜单，标题在下面的大图标那里 */}
+      <header className="sticky top-0 z-20 -mx-5 flex h-15 items-center justify-end bg-background/95 pr-2 backdrop-blur">
+        <HomeMenu />
+      </header>
+
+      <div className="flex flex-1 flex-col items-center justify-center gap-3.5 py-10">
         <img src="/icon.svg" alt="" className="size-16" />
         <h1 className="text-[40px] leading-tight font-semibold tracking-wide">一夜狼</h1>
-      </header>
+      </div>
 
       <form onSubmit={create} className="flex flex-col gap-3">
         <NameField value={name} onChange={setName} />
@@ -70,27 +72,6 @@ export function HomeScreen({ session }: { session: Session }) {
           加入
         </Button>
       </form>
-
-      <footer className="mt-7 flex items-center justify-center gap-2 text-[13px] text-muted-foreground/70">
-        <span>v{__APP_VERSION__}</span>
-        <span aria-hidden>·</span>
-        <span>
-          by{' '}
-          <a href={AUTHOR_URL} target="_blank" rel="noreferrer" className="underline-offset-2 hover:underline">
-            geli
-          </a>
-        </span>
-        <span aria-hidden>·</span>
-        <a
-          href={SOURCE_URL}
-          target="_blank"
-          rel="noreferrer"
-          aria-label="GitHub 源码"
-          className="-m-1 p-1 transition-colors hover:text-foreground"
-        >
-          <GitHubIcon className="size-3.5" />
-        </a>
-      </footer>
     </Page>
   )
 }
