@@ -110,6 +110,22 @@ def test_robber_takes_the_card_and_sees_it():
     assert game.knowledge["p1"] == robbed_knew
 
 
+def test_a_robber_who_does_nothing_robs_someone_at_random():
+    game = new_game(R.ROBBER, R.WEREWOLF, R.VILLAGER, R.SEER, R.DRUNK, R.WEREWOLF)
+    night_until(game, R.ROBBER)
+    skip(game)
+
+    [entry] = game.night_log
+    assert entry.auto and entry.step is R.ROBBER
+    [target] = entry.targets
+    assert target in ("p1", "p2")  # 只抢其他玩家，不抢自己，也不抢底牌
+    assert game.cards[target] is R.ROBBER
+    assert game.knowledge["p0"] == [
+        Swapped(step=R.ROBBER, slots=("p0", target)),
+        SawCard(step=R.ROBBER, slot="p0", role=game.cards["p0"]),
+    ]
+
+
 def witch_game():
     """p0 女巫，p1 狼，p2 村民；底牌：预言家、酒鬼、狼。"""
     game = new_game(R.WITCH, R.WEREWOLF, R.VILLAGER, R.SEER, R.DRUNK, R.WEREWOLF)
