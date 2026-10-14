@@ -33,8 +33,10 @@ def plan_for(deck: Collection[RoleId]) -> list[RoleId]:
 
 def candidates(players: list[PlayerId], me: PlayerId, option: TargetOption) -> list[Slot]:
     if option.kind == "center":
-        return list(CENTER)
-    return [p for p in players if option.include_self or p != me]
+        pool = list(CENTER)
+    else:
+        pool = [p for p in players if option.include_self or p != me]
+    return [slot for slot in pool if slot not in option.exclude]
 
 
 def check_targets(

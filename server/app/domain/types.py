@@ -107,6 +107,7 @@ class TargetOption(BaseModel):
     kind: Literal["player", "center"]
     count: int
     include_self: bool = False
+    exclude: list[Slot] = Field(default_factory=list)  # 不能选的位置，比如预言家已经看过的那张底牌
 
 
 class Prompt(BaseModel):

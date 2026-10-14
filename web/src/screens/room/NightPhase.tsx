@@ -1,4 +1,6 @@
+import { useState } from 'react'
 import { CENTER, type Copied, type Prompt, type RoleId } from '@/api/types'
+import { CenterPeek } from '@/components/game/CenterPeek'
 import { CluesDrawer } from '@/components/game/Clues'
 import { PhaseProgress } from '@/components/game/PhaseProgress'
 import { RoleThumbnail } from '@/components/game/RoleArtCard'
@@ -9,9 +11,9 @@ import { Curtain } from '@/components/layout/Curtain'
 import { PageContent, PageFooter } from '@/components/layout/Page'
 import { PageTitle, Section } from '@/components/layout/Section'
 import { Button } from '@/components/ui/button'
-import { cluesOf } from '@/game/knowledge'
+import { centerSightings, cluesOf } from '@/game/knowledge'
 import { centerLetter, seatsOf } from '@/game/seats'
-import { canPickSelf, describePrompt } from '@/game/targets'
+import { canPickCenter, canPickSelf, describePrompt } from '@/game/targets'
 import { useNightTargets } from '@/game/useNightTargets'
 import { ROLES } from '@/roles/catalog'
 import type { PhaseProps } from './types'
@@ -19,10 +21,14 @@ import type { PhaseProps } from './types'
 /**
  * 夜里的每一步都长这样，轮没轮到你看起来都一样：同样能点牌、能按「确定」。
  * 只有轮到你时，选择才会发给服务器。
+ *
+ * 要看底牌的角色（预言家、独狼、模仿者、女巫）轮到时，点底牌是放大翻开，翻开就是行动；
+ * 翻开的牌这一步里一直正面朝上。没轮到的人点底牌只是选中，不会翻。
  */
 export function NightPhase({ view, send }: PhaseProps) {
   const { night, prompt } = view
   const targets = useNightTargets(prompt)
+  const [peeking, setPeeking] = useState<string | null>(null)
   if (!night) return null
 
   const seats = seatsOf(view)
@@ -36,6 +42,18 @@ export function NightPhase({ view, send }: PhaseProps) {
     (fact): fact is Copied => fact.type === 'copied' && fact.step === 'doppelganger',
   )?.role
   const hintRole = night.step === 'doppelganger' && copied ? copied : night.step
+
+  const sightings = centerSightings(view.me.knowledge, night.step)
+  // 轮到你、是要看底牌的角色、这一步还能选底牌：点底牌放大翻开
+  const peeks =
+    prompt !== null && ROLES[hintRole].peeksCenter === true && prompt.options.some((o) => o.kind === 'center')
+  const canFlip = (slot: string) => peeks && !sightings.now.has(slot) && canPickCenter(prompt!, slot)
+  const tapCenter = (slot: string) =>
+    peeks || sightings.now.has(slot) ? setPeeking(slot) : targets.tap(slot)
+  const flip = (slot: string) => {
+    send({ type: 'night_action', targets: [slot] })
+    targets.clear() // 预言家先点了人又去翻底牌，就当没点过人
+  }
 
   const confirm = () => {
     if (prompt) send({ type: 'night_action', targets: targets.selected })
@@ -59,8 +77,10 @@ export function NightPhase({ view, send }: PhaseProps) {
               <CenterCard
                 key={slot}
                 letter={centerLetter(slot)}
+                role={sightings.now.get(slot)}
+                seen={sightings.before.has(slot)}
                 selected={targets.selected.includes(slot)}
-                onSelect={() => targets.tap(slot)}
+                onSelect={() => tapCenter(slot)}
               />
             ))}
           </CenterCardRow>
@@ -86,6 +106,16 @@ export function NightPhase({ view, send }: PhaseProps) {
         </Button>
         <CluesDrawer clues={clues} fresh={learned} />
       </PageFooter>
+
+      <CenterPeek
+        slot={peeking}
+        letter={peeking ? centerLetter(peeking) : ''}
+        role={peeking ? sightings.now.get(peeking) : undefined}
+        canFlip={peeking !== null && canFlip(peeking)}
+        hint={prompt ? hint(hintRole, prompt, learned) : undefined}
+        onFlip={() => peeking && flip(peeking)}
+        onClose={() => setPeeking(null)}
+      />
 
       {/* 每一步都会重新挂载，所以每个角色醒来时都放一次 */}
       <Curtain>

@@ -57,7 +57,8 @@ def test_the_doppelganger_step_runs_its_full_time_even_with_the_card_in_the_cent
 def test_a_doppelganger_seer_looks_right_away_and_does_not_wake_again():
     game = doppelganger_game(R.SEER, R.WEREWOLF, R.VILLAGER, R.ROBBER, R.WEREWOLF)
     game.night_action("p0", ["p1"])
-    game.night_action("p0", ["C0", "C1"])
+    game.night_action("p0", ["C0"])  # 底牌一张一张看
+    game.night_action("p0", ["C1"])
     assert game.knowledge["p0"][-2:] == [
         SawCard(step=R.DOPPELGANGER, slot="C0", role=R.VILLAGER),
         SawCard(step=R.DOPPELGANGER, slot="C1", role=R.ROBBER),

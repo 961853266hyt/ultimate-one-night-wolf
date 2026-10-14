@@ -41,17 +41,20 @@ interface CenterCardProps {
   /** 牌下面的补充说明，比如「原来是失眠者」。 */
   note?: ReactNode
   selected?: boolean
+  /** 之前夜里翻开看过，现在扣着：牌角画一只眼睛。 */
+  seen?: boolean
   /** 传了就能点。 */
   onSelect?: () => void
 }
 
 /** 一张底牌，下面写着「A 号」。 */
-export function CenterCard({ letter, role, note, selected = false, onSelect }: CenterCardProps) {
+export function CenterCard({ letter, role, note, selected = false, seen = false, onSelect }: CenterCardProps) {
   // 能选的牌本身就是按钮，里面的角色名就不能再点了
   const card = role ? (
     <CardFace role={role} interactive={!onSelect} />
   ) : (
-    <CardBack className="h-21 w-15" />
+    // 和翻开后的缩略图一样大，翻开时牌和下面的字不会跳
+    <CardBack className="aspect-[200/274] w-18 rounded-[6px]" />
   )
 
   return (
@@ -69,6 +72,7 @@ export function CenterCard({ letter, role, note, selected = false, onSelect }: C
         >
           {card}
           {selected && <CornerMark mark="check" />}
+          {seen && <CornerMark mark="seen" />}
         </button>
       ) : (
         card

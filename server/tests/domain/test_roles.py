@@ -71,20 +71,59 @@ def test_seer_views_another_player():
     assert game.knowledge["p0"] == [SawCard(step=R.SEER, slot="p1", role=R.WEREWOLF)]
 
 
-def test_seer_views_two_center_cards():
+def test_seer_views_two_center_cards_one_at_a_time():
     game = new_game(R.SEER, R.WEREWOLF, R.VILLAGER, R.ROBBER, R.DRUNK, R.WEREWOLF)
     night_until(game, R.SEER)
-    game.night_action("p0", ["C0", "C2"])
+    game.night_action("p0", ["C0"])
+    assert game.knowledge["p0"] == [SawCard(step=R.SEER, slot="C0", role=R.ROBBER)]
+
+    game.night_action("p0", ["C2"])
     assert game.knowledge["p0"] == [
         SawCard(step=R.SEER, slot="C0", role=R.ROBBER),
         SawCard(step=R.SEER, slot="C2", role=R.WEREWOLF),
     ]
+    assert game.prompt_for("p0") is None
+
+
+def test_a_seer_who_saw_one_center_card_must_see_a_different_one():
+    game = new_game(R.SEER, R.WEREWOLF, R.VILLAGER, R.ROBBER, R.DRUNK, R.WEREWOLF)
+    night_until(game, R.SEER)
+    game.night_action("p0", ["C0"])
+
+    prompt = game.prompt_for("p0")
+    assert prompt is not None and prompt.required
+    with pytest.raises(RuleError) as error:
+        game.night_action("p0", ["C0"])
+    assert error.value.code is ErrorCode.BAD_TARGETS
+    with pytest.raises(RuleError) as error:
+        game.night_action("p0", ["p1"])  # 看了底牌就不能再改看玩家
+    assert error.value.code is ErrorCode.BAD_TARGETS
+
+
+def test_a_seer_who_stops_after_one_center_card_sees_another_at_random():
+    game = new_game(R.SEER, R.WEREWOLF, R.VILLAGER, R.ROBBER, R.DRUNK, R.WEREWOLF)
+    night_until(game, R.SEER)
+    game.night_action("p0", ["C1"])
+    skip(game)
+
+    first, second = game.night_log
+    assert not first.auto and second.auto
+    [slot] = second.targets
+    assert slot in ("C0", "C2")
+    assert game.knowledge["p0"][-1] == SawCard(step=R.SEER, slot=slot, role=game.cards[slot])
+
+
+def test_a_seer_who_saw_a_player_is_done():
+    game = new_game(R.SEER, R.WEREWOLF, R.VILLAGER, R.ROBBER, R.DRUNK, R.WEREWOLF)
+    night_until(game, R.SEER)
+    game.night_action("p0", ["p1"])
+    assert game.prompt_for("p0") is None
 
 
 @pytest.mark.parametrize(
     "targets",
-    [[], ["p0"], ["p9"], ["C0"], ["C0", "C0"], ["p1", "p2"], ["p1", "C0"]],
-    ids=["nothing", "self", "stranger", "one-center", "same-center", "two-players", "mixed"],
+    [[], ["p0"], ["p9"], ["C0", "C2"], ["C0", "C0"], ["p1", "p2"], ["p1", "C0"]],
+    ids=["nothing", "self", "stranger", "two-centers-at-once", "same-center", "two-players", "mixed"],
 )
 def test_seer_rejects_targets_that_fit_no_option(targets):
     game = new_game(R.SEER, R.WEREWOLF, R.VILLAGER, R.ROBBER, R.DRUNK, R.WEREWOLF)

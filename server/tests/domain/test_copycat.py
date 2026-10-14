@@ -119,7 +119,8 @@ def test_a_copycat_who_copies_the_doppelganger_copies_a_player_at_the_doppelgang
     night_until(game, R.DOPPELGANGER)
     assert game.wakers() == ["p0"]
     game.night_action("p0", ["p1"])  # 化身成预言家，马上验人
-    game.night_action("p0", ["C1", "C2"])
+    game.night_action("p0", ["C1"])  # 底牌一张一张看
+    game.night_action("p0", ["C2"])
     assert game.knowledge["p0"] == [
         Copied(step=R.COPYCAT, slot="C0", role=R.DOPPELGANGER),
         Copied(step=R.DOPPELGANGER, slot="p1", role=R.SEER),
