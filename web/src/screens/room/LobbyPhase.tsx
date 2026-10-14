@@ -1,5 +1,5 @@
 import { SlidersHorizontal, UserPlus } from 'lucide-react'
-import { useState, type ReactNode } from 'react'
+import { useState } from 'react'
 import type { RoleId } from '@/api/types'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { DeckTray } from '@/components/game/Deck'
@@ -15,7 +15,7 @@ import { inviteFriends } from './invite'
 import type { PhaseProps } from './types'
 
 export function LobbyPhase({ view, send }: PhaseProps) {
-  const { code, deck, auto_deck: autoDeck, recommended_deck: recommendedDeck, timings } = view.room
+  const { code, deck, recommended_deck: recommendedDeck, timings } = view.room
   const seats = seatsOf(view)
   const isHost = view.me.id === view.room.host
   const need = deckSizeFor(seats.length)
@@ -39,7 +39,7 @@ export function LobbyPhase({ view, send }: PhaseProps) {
   return (
     <>
       <PageContent>
-        <Section title="本局角色" caption={deckCaption(deck.length, need, autoDeck)}>
+        <Section title="本局角色">
           <DeckTray deck={deck} size={need} onFill={isHost ? editDeck : undefined} />
           {isHost && (
             <Button variant="outline" size="lg" className="h-11 px-4" onClick={editDeck}>
@@ -78,7 +78,6 @@ export function LobbyPhase({ view, send }: PhaseProps) {
       </PageContent>
 
       <PageFooter>
-        {isHost && blocker && <p className="text-center text-xs text-muted-foreground">{blocker}</p>}
         <div className="flex gap-2.5">
           <Button variant="outline" size="xl" className="flex-1" onClick={invite}>
             <UserPlus aria-hidden />
@@ -117,13 +116,4 @@ export function LobbyPhase({ view, send }: PhaseProps) {
       />
     </>
   )
-}
-
-/** 「本局角色」下面那行小字：牌数对上时说牌是怎么来的，对不上时说差几张。 */
-function deckCaption(count: number, need: number, auto: boolean): ReactNode {
-  if (count < need) return <span className="text-warning">需要 {need} 张，还差 {need - count} 张</span>
-  if (count > need) {
-    return <span className="text-destructive">需要 {need} 张，多了 {count - need} 张</span>
-  }
-  return `${count} 张 · ${auto ? '按人数推荐' : '自定义'} · 点头像看介绍`
 }
