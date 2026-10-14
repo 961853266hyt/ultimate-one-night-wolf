@@ -1,6 +1,7 @@
 import { LogOut } from 'lucide-react'
 import type { ComponentProps } from 'react'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
+import { AppMenu } from '@/components/layout/AppMenu'
 import { Button } from '@/components/ui/button'
 import { useCountdown } from '@/hooks/useCountdown'
 import { cn } from '@/lib/utils'
@@ -17,7 +18,7 @@ interface RoomHeaderProps {
   onLeave: () => void
 }
 
-/** 房间里的顶栏：房间号、阶段、倒计时、离开。 */
+/** 房间里的顶栏：房间号、阶段、倒计时、菜单。离开房间放在菜单底部。 */
 export function RoomHeader(props: RoomHeaderProps) {
   const { code, phase, endsAt, clockOffset, connected, confirmLeave, onLeave } = props
   return (
@@ -29,7 +30,7 @@ export function RoomHeader(props: RoomHeaderProps) {
       </div>
       <div className="flex shrink-0 items-center">
         <Countdown endsAt={endsAt} clockOffset={clockOffset} />
-        <LeaveButton confirm={confirmLeave} onLeave={onLeave} />
+        <AppMenu footer={<LeaveButton confirm={confirmLeave} onLeave={onLeave} />} />
       </div>
     </header>
   )
@@ -53,10 +54,10 @@ function Countdown({ endsAt, clockOffset }: { endsAt: number | null; clockOffset
 }
 
 function LeaveButton({ confirm, onLeave }: { confirm: boolean; onLeave: () => void }) {
-  if (!confirm) return <LeaveIconButton onClick={onLeave} />
+  if (!confirm) return <LeaveMenuButton onClick={onLeave} />
   return (
     <ConfirmDialog
-      trigger={<LeaveIconButton />}
+      trigger={<LeaveMenuButton />}
       title="这一局还没结束，确定离开吗？"
       description="你的座位会保留到这局结束。"
       confirmLabel="离开"
@@ -66,16 +67,11 @@ function LeaveButton({ confirm, onLeave }: { confirm: boolean; onLeave: () => vo
   )
 }
 
-function LeaveIconButton(props: ComponentProps<typeof Button>) {
+function LeaveMenuButton(props: ComponentProps<typeof Button>) {
   return (
-    <Button
-      variant="ghost"
-      size="icon-xl"
-      aria-label="离开房间"
-      className="text-muted-foreground"
-      {...props}
-    >
-      <LogOut className="size-5" />
+    <Button variant="destructive" size="xl" className="w-full" {...props}>
+      <LogOut className="size-4.5" />
+      离开房间
     </Button>
   )
 }

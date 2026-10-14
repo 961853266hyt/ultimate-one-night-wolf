@@ -1,10 +1,10 @@
 import { useState, useTransition, type FormEvent } from 'react'
 import { toast } from 'sonner'
 import { createRoom, goToRoom, isRoomCode, loadName, saveName, type Session } from '@/api/session'
+import { AppMenu } from '@/components/layout/AppMenu'
 import { Page } from '@/components/layout/Page'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { HomeMenu } from './HomeMenu'
 import { NameField } from './NameField'
 
 export function HomeScreen({ session }: { session: Session }) {
@@ -36,7 +36,7 @@ export function HomeScreen({ session }: { session: Session }) {
     <Page className="px-5 pb-[max(1.75rem,env(safe-area-inset-bottom))]">
       {/* 顶栏只有右边的菜单，标题在下面的大图标那里 */}
       <header className="sticky top-0 z-20 -mx-5 flex h-15 items-center justify-end bg-background/95 pr-2 backdrop-blur">
-        <HomeMenu />
+        <AppMenu />
       </header>
 
       <div className="flex flex-1 flex-col items-center justify-center gap-3.5 py-10">
