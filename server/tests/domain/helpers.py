@@ -2,7 +2,7 @@ import random
 
 from app.domain.game import Game
 from app.domain.room import Room
-from app.domain.types import Phase, RoleId, Timings
+from app.domain.types import MIN_PLAYERS, Phase, RoleId, Settings, Timings
 
 
 class NoShuffle(random.Random):
@@ -51,8 +51,9 @@ def until_phase(game: Game, phase: Phase) -> None:
 
 
 def new_room(n: int, now: float = 0) -> Room:
-    """p0 开房，p0 到 p{n-1} 都已在线。"""
+    """p0 开房，座位数正好是 n（至少 3），p0 到 p{n-1} 按顺序坐下并在线。"""
     room = Room.create("ABCD", "p0", "p0", now)
+    room.settings = Settings(seats=max(n, MIN_PLAYERS))
     for i in range(n):
         room.connect(f"p{i}", f"p{i}", now)
     return room

@@ -82,19 +82,19 @@ export function SeatTile({
   )
 }
 
-/** 大厅里还没人坐的座位。点一下邀请朋友。 */
-export function EmptySeatTile({ number, onInvite }: { number: number; onInvite?: () => void }) {
+/** 大厅里还没人坐的座位。点一下换到这个座位上。 */
+export function EmptySeatTile({ number, onTake }: { number: number; onTake?: () => void }) {
   return (
     <li className="flex min-w-0 flex-col items-center gap-1.5">
-      <Tappable onTap={onInvite} label={`${number} 号空座位，邀请朋友`}>
+      <Tappable onTap={onTake} label={`${number} 号空座位，换到这里`}>
         <PlayerAvatar tone="empty">
           <Plus className="size-5" strokeWidth={1.6} />
         </PlayerAvatar>
         <span className="text-[13px] text-muted-foreground">
-          <span className="font-mono">{number}</span> 等待
+          <span className="font-mono">{number}</span> 空位
         </span>
       </Tappable>
-      <SeatStatus tone="empty">空座位</SeatStatus>
+      <SeatStatus tone="empty">{onTake ? '点击换座' : '空座位'}</SeatStatus>
     </li>
   )
 }

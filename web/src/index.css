@@ -3,6 +3,8 @@
 @import "shadcn/tailwind.css";
 @import "@fontsource-variable/geist";
 @import "@fontsource-variable/geist-mono";
+/* 中文用霞鹜漫黑：按字符切成小块，页面上用到哪些字才下载哪块 */
+@import "@chinese-fonts/lxgwmanhei/dist/LXGWMarkerGothic/result.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -70,8 +72,8 @@
 }
 
 @theme inline {
-  /* 西文用 Geist，中文落到各系统自带的黑体 */
-  --font-sans: "Geist Variable", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
+  /* 西文用 Geist，中文用霞鹜漫黑；字体还没下载完时先用各系统自带的黑体 */
+  --font-sans: "Geist Variable", "LXGW Marker Gothic", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
   --font-mono: "Geist Mono Variable", ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-heading: var(--font-sans);
 
@@ -117,6 +119,22 @@
     0% { opacity: 0; }
     8%, 50% { opacity: 1; }
     75%, 100% { opacity: 0; }
+  }
+}
+
+/* 过场（Curtain）：整屏淡入、停住、淡出；里面的内容稍微往上浮一点出现。时长由组件设置 */
+@theme {
+  --animate-curtain: curtain 1.4s ease-in-out forwards;
+  --animate-curtain-rise: curtain-rise 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+
+  @keyframes curtain {
+    0% { opacity: 0; }
+    12%, 78% { opacity: 1; }
+    100% { opacity: 0; }
+  }
+  @keyframes curtain-rise {
+    from { opacity: 0; transform: translateY(12px) scale(0.96); }
+    to { opacity: 1; transform: none; }
   }
 }
 

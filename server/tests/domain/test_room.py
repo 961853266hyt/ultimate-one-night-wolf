@@ -9,6 +9,7 @@ from app.domain.commands import (
     ReadyToVote,
     Rematch,
     Start,
+    TakeSeat,
     Vote,
 )
 from app.domain.errors import ErrorCode, RuleError
@@ -56,14 +57,72 @@ def test_players_join_in_the_lobby_until_the_room_is_full():
     rejects(ErrorCode.ROOM_FULL, lambda: room.connect("late", "late", 0))
 
 
-def test_nobody_new_can_join_during_a_game_but_they_can_after_it_ends():
+def test_nobody_new_can_join_during_a_game_but_they_can_once_a_seat_frees_up():
     room = new_room(3)
     room.handle("p0", Start(), 0, RNG)
     rejects(ErrorCode.GAME_IN_PROGRESS, lambda: room.connect("late", "late", 0))
 
     finish_game(room)
-    room.connect("late", "late", 0)
-    assert room.member("late") is not None
+    room.disconnect("p2", now=1)
+    room.handle("p0", Rematch(), 1, RNG)  # 离线的 p2 被移出，空出 2 号座位
+    room.connect("late", "late", 1)
+    assert room.member("late").seat == 2
+
+
+def test_a_newcomer_takes_the_lowest_free_seat():
+    room = new_room(3)
+    room.handle("p0", Configure(settings=Settings(seats=5)), 0, RNG)
+    room.handle("p1", Leave(), 0, RNG)
+    room.connect("p3", "p3", 0)
+    room.connect("p4", "p4", 0)
+    assert [(m.id, m.seat) for m in room.members] == [("p0", 0), ("p2", 2), ("p3", 1), ("p4", 3)]
+
+
+def test_players_can_move_to_an_empty_seat_in_the_lobby():
+    room = new_room(3)
+    room.handle("p0", Configure(settings=Settings(seats=5)), 0, RNG)
+    room.handle("p1", TakeSeat(seat=4), 0, RNG)
+    assert room.member("p1").seat == 4
+
+    rejects(ErrorCode.SEAT_TAKEN, lambda: room.handle("p2", TakeSeat(seat=0), 0, RNG))
+    rejects(ErrorCode.SEAT_TAKEN, lambda: room.handle("p2", TakeSeat(seat=5), 0, RNG))
+
+
+def test_nobody_changes_seats_once_the_game_has_started():
+    room = new_room(3)
+    room.handle("p0", Start(), 0, RNG)
+    rejects(ErrorCode.WRONG_PHASE, lambda: room.handle("p0", TakeSeat(seat=1), 0, RNG))
+
+
+def test_the_room_cannot_have_fewer_seats_than_people():
+    room = new_room(4)
+    rejects(
+        ErrorCode.TOO_FEW_SEATS,
+        lambda: room.handle("p0", Configure(settings=Settings(seats=3)), 0, RNG),
+    )
+
+
+def test_fewer_seats_move_people_off_the_removed_ones():
+    room = new_room(3)
+    room.handle("p0", Configure(settings=Settings(seats=6)), 0, RNG)
+    room.handle("p2", TakeSeat(seat=5), 0, RNG)
+    room.handle("p0", Configure(settings=Settings(seats=3)), 0, RNG)
+    assert sorted(m.seat for m in room.members) == [0, 1, 2]
+
+
+def test_the_game_starts_only_when_every_seat_is_taken():
+    room = new_room(3)
+    room.handle("p0", Configure(settings=Settings(seats=4)), 0, RNG)
+    rejects(ErrorCode.PLAYER_COUNT, lambda: room.handle("p0", Start(), 0, RNG))
+
+
+def test_the_game_seats_players_by_seat_number():
+    room = new_room(3)
+    room.handle("p0", Configure(settings=Settings(seats=4)), 0, RNG)
+    room.handle("p0", TakeSeat(seat=3), 0, RNG)
+    room.connect("p3", "p3", 0)  # 坐到空出来的 0 号
+    room.handle("p0", Start(), 0, RNG)
+    assert room.game is not None and room.game.players == ["p3", "p1", "p2", "p0"]
 
 
 def test_a_player_who_reconnects_keeps_their_seat():
@@ -87,12 +146,13 @@ def test_strangers_cannot_send_commands():
     rejects(ErrorCode.NOT_MEMBER, lambda: room.handle("stranger", Start(), 0, RNG))
 
 
-def test_the_deck_follows_the_player_count_until_the_host_picks_one():
-    room = new_room(4)
-    assert room.deck() == recommended_deck(4)
+def test_the_deck_follows_the_seat_count_until_the_host_picks_one():
+    room = new_room(3)
+    room.handle("p0", Configure(settings=Settings(seats=5)), 0, RNG)
+    assert room.deck() == recommended_deck(5)  # 按座位数推荐，不是按已经进来的人数
 
-    custom = [R.WEREWOLF, R.MASON, R.MASON, R.SEER, R.ROBBER, R.VILLAGER, R.WEREWOLF]
-    room.handle("p0", Configure(settings=Settings(deck=custom)), 0, RNG)
+    custom = [R.WEREWOLF, R.MASON, R.MASON, R.SEER, R.ROBBER, R.VILLAGER, R.WEREWOLF, R.DRUNK]
+    room.handle("p0", Configure(settings=Settings(seats=5, deck=custom)), 0, RNG)
     assert room.deck() == custom
 
 

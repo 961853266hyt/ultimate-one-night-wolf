@@ -10,15 +10,26 @@ from pydantic import BaseModel
 from .errors import ErrorCode, RuleError
 from .game import Game, NightLogEntry
 from .recommended import recommended_deck
-from .room import Room
-from .types import Knowledge, Phase, PlayerId, Prompt, RoleId, Slot, Team, Timings
+from .room import Member, Room
+from .types import (
+    MAX_PLAYERS,
+    MIN_PLAYERS,
+    Knowledge,
+    Phase,
+    PlayerId,
+    Prompt,
+    RoleId,
+    Slot,
+    Team,
+    Timings,
+)
 
 
 class MemberView(BaseModel):
     id: PlayerId
     name: str
     online: bool
-    seat: int | None  # 这一局的座位号；在大厅里，或者没参加这一局，就是 None
+    seat: int | None  # 座位号，从 0 开始。大厅里是选的座位；开局后是这一局的座位，没参加这一局就是 None
 
 
 class RoomView(BaseModel):
@@ -27,7 +38,9 @@ class RoomView(BaseModel):
     members: list[MemberView]
     deck: list[RoleId]
     auto_deck: bool
-    recommended_deck: list[RoleId]  # 按现在的人数推荐的牌堆，房主配牌时拿来对比和「恢复推荐」
+    seats: int  # 房间几个座位
+    # 每种座位数推荐的牌堆。房主配牌时拿来对比和「恢复推荐」；改座位数时直接换成新人数的推荐
+    recommended_decks: dict[int, list[RoleId]]
     timings: Timings
 
 
@@ -123,12 +136,13 @@ def _room_view(room: Room) -> RoomView:
         code=room.code,
         host=room.host,
         members=[
-            MemberView(id=m.id, name=m.name, online=m.online, seat=_seat(room.game, m.id))
+            MemberView(id=m.id, name=m.name, online=m.online, seat=_seat(room, m))
             for m in room.members
         ],
         deck=room.deck(),
         auto_deck=room.settings.deck is None,
-        recommended_deck=recommended_deck(len(room.members)),
+        seats=room.settings.seats,
+        recommended_decks={n: recommended_deck(n) for n in range(MIN_PLAYERS, MAX_PLAYERS + 1)},
         timings=room.settings.timings,
     )
 
@@ -159,10 +173,13 @@ def _result_view(game: Game) -> ResultView:
     )
 
 
-def _seat(game: Game | None, player: PlayerId) -> int | None:
-    if game is None or player not in game.players:
+def _seat(room: Room, member: Member) -> int | None:
+    game = room.game
+    if game is None:
+        return member.seat
+    if member.id not in game.players:
         return None
-    return game.players.index(player)
+    return game.players.index(member.id)
 
 
 def _in_seat_order(game: Game, players: Collection[PlayerId]) -> list[PlayerId]:

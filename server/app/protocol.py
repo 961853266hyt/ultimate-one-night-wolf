@@ -18,6 +18,7 @@ from .domain.commands import (
     ReadyToVote,
     Rematch,
     Start,
+    TakeSeat,
     Vote,
 )
 from .domain.errors import ErrorCode
@@ -39,6 +40,7 @@ ClientMessage = Annotated[
     Hello
     | Configure
     | Kick
+    | TakeSeat
     | Start
     | Leave
     | ConfirmCard

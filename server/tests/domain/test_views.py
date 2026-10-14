@@ -43,7 +43,9 @@ def test_the_lobby_shows_members_and_the_public_deck():
     assert view.phase is Phase.LOBBY
     assert [m.id for m in view.room.members] == ["p0", "p1", "p2"]
     assert view.room.deck == [R.WEREWOLF, R.WEREWOLF, R.SEER, R.ROBBER, R.TROUBLEMAKER, R.VILLAGER]
-    assert view.room.auto_deck and view.room.recommended_deck == view.room.deck
+    assert view.room.auto_deck and view.room.recommended_decks[3] == view.room.deck
+    assert view.room.seats == 3
+    assert [m.seat for m in view.room.members] == [0, 1, 2]
     assert view.me.card is None
 
 
@@ -53,7 +55,7 @@ def test_the_lobby_keeps_the_recommended_deck_next_to_a_custom_one():
     view = view_for(room, "p1")
     assert view.room.deck == DECK
     assert not view.room.auto_deck
-    assert view.room.recommended_deck == recommended_deck(3)
+    assert view.room.recommended_decks[3] == recommended_deck(3)
 
 
 def test_you_always_see_the_card_you_were_dealt():

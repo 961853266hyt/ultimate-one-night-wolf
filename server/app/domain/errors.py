@@ -7,6 +7,8 @@ class ErrorCode(StrEnum):
     NOT_PLAYING = "not_playing"
     WRONG_PHASE = "wrong_phase"
     ROOM_FULL = "room_full"
+    SEAT_TAKEN = "seat_taken"
+    TOO_FEW_SEATS = "too_few_seats"
     GAME_IN_PROGRESS = "game_in_progress"
     PLAYER_COUNT = "player_count"
     PLAYERS_OFFLINE = "players_offline"

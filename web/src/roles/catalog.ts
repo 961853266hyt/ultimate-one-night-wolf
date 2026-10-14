@@ -119,7 +119,7 @@ export const ROLES: Record<RoleId, RoleInfo> = {
     team: 'village',
     icon: HandCoins,
     summary: '和 1 人换牌，再看换到了什么',
-    ability: '夜里可以和一名其他玩家换牌，然后看看你换到了什么。',
+    ability: '夜里和一名其他玩家换牌，然后看看你换到了什么。到时间没选的话，系统随机替你抢一个。',
     notes: ['换到的牌决定你最后的阵营。被换的人拿到强盗牌，自己并不知道。'],
     maxCopies: 1,
   },

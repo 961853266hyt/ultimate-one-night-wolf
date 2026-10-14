@@ -11,6 +11,9 @@ importers:
       '@base-ui/react':
         specifier: ^1.8.0
         version: 1.8.0(@types/react@19.3.0)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      '@chinese-fonts/lxgwmanhei':
+        specifier: ^3.0.0
+        version: 3.0.0
       '@fontsource-variable/geist':
         specifier: ^5.3.0
         version: 5.3.0
@@ -232,6 +235,9 @@ packages:
     peerDependenciesMeta:
       '@types/react':
         optional: true
+
+  '@chinese-fonts/lxgwmanhei@3.0.0':
+    resolution: {integrity: sha512-XWQDluNR4q+dHteB0mlkJhS0R+DVQzS0uNyVWEAs55wz9UT0nTMUz8Huai6aFDEVPQ4ajrN4s2ejkzfetqU+nQ==}
 
   '@dotenvx/dotenvx@1.75.1':
     resolution: {integrity: sha512-/BITOC9dmS/edY2zQwZNicQ059O6RKabtQfyEafV0nGtfYRNHYy1DIPiYVcov40+tob9hfmBnbR963dS+EQ1DQ==}
@@ -2259,6 +2265,8 @@ snapshots:
       use-sync-external-store: 1.7.0(react@19.3.0)
     optionalDependencies:
       '@types/react': 19.3.0
+
+  '@chinese-fonts/lxgwmanhei@3.0.0': {}
 
   '@dotenvx/dotenvx@1.75.1':
     dependencies:

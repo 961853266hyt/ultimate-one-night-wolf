@@ -17,6 +17,13 @@ class Kick(BaseModel):
     player: PlayerId
 
 
+class TakeSeat(BaseModel):
+    """大厅里换到一个空座位。座位号从 0 开始。"""
+
+    type: Literal["take_seat"] = "take_seat"
+    seat: int
+
+
 class Start(BaseModel):
     type: Literal["start"] = "start"
 
@@ -48,6 +55,15 @@ class Rematch(BaseModel):
 
 
 Command = Annotated[
-    Configure | Kick | Start | Leave | ConfirmCard | NightAction | ReadyToVote | Vote | Rematch,
+    Configure
+    | Kick
+    | TakeSeat
+    | Start
+    | Leave
+    | ConfirmCard
+    | NightAction
+    | ReadyToVote
+    | Vote
+    | Rematch,
     Field(discriminator="type"),
 ]
