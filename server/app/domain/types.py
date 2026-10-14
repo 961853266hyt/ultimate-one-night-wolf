@@ -52,7 +52,8 @@ class Timings(BaseModel):
 
 
 class Settings(BaseModel):
-    deck: list[RoleId] | None = None  # None 表示按人数自动推荐
+    seats: int = Field(default=3, ge=MIN_PLAYERS, le=MAX_PLAYERS)  # 房间几个座位，坐满才能开局
+    deck: list[RoleId] | None = None  # None 表示按座位数自动推荐
     timings: Timings = Field(default_factory=Timings)
 
 

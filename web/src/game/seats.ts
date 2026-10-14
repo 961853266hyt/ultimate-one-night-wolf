@@ -18,9 +18,9 @@ export interface Seat {
 }
 
 /**
- * 这一局在座的玩家，按座位号排好。
+ * 在座的玩家，按座位号排好。
  *
- * 大厅里还没开局，按进房间的先后编号；开局之后用服务端排的座位，中途进来旁观的人不算。
+ * 大厅里是各自选的座位，中间可以有空座位；开局之后是这一局的座位，中途进来旁观的人不算。
  */
 export function seatsOf(view: PlayerView): Seat[] {
   const toSeat = (member: MemberView, number: number): Seat => ({
@@ -32,9 +32,6 @@ export function seatsOf(view: PlayerView): Seat[] {
     isHost: member.id === view.room.host,
   })
 
-  if (view.phase === 'lobby') {
-    return view.room.members.map((member, index) => toSeat(member, index + 1))
-  }
   return view.room.members
     .flatMap((member) => (member.seat === null ? [] : [toSeat(member, member.seat + 1)]))
     .sort((a, b) => a.number - b.number)

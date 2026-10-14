@@ -15,14 +15,16 @@ const TEAM_SHORT: Record<Team, string> = { village: '好人', werewolf: '狼人'
 
 interface DeckSummaryProps {
   deck: readonly RoleId[]
-  /** 按人数一共要几张。 */
+  /** 房间几个座位。 */
+  seats: number
+  /** 按座位数一共要几张。 */
   need: number
   /** 夜里每一步几秒。 */
   nightStep: number
   onOpen: () => void
 }
 
-export function DeckSummary({ deck, need, nightStep, onOpen }: DeckSummaryProps) {
+export function DeckSummary({ deck, seats, need, nightStep, onOpen }: DeckSummaryProps) {
   const faces = deck.slice(0, MAX_FACES)
   const extra = deck.length - faces.length
   // 牌数对上是平常的样子，少了橙色，多了红色
@@ -57,7 +59,7 @@ export function DeckSummary({ deck, need, nightStep, onOpen }: DeckSummaryProps)
             tone === 'destructive' && 'text-destructive',
           )}
         >
-          {tone ? `本局 ${deck.length}/${need} 张` : `本局 ${deck.length} 张`}
+          {seats} 人局 · {tone ? `${deck.length}/${need} 张` : `${deck.length} 张`}
         </span>
         <span className="truncate text-xs text-muted-foreground">
           {teamCounts(deck)} ·{' '}

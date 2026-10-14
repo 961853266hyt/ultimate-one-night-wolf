@@ -28,7 +28,7 @@ def setups(draw) -> tuple[int, list, int]:
 def play(n: int, deck: list, seed: int) -> Room:
     rng = random.Random(seed)
     room = new_room(n)
-    room.handle("p0", Configure(settings=Settings(deck=deck)), 0, rng)
+    room.handle("p0", Configure(settings=Settings(seats=n, deck=deck)), 0, rng)
     room.handle("p0", Start(), 0, rng)
     game = room.game
     assert game is not None

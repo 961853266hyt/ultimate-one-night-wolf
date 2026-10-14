@@ -1,6 +1,6 @@
 import { UserPlus } from 'lucide-react'
 import { useState } from 'react'
-import type { RoleId, Timings } from '@/api/types'
+import type { Settings } from '@/api/types'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
 import { DeckEditor } from '@/components/game/DeckEditor'
 import { DeckOverview } from '@/components/game/DeckOverview'
@@ -10,23 +10,24 @@ import { SeatStatus } from '@/components/game/SeatStatus'
 import { PageContent, PageFooter } from '@/components/layout/Page'
 import { Section } from '@/components/layout/Section'
 import { Button } from '@/components/ui/button'
-import { deckSizeFor, emptySeatCount, startBlocker } from '@/game/lobby'
+import { deckSizeFor, startBlocker } from '@/game/lobby'
 import { seatLabel, seatsOf, type Seat } from '@/game/seats'
 import { inviteFriends } from './invite'
 import type { PhaseProps } from './types'
 
 export function LobbyPhase({ view, send }: PhaseProps) {
-  const { code, deck, recommended_deck: recommendedDeck, timings } = view.room
+  const { code, deck, seats: size, recommended_decks: recommendedDecks, timings } = view.room
   const seats = seatsOf(view)
   const isHost = view.me.id === view.room.host
-  const need = deckSizeFor(seats.length)
-  const blocker = startBlocker(seats, deck)
+  const need = deckSizeFor(size)
+  const blocker = startBlocker(seats, size, deck)
+  // 座位号从 1 开始，空着的座位是 undefined
+  const bySeat = Array.from({ length: size }, (_, index) => seats.find((seat) => seat.number === index + 1))
   const invite = () => void inviteFriends(code)
 
   // 本局设置：房主点开能改，其他人点开只能看
   const [settingsOpen, setSettingsOpen] = useState(false)
-  const saveSettings = (next: RoleId[] | null, nextTimings: Timings) =>
-    send({ type: 'configure', settings: { deck: next, timings: nextTimings } })
+  const saveSettings = (settings: Settings) => send({ type: 'configure', settings })
 
   // 房主点别人的头像，确认后把人移出房间
   const [kickTarget, setKickTarget] = useState<Seat | null>(null)
@@ -41,28 +42,33 @@ export function LobbyPhase({ view, send }: PhaseProps) {
       <PageContent>
         <Section
           title="座位"
-          caption={`${seats.length} 人已入座${isHost && seats.length > 1 ? ' · 点头像可以移出房间' : ''}`}
+          caption={`${seats.length}/${size} 人已入座${isHost && seats.length > 1 ? ' · 点头像可以移出房间' : ''}`}
         >
           <SeatGrid>
-            {seats.map((seat) => (
-              <SeatTile
-                key={seat.id}
-                seat={seat}
-                badge={seat.isHost ? '房主' : undefined}
-                muted={!seat.online}
-                status={
-                  seat.online ? (
-                    <SeatStatus tone="done">已就位</SeatStatus>
-                  ) : (
-                    <SeatStatus tone="offline">离线</SeatStatus>
-                  )
-                }
-                onSelect={isHost && !seat.isMe ? () => askToKick(seat) : undefined}
-              />
-            ))}
-            {Array.from({ length: emptySeatCount(seats.length) }, (_, index) => (
-              <EmptySeatTile key={`empty-${index}`} number={seats.length + index + 1} onInvite={invite} />
-            ))}
+            {bySeat.map((seat, index) =>
+              seat ? (
+                <SeatTile
+                  key={seat.id}
+                  seat={seat}
+                  badge={seat.isHost ? '房主' : undefined}
+                  muted={!seat.online}
+                  status={
+                    seat.online ? (
+                      <SeatStatus tone="done">已就位</SeatStatus>
+                    ) : (
+                      <SeatStatus tone="offline">离线</SeatStatus>
+                    )
+                  }
+                  onSelect={isHost && !seat.isMe ? () => askToKick(seat) : undefined}
+                />
+              ) : (
+                <EmptySeatTile
+                  key={`empty-${index}`}
+                  number={index + 1}
+                  onTake={() => send({ type: 'take_seat', seat: index })}
+                />
+              ),
+            )}
           </SeatGrid>
         </Section>
       </PageContent>
@@ -70,6 +76,7 @@ export function LobbyPhase({ view, send }: PhaseProps) {
       <PageFooter>
         <DeckSummary
           deck={deck}
+          seats={size}
           need={need}
           nightStep={timings.night_step}
           onOpen={() => setSettingsOpen(true)}
@@ -106,8 +113,9 @@ export function LobbyPhase({ view, send }: PhaseProps) {
         open={isHost && settingsOpen}
         onOpenChange={setSettingsOpen}
         deck={deck}
-        players={seats.length}
-        recommended={recommendedDeck}
+        seats={size}
+        occupied={seats.length}
+        recommended={recommendedDecks}
         nightStep={timings.night_step}
         onSave={saveSettings}
       />
@@ -115,6 +123,7 @@ export function LobbyPhase({ view, send }: PhaseProps) {
         open={!isHost && settingsOpen}
         onOpenChange={setSettingsOpen}
         deck={deck}
+        seats={size}
         need={need}
         nightStep={timings.night_step}
       />

@@ -6,7 +6,7 @@
  */
 
 export type ClientMessage =
-  Hello | Configure | Kick | Start | Leave | ConfirmCard | NightAction | ReadyToVote | Vote | Rematch;
+  Hello | Configure | Kick | TakeSeat | Start | Leave | ConfirmCard | NightAction | ReadyToVote | Vote | Rematch;
 export type RoleId =
   | "copycat"
   | "doppelganger"
@@ -31,6 +31,8 @@ export type ErrorCode =
   | "not_playing"
   | "wrong_phase"
   | "room_full"
+  | "seat_taken"
+  | "too_few_seats"
   | "game_in_progress"
   | "player_count"
   | "players_offline"
@@ -60,6 +62,7 @@ export interface Configure {
   settings: Settings;
 }
 export interface Settings {
+  seats: number;
   deck: RoleId[] | null;
   timings: Timings;
 }
@@ -72,6 +75,13 @@ export interface Timings {
 export interface Kick {
   type: "kick";
   player: string;
+}
+/**
+ * 大厅里换到一个空座位。座位号从 0 开始。
+ */
+export interface TakeSeat {
+  type: "take_seat";
+  seat: number;
 }
 export interface Start {
   type: "start";
@@ -120,7 +130,10 @@ export interface RoomView {
   members: MemberView[];
   deck: RoleId[];
   auto_deck: boolean;
-  recommended_deck: RoleId[];
+  seats: number;
+  recommended_decks: {
+    [k: string]: RoleId[];
+  };
   timings: Timings;
 }
 export interface MemberView {

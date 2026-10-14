@@ -10,11 +10,12 @@ interface DeckOverviewProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   deck: readonly RoleId[]
+  seats: number
   need: number
   nightStep: number
 }
 
-export function DeckOverview({ open, onOpenChange, deck, need, nightStep }: DeckOverviewProps) {
+export function DeckOverview({ open, onOpenChange, deck, seats, need, nightStep }: DeckOverviewProps) {
   const plan = nightPlan(deck)
   return (
     <Drawer open={open} onOpenChange={onOpenChange} showSwipeHandle>
@@ -37,7 +38,9 @@ export function DeckOverview({ open, onOpenChange, deck, need, nightStep }: Deck
               <NightOrder roles={plan} />
             </section>
           )}
-          <p className="text-sm text-muted-foreground">夜间操作时间 {nightStep} 秒，房主可以调整</p>
+          <p className="text-sm text-muted-foreground">
+            房间 {seats} 人 · 夜间操作时间 {nightStep} 秒，房主可以调整
+          </p>
         </div>
       </DrawerContent>
     </Drawer>
