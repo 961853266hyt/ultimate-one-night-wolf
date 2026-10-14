@@ -1,11 +1,12 @@
 /**
- * 房主调整这局用哪些牌。上面是牌库，点一下放进本局；下面是本局，点「−」放回牌库，点头像看介绍。
+ * 房主调整本局设置。上面是牌库，点一下放进本局；下面是本局，点「−」放回牌库，点头像看介绍；
+ * 最下面选夜里每一步几秒。
  *
  * 守夜人这类要成对放的牌，点一张另一张跟着进出。改完点「完成」才发给服务端，中途关掉就当没改过。
  */
 import { Minus, RotateCcw, X } from 'lucide-react'
 import { useState } from 'react'
-import type { RoleId } from '@/api/types'
+import type { RoleId, Timings } from '@/api/types'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { boxCardsOf, CARD_BOX, cardsMovedWith, deckOf, sameRoles, type BoxCard } from '@/game/deck'
@@ -23,11 +24,21 @@ interface DeckEditorProps {
   players: number
   /** 按现在的人数推荐的牌，服务端给的。 */
   recommended: readonly RoleId[]
-  /** 点「完成」时调用。和按人数推荐的一样时传 null，之后有人进出，牌会自动跟着变。 */
-  onSave: (deck: RoleId[] | null) => void
+  /** 夜里每一步几秒，现在的设置。 */
+  nightStep: number
+  /** 点「完成」时调用。牌和按人数推荐的一样时传 null，之后有人进出，牌会自动跟着变。 */
+  onSave: (deck: RoleId[] | null, timings: Timings) => void
 }
 
-export function DeckEditor({ open, onOpenChange, deck, players, recommended, onSave }: DeckEditorProps) {
+export function DeckEditor({
+  open,
+  onOpenChange,
+  deck,
+  players,
+  recommended,
+  nightStep,
+  onSave,
+}: DeckEditorProps) {
   return (
     <Drawer open={open} onOpenChange={onOpenChange} showSwipeHandle>
       <DrawerContent className="mx-auto w-full max-w-md">
@@ -36,8 +47,9 @@ export function DeckEditor({ open, onOpenChange, deck, players, recommended, onS
           deck={deck}
           players={players}
           recommended={recommended}
-          onSave={(next) => {
-            onSave(next)
+          nightStep={nightStep}
+          onSave={(next, timings) => {
+            onSave(next, timings)
             onOpenChange(false)
           }}
         />
@@ -53,11 +65,12 @@ function idsOf(deck: readonly RoleId[]): string[] {
 
 const SECTION_LABEL = 'text-[13px] font-semibold text-muted-foreground'
 
-type BodyProps = Pick<DeckEditorProps, 'deck' | 'players' | 'recommended' | 'onSave'>
+type BodyProps = Pick<DeckEditorProps, 'deck' | 'players' | 'recommended' | 'nightStep' | 'onSave'>
 
-function DeckEditorBody({ deck, players, recommended, onSave }: BodyProps) {
+function DeckEditorBody({ deck, players, recommended, nightStep, onSave }: BodyProps) {
   // 存牌盒里的 id 而不是角色：同一种角色的几张也分得清，牌库里点了哪张，就是哪张空出来
   const [picked, setPicked] = useState(() => idsOf(deck))
+  const [step, setStep] = useState(nightStep)
   const need = deckSizeFor(players)
   const chosen = deckOf(picked)
   const isRecommended = sameRoles(chosen, recommended)
@@ -79,7 +92,7 @@ function DeckEditorBody({ deck, players, recommended, onSave }: BodyProps) {
   return (
     <>
       <DrawerHeader className="flex-row items-center justify-between py-1 pr-2 pl-5">
-        <DrawerTitle className="text-[17px] font-semibold">调整角色</DrawerTitle>
+        <DrawerTitle className="text-[17px] font-semibold">本局设置</DrawerTitle>
         <DrawerClose render={<Button variant="ghost" size="icon-xl" aria-label="取消" />}>
           <X className="size-5" />
         </DrawerClose>
@@ -143,11 +156,47 @@ function DeckEditorBody({ deck, players, recommended, onSave }: BodyProps) {
           ))}
         </CardGrid>
 
-        <Button size="xl" disabled={!savable} onClick={() => onSave(isRecommended ? null : chosen)}>
+        <div className="flex items-center justify-between gap-3">
+          <h3 className={SECTION_LABEL}>夜间操作时间</h3>
+          <NightStepPicker value={step} onChange={setStep} />
+        </div>
+
+        <Button
+          size="xl"
+          disabled={!savable}
+          onClick={() => onSave(isRecommended ? null : chosen, { night_step: step })}
+        >
           {savable ? '完成' : picked.length < MIN_DECK ? `至少要 ${MIN_DECK} 张牌` : `最多 ${MAX_DECK} 张牌`}
         </Button>
       </section>
     </>
+  )
+}
+
+/** 夜里每一步可以选的秒数。服务端允许 5–60 秒。 */
+const NIGHT_STEPS = [10, 15, 20, 30, 45, 60]
+
+/** 选夜里每一步几秒。房间里现在的值不在选项里时，也列出来。 */
+function NightStepPicker({ value, onChange }: { value: number; onChange: (value: number) => void }) {
+  const options = NIGHT_STEPS.includes(value) ? NIGHT_STEPS : [...NIGHT_STEPS, value].sort((a, b) => a - b)
+  return (
+    <div role="group" aria-label="夜间操作时间" className="flex gap-0.5 rounded-lg bg-muted p-0.5">
+      {options.map((option) => (
+        <button
+          key={option}
+          type="button"
+          aria-pressed={value === option}
+          aria-label={`${option} 秒`}
+          onClick={() => onChange(option)}
+          className={cn(
+            'h-7 min-w-9 rounded-md px-1.5 font-mono text-xs font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
+            value === option ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+          )}
+        >
+          {option}s
+        </button>
+      ))}
+    </div>
   )
 }
 

@@ -1,9 +1,10 @@
-import { SlidersHorizontal, UserPlus } from 'lucide-react'
+import { UserPlus } from 'lucide-react'
 import { useState } from 'react'
-import type { RoleId } from '@/api/types'
+import type { RoleId, Timings } from '@/api/types'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
-import { DeckTray } from '@/components/game/Deck'
 import { DeckEditor } from '@/components/game/DeckEditor'
+import { DeckOverview } from '@/components/game/DeckOverview'
+import { DeckSummary } from '@/components/game/DeckSummary'
 import { EmptySeatTile, SeatGrid, SeatTile } from '@/components/game/SeatGrid'
 import { SeatStatus } from '@/components/game/SeatStatus'
 import { PageContent, PageFooter } from '@/components/layout/Page'
@@ -22,11 +23,10 @@ export function LobbyPhase({ view, send }: PhaseProps) {
   const blocker = startBlocker(seats, deck)
   const invite = () => void inviteFriends(code)
 
-  // 房主调整这局用哪些牌
-  const [editingDeck, setEditingDeck] = useState(false)
-  const editDeck = () => setEditingDeck(true)
-  const saveDeck = (next: RoleId[] | null) =>
-    send({ type: 'configure', settings: { deck: next, timings } })
+  // 本局设置：房主点开能改，其他人点开只能看
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const saveSettings = (next: RoleId[] | null, nextTimings: Timings) =>
+    send({ type: 'configure', settings: { deck: next, timings: nextTimings } })
 
   // 房主点别人的头像，确认后把人移出房间
   const [kickTarget, setKickTarget] = useState<Seat | null>(null)
@@ -39,16 +39,6 @@ export function LobbyPhase({ view, send }: PhaseProps) {
   return (
     <>
       <PageContent>
-        <Section title="本局角色">
-          <DeckTray deck={deck} size={need} onFill={isHost ? editDeck : undefined} />
-          {isHost && (
-            <Button variant="outline" size="lg" className="h-11 px-4" onClick={editDeck}>
-              <SlidersHorizontal aria-hidden />
-              调整角色
-            </Button>
-          )}
-        </Section>
-
         <Section
           title="座位"
           caption={`${seats.length} 人已入座${isHost && seats.length > 1 ? ' · 点头像可以移出房间' : ''}`}
@@ -78,6 +68,12 @@ export function LobbyPhase({ view, send }: PhaseProps) {
       </PageContent>
 
       <PageFooter>
+        <DeckSummary
+          deck={deck}
+          need={need}
+          nightStep={timings.night_step}
+          onOpen={() => setSettingsOpen(true)}
+        />
         <div className="flex gap-2.5">
           <Button variant="outline" size="xl" className="flex-1" onClick={invite}>
             <UserPlus aria-hidden />
@@ -105,14 +101,22 @@ export function LobbyPhase({ view, send }: PhaseProps) {
         onConfirm={() => kickTarget && send({ type: 'kick', player: kickTarget.id })}
       />
 
-      {/* 房主身份转走时自动关上 */}
+      {/* 房主身份转走或转来时，跟着换成只能看或者能改的那一个 */}
       <DeckEditor
-        open={isHost && editingDeck}
-        onOpenChange={setEditingDeck}
+        open={isHost && settingsOpen}
+        onOpenChange={setSettingsOpen}
         deck={deck}
         players={seats.length}
         recommended={recommendedDeck}
-        onSave={saveDeck}
+        nightStep={timings.night_step}
+        onSave={saveSettings}
+      />
+      <DeckOverview
+        open={!isHost && settingsOpen}
+        onOpenChange={setSettingsOpen}
+        deck={deck}
+        need={need}
+        nightStep={timings.night_step}
       />
     </>
   )
