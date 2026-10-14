@@ -38,6 +38,8 @@ export interface RoleInfo {
   maxCopies: number
   /** 要成对放，比如守夜人：配牌时点一张，同一对的另一张跟着进出。 */
   pairs?: boolean
+  /** 夜里选底牌是为了看它：点底牌放大，点牌背翻开（见 CenterPeek）。酒鬼换底牌但不看，不算。 */
+  peeksCenter?: boolean
   /** 夜里轮到你时的提示。不写就按 Prompt 自动生成，比如「选 1 名其他玩家」。 */
   promptHint?: (prompt: Prompt) => string
   /** 阵营不固定时，代替阵营名显示的说明，比如化身幽灵。 */
@@ -60,7 +62,8 @@ export const ROLES: Record<RoleId, RoleInfo> = {
       '到时间还没选，系统会随机替你选一张。',
     ],
     maxCopies: 1,
-    promptHint: () => '看 1 张底牌，你就变成那个角色（必须选）',
+    peeksCenter: true,
+    promptHint: () => '点 1 张底牌翻开，你就变成那个角色（必须选）',
   },
   doppelganger: {
     name: '化身幽灵',
@@ -86,6 +89,8 @@ export const ROLES: Record<RoleId, RoleInfo> = {
     summary: '和同伴互认；独狼能看 1 张底牌',
     ability: '夜里和其他狼互相确认。如果只有你一只狼，可以看一张底牌。',
     maxCopies: 2,
+    peeksCenter: true,
+    promptHint: () => '你是唯一的狼，可以点 1 张底牌翻开看看',
   },
   minion: {
     name: '爪牙',
@@ -113,6 +118,11 @@ export const ROLES: Record<RoleId, RoleInfo> = {
     summary: '看 1 名玩家，或者 2 张底牌',
     ability: '夜里可以看一名其他玩家的牌，或者看两张底牌。',
     maxCopies: 1,
+    peeksCenter: true,
+    promptHint: (prompt) =>
+      prompt.options.some((option) => option.kind === 'player')
+        ? '看 1 名其他玩家的牌，或者点底牌，一张一张翻开 2 张'
+        : '再翻开 1 张底牌（必须选）',
   },
   robber: {
     name: '强盗',
@@ -134,9 +144,10 @@ export const ROLES: Record<RoleId, RoleInfo> = {
       '看了却到时间还没换，系统会随机替你选一名玩家。',
     ],
     maxCopies: 1,
+    peeksCenter: true,
     promptHint: (prompt) =>
       prompt.options[0]?.kind === 'center'
-        ? '可以看 1 张底牌，看了就必须把它换给一名玩家（也可以是你自己）'
+        ? '可以点 1 张底牌翻开，看了就必须把它换给一名玩家（也可以是你自己）'
         : '把刚看的底牌换给一名玩家，也可以换给自己（必须选）',
   },
   troublemaker: {

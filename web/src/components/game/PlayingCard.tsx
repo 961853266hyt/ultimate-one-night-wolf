@@ -13,17 +13,19 @@ interface CardBackProps {
   children?: ReactNode
 }
 
-/** 牌背：黑底，中间是网站图标。夜里的深色主题下换成深灰，不然会变成一张白牌。 */
+/**
+ * 牌背：和图标一样的黑底，中间是网站图标。
+ * 夜里背景也是黑的，牌后面垫一层绿光（见 index.css 的 card-glow）才看得出是张牌。
+ * 外层只管大小、圆角和阴影，牌面在里层，盖住绿光的中间部分。
+ */
 export function CardBack({ className, iconClassName, children }: CardBackProps) {
   return (
-    <span
-      className={cn(
-        'flex flex-col items-center justify-center gap-3 rounded-lg bg-foreground text-background dark:bg-muted dark:text-foreground',
-        className,
-      )}
-    >
-      <img src="/icon.svg" alt="" className={cn('size-10', iconClassName)} />
-      {children}
+    <span className={cn('@container relative isolate flex rounded-lg', className)}>
+      <span aria-hidden className="card-glow absolute -z-10 hidden rounded-[inherit] dark:block" />
+      <span className="flex size-full flex-col items-center justify-center gap-3 rounded-[inherit] bg-card-back text-card-back-foreground dark:card-glow-base">
+        <img src="/icon.svg" alt="" className={cn('size-10', iconClassName)} />
+        {children}
+      </span>
     </span>
   )
 }
@@ -41,17 +43,20 @@ interface CenterCardProps {
   /** 牌下面的补充说明，比如「原来是失眠者」。 */
   note?: ReactNode
   selected?: boolean
+  /** 之前夜里翻开看过，现在扣着：牌角画一只眼睛。 */
+  seen?: boolean
   /** 传了就能点。 */
   onSelect?: () => void
 }
 
 /** 一张底牌，下面写着「A 号」。 */
-export function CenterCard({ letter, role, note, selected = false, onSelect }: CenterCardProps) {
+export function CenterCard({ letter, role, note, selected = false, seen = false, onSelect }: CenterCardProps) {
   // 能选的牌本身就是按钮，里面的角色名就不能再点了
   const card = role ? (
     <CardFace role={role} interactive={!onSelect} />
   ) : (
-    <CardBack className="h-21 w-15" />
+    // 和翻开后的缩略图一样大，翻开时牌和下面的字不会跳
+    <CardBack className="aspect-[200/274] w-18 rounded-[6px]" />
   )
 
   return (
@@ -69,6 +74,7 @@ export function CenterCard({ letter, role, note, selected = false, onSelect }: C
         >
           {card}
           {selected && <CornerMark mark="check" />}
+          {seen && <CornerMark mark="seen" />}
         </button>
       ) : (
         card

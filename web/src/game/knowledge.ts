@@ -54,6 +54,30 @@ export function describeCopy(fact: Copied, label: SlotLabeler): Phrase {
   return [`看了${looked}，${became}`, mention(fact.role)]
 }
 
+export interface CenterSightings {
+  /** 这一步翻开看到、现在还在原处的底牌。自己接着又换走的（女巫）不算，那个位置已经是别的牌了。 */
+  now: Map<string, RoleId>
+  /** 更早的步骤里看过的底牌。现在可能已经被别人换过，只标一下看过。 */
+  before: Set<string>
+}
+
+/** 夜里看过哪些底牌。step 是现在这一步。 */
+export function centerSightings(knowledge: readonly Knowledge[], step: RoleId): CenterSightings {
+  const now = new Map<string, RoleId>()
+  const before = new Set<string>()
+  for (const fact of knowledge) {
+    if ((fact.type === 'saw_card' || fact.type === 'copied') && isCenter(fact.slot)) {
+      if (fact.step === step) now.set(fact.slot, fact.role)
+      else before.add(fact.slot)
+    }
+  }
+  for (const fact of knowledge) {
+    if (fact.type === 'swapped' && fact.step === step) fact.slots.forEach((slot) => now.delete(slot))
+  }
+  now.forEach((_, slot) => before.delete(slot))
+  return { now, before }
+}
+
 function isCenter(slot: string): boolean {
   return (CENTER as readonly string[]).includes(slot)
 }

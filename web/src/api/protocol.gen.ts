@@ -201,6 +201,7 @@ export interface TargetOption {
   kind: "player" | "center";
   count: number;
   include_self: boolean;
+  exclude: string[];
 }
 export interface DealView {
   confirmed: string[];
