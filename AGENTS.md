@@ -35,6 +35,7 @@ cd web && pnpm gen:types       # 改了 server/app/protocol.py 之后重新生�
 
 ## 分支和发版
 
-- 平时在 `develop` 上提交，发版时合进 `main`。**推送 `main` 会触发自动部署**，没被明确要求时不要推
+- 平时在 `develop` 上提交，每次提交后马上推送到远程 `develop`
+- 发版时合进 `main`。**推送 `main` 会触发自动部署**，没被明确要求时不要推
 - 每次改动都记到 `CHANGELOG.md` 的「未发布」下面，按 Added / Changed / Fixed / Removed 分类
 - 发版：`server/pyproject.toml` 和 `web/package.json` 的版本号一起改，再在 `server/` 下运行 `uv lock`；CHANGELOG 的「未发布」改成版本号和日期；打 tag `vX.Y.Z`
