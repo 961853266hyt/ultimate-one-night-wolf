@@ -69,11 +69,11 @@ export function CenterCard({ letter, role, note, selected = false, seen = false,
           aria-label={`${letter} 号底牌`}
           className={cn(
             'relative rounded-lg transition-transform outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
-            selected && '-translate-y-1 ring-2 ring-foreground ring-offset-3 ring-offset-background',
+            // 选中只往上抬一截，不加边框和对勾
+            selected && '-translate-y-1',
           )}
         >
           {card}
-          {selected && <CornerMark mark="check" />}
           {seen && <CornerMark mark="seen" />}
         </button>
       ) : (
