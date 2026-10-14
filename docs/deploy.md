@@ -55,3 +55,36 @@ curl localhost/healthz           # 健康检查
 - `.env` 里的 `UONW_SECRET_KEY` 要固定。不设的话每次重启都会随机生成，所有人的访客身份失效。
 - 用 IP + HTTP 访问不需要备案。想用域名必须先备案；要 HTTPS 则需域名和证书（可在容器前加 Caddy）。
 - 复制邀请链接、WebSocket 都用当前页面的 host 自动推导，不用改前端配置。
+
+## 配置
+
+在 `.env` 里设置：
+
+| 变量 | 说明 | 默认值 |
+| --- | --- | --- |
+| `UONW_SECRET_KEY` | 签发访客身份用的密钥，**请固定设置** | 每次启动随机生成 |
+| `UONW_MAX_ROOMS` | 同时存在的房间数上限 | `1000` |
+
+想改端口，修改 `docker-compose.yml` 里的 `"80:8000"`，比如改成 `"8080:8000"`。
+
+## 在海外服务器上构建
+
+Dockerfile 默认从国内镜像源下载依赖。服务器在海外的话，改用官方源会更快：
+
+```bash
+docker compose build \
+  --build-arg DOCKER_REGISTRY=docker.io \
+  --build-arg NPM_REGISTRY=https://registry.npmjs.org \
+  --build-arg PYPI_INDEX=https://pypi.org/simple
+docker compose up -d
+```
+
+## 推送代码后自动部署（可选）
+
+仓库自带 GitHub Actions 工作流 `.github/workflows/deploy.yml`：推送到 `main` 后在 Actions 上构建镜像，再通过 SSH 发到服务器重启。在仓库的 Settings → Secrets 里配置：
+
+| Secret | 说明 |
+| --- | --- |
+| `SSH_HOST` | 服务器地址，用 root 登录 |
+| `SSH_PRIVATE_KEY` | 登录服务器用的私钥 |
+| `UONW_SECRET_KEY` | 可选；不配的话第一次部署时在服务器上随机生成一个 |
