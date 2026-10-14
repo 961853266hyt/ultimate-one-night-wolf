@@ -7,7 +7,6 @@ import { useCountdown } from '@/hooks/useCountdown'
 import { cn } from '@/lib/utils'
 
 interface RoomHeaderProps {
-  code: string
   /** 「夜晚 · 3/6」这样的阶段说明。 */
   phase: string
   endsAt: number | null
@@ -18,13 +17,12 @@ interface RoomHeaderProps {
   onLeave: () => void
 }
 
-/** 房间里的顶栏：房间号、阶段、倒计时、菜单。离开房间放在菜单底部。 */
+/** 房间里的顶栏：阶段、倒计时、菜单。离开房间放在菜单底部。 */
 export function RoomHeader(props: RoomHeaderProps) {
-  const { code, phase, endsAt, clockOffset, connected, confirmLeave, onLeave } = props
+  const { phase, endsAt, clockOffset, connected, confirmLeave, onLeave } = props
   return (
-    <header className="sticky top-0 z-20 flex h-15 items-center justify-between gap-2 border-b bg-background/95 pr-2 pl-5 backdrop-blur">
+    <header className="sticky top-0 z-20 flex h-15 items-center justify-between gap-2 bg-background/95 pr-2 pl-5 backdrop-blur">
       <div className="flex min-w-0 items-center gap-2.5">
-        <span className="rounded-md border px-2 py-0.5 font-mono text-[13px] tracking-widest">{code}</span>
         <span className="truncate text-[13px] text-muted-foreground">{phase}</span>
         {!connected && <span className="shrink-0 text-xs text-destructive">重连中…</span>}
       </div>

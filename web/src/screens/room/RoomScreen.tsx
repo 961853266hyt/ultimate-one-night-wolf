@@ -71,7 +71,6 @@ export function RoomScreen({ code, session, name }: RoomScreenProps) {
   return (
     <Page>
       <RoomHeader
-        code={view.room.code}
         phase={phaseLabel(view)}
         endsAt={view.ends_at}
         clockOffset={room.clockOffset}
