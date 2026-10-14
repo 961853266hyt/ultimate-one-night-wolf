@@ -79,7 +79,7 @@ function PeekCard({ letter, role, canFlip, hint, onFlip }: PeekCardProps) {
             className="absolute inset-0 rounded-[24px] outline-none backface-hidden focus-visible:ring-3 focus-visible:ring-white/60"
           >
             <CardBack className="size-full rounded-[24px] shadow-2xl" iconClassName="size-24">
-              <span className="text-xs text-muted-foreground">
+              <span className="text-xs text-card-back-foreground/60">
                 {waiting ? '翻开中…' : canFlip ? '点一下翻开' : ''}
               </span>
             </CardBack>

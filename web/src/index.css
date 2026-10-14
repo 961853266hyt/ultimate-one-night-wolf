@@ -40,6 +40,12 @@
   --werewolf: oklch(0.505 0.213 27.518); /* red-700 */
   --village: oklch(0.488 0.243 264.376); /* blue-700 */
   --tanner: oklch(0.553 0.195 38.402); /* orange-700 */
+
+  /* 牌背：和网站图标里的黑色一样，图标放在牌背上看不出边。深浅主题都不变 */
+  --card-back: #111111;
+  --card-back-foreground: oklch(0.985 0 0);
+  /* 夜里牌背外面的一圈绿光，黑底上才看得出牌的轮廓 */
+  --card-back-glow: oklch(0.78 0.2 150);
 }
 
 .dark {
@@ -101,6 +107,9 @@
   --color-werewolf: var(--werewolf);
   --color-village: var(--village);
   --color-tanner: var(--tanner);
+  --color-card-back: var(--card-back);
+  --color-card-back-foreground: var(--card-back-foreground);
+  --color-card-back-glow: var(--card-back-glow);
 
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
@@ -136,6 +145,60 @@
     from { opacity: 0; transform: translateY(12px) scale(0.96); }
     to { opacity: 1; transform: none; }
   }
+}
+
+/*
+ * 夜里牌背后面的绿光。每条边中间亮、两头暗；每条边上再叠两团大小不一的光，显得不那么规整；
+ * 牌面本身再带一圈顺着圆角的淡光（card-glow-base），四个角也亮，只是比边的中间暗。
+ * 对边转 180 度对称（下边是上边转过来的，右边是左边转过来的），和扑克牌一样。
+ * 整层一起慢慢明暗起伏，节奏不均匀，任何时刻都还是对称的。光的宽度跟着牌的宽度走（cqw）。
+ */
+@utility card-glow {
+  --spread: max(7px, 4.5cqw);
+  --glow: color-mix(in oklch, var(--color-card-back-glow) 75%, transparent);
+  --soft: color-mix(in oklch, var(--color-card-back-glow) 45%, transparent);
+  inset: calc(var(--spread) * -1);
+  background:
+    /* 上边：中间一大团，左右各一团大小不同的 */
+    radial-gradient(ellipse 32% var(--spread) at 50% var(--spread), var(--glow), transparent),
+    radial-gradient(ellipse 16% calc(var(--spread) * 0.8) at 33% var(--spread), var(--soft), transparent),
+    radial-gradient(ellipse 22% calc(var(--spread) * 1.15) at 63% var(--spread), var(--soft), transparent),
+    /* 下边：上边转 180 度 */
+    radial-gradient(ellipse 32% var(--spread) at 50% calc(100% - var(--spread)), var(--glow), transparent),
+    radial-gradient(ellipse 16% calc(var(--spread) * 0.8) at 67% calc(100% - var(--spread)), var(--soft), transparent),
+    radial-gradient(ellipse 22% calc(var(--spread) * 1.15) at 37% calc(100% - var(--spread)), var(--soft), transparent),
+    /* 左边：中间一大团，上下各一团 */
+    radial-gradient(ellipse var(--spread) 30% at var(--spread) 50%, var(--glow), transparent),
+    radial-gradient(ellipse calc(var(--spread) * 1.1) 14% at var(--spread) 64%, var(--soft), transparent),
+    radial-gradient(ellipse calc(var(--spread) * 0.85) 18% at var(--spread) 35%, var(--soft), transparent),
+    /* 右边：左边转 180 度 */
+    radial-gradient(ellipse var(--spread) 30% at calc(100% - var(--spread)) 50%, var(--glow), transparent),
+    radial-gradient(ellipse calc(var(--spread) * 1.1) 14% at calc(100% - var(--spread)) 36%, var(--soft), transparent),
+    radial-gradient(ellipse calc(var(--spread) * 0.85) 18% at calc(100% - var(--spread)) 65%, var(--soft), transparent);
+  filter: blur(calc(var(--spread) * 0.35));
+  animation: card-glow 5.3s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+/* 顺着牌的圆角一圈均匀的淡光，垫在 card-glow 下面，四个角也照顾到。宽度和 card-glow 一样跟着牌宽走 */
+@utility card-glow-base {
+  /* 两层：贴边的一圈亮一点，外面再散开一圈淡的，四个角露出来的光才够 */
+  box-shadow:
+    0 0 calc(max(7px, 4.5cqw) * 0.8) calc(max(7px, 4.5cqw) * 0.25)
+      color-mix(in oklch, var(--color-card-back-glow) 55%, transparent),
+    0 0 calc(max(7px, 4.5cqw) * 1.6) calc(max(7px, 4.5cqw) * 0.2)
+      color-mix(in oklch, var(--color-card-back-glow) 30%, transparent);
+}
+
+@keyframes card-glow {
+  0%, 100% { opacity: 0.8; transform: scale(1); }
+  23% { opacity: 1; transform: scale(1.02); }
+  41% { opacity: 0.65; transform: scale(0.995); }
+  68% { opacity: 0.9; transform: scale(1.015); }
+  84% { opacity: 0.7; transform: scale(1); }
 }
 
 @layer base {

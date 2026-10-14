@@ -24,7 +24,7 @@ export function RoleCard({ role, wakeOrder, revealed, onReveal }: RoleCardProps)
         className="rounded-[24px] outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       >
         <CardBack className="aspect-[200/274] w-74 rounded-[24px] shadow-lg" iconClassName="size-24">
-          <span className="text-xs text-background/60">点一下翻开</span>
+          <span className="text-xs text-card-back-foreground/60">点一下翻开</span>
         </CardBack>
       </button>
     )

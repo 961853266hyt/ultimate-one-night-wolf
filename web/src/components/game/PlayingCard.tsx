@@ -13,17 +13,19 @@ interface CardBackProps {
   children?: ReactNode
 }
 
-/** 牌背：黑底，中间是网站图标。夜里的深色主题下换成深灰，不然会变成一张白牌。 */
+/**
+ * 牌背：和图标一样的黑底，中间是网站图标。
+ * 夜里背景也是黑的，牌后面垫一层绿光（见 index.css 的 card-glow）才看得出是张牌。
+ * 外层只管大小、圆角和阴影，牌面在里层，盖住绿光的中间部分。
+ */
 export function CardBack({ className, iconClassName, children }: CardBackProps) {
   return (
-    <span
-      className={cn(
-        'flex flex-col items-center justify-center gap-3 rounded-lg bg-foreground text-background dark:bg-muted dark:text-foreground',
-        className,
-      )}
-    >
-      <img src="/icon.svg" alt="" className={cn('size-10', iconClassName)} />
-      {children}
+    <span className={cn('@container relative isolate flex rounded-lg', className)}>
+      <span aria-hidden className="card-glow absolute -z-10 hidden rounded-[inherit] dark:block" />
+      <span className="flex size-full flex-col items-center justify-center gap-3 rounded-[inherit] bg-card-back text-card-back-foreground dark:card-glow-base">
+        <img src="/icon.svg" alt="" className={cn('size-10', iconClassName)} />
+        {children}
+      </span>
     </span>
   )
 }
