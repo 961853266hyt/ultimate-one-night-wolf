@@ -13,12 +13,12 @@ interface CardBackProps {
   children?: ReactNode
 }
 
-/** 牌背：黑底，中间是网站图标。 */
+/** 牌背：黑底，中间是网站图标。夜里的深色主题下换成深灰，不然会变成一张白牌。 */
 export function CardBack({ className, iconClassName, children }: CardBackProps) {
   return (
     <span
       className={cn(
-        'flex flex-col items-center justify-center gap-3 rounded-lg bg-foreground text-background',
+        'flex flex-col items-center justify-center gap-3 rounded-lg bg-foreground text-background dark:bg-muted dark:text-foreground',
         className,
       )}
     >

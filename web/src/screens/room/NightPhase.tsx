@@ -1,9 +1,11 @@
 import { CENTER, type Copied, type Prompt, type RoleId } from '@/api/types'
 import { CluesDrawer } from '@/components/game/Clues'
 import { PhaseProgress } from '@/components/game/PhaseProgress'
+import { RoleThumbnail } from '@/components/game/RoleArtCard'
 import { CenterCard, CenterCardRow } from '@/components/game/PlayingCard'
 import { SeatGrid, SeatTile } from '@/components/game/SeatGrid'
 import { IdentitySwitch } from '@/components/game/SeatNotes'
+import { Curtain } from '@/components/layout/Curtain'
 import { PageContent, PageFooter } from '@/components/layout/Page'
 import { PageTitle, Section } from '@/components/layout/Section'
 import { Button } from '@/components/ui/button'
@@ -84,6 +86,13 @@ export function NightPhase({ view, send }: PhaseProps) {
         </Button>
         <CluesDrawer clues={clues} fresh={learned} />
       </PageFooter>
+
+      {/* 每一步都会重新挂载，所以每个角色醒来时都放一次 */}
+      <Curtain>
+        {night.index === 1 && <p className="text-sm text-muted-foreground">天黑了，所有人请闭眼</p>}
+        <RoleThumbnail role={night.step} className="w-32 rounded-xl" />
+        <p className="text-2xl font-semibold tracking-wide">{ROLES[night.step].name}请睁眼</p>
+      </Curtain>
     </>
   )
 }
