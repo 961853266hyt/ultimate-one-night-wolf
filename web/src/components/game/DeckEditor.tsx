@@ -1,5 +1,5 @@
 /**
- * 房主调整本局设置。最上面是房间人数和夜间操作时间；中间是牌库，点一下放进本局；
+ * 房主调整本局设置。最上面是房间人数、夜间操作时间和能不能投自己；中间是牌库，点一下放进本局；
  * 下面是本局，点「−」放回牌库，点头像看介绍。
  *
  * 守夜人这类要成对放的牌，点一张另一张跟着进出。改完点「完成」才发给服务端，中途关掉就当没改过。
@@ -8,6 +8,7 @@ import { Minus, Plus, RotateCcw, X } from 'lucide-react'
 import { useState } from 'react'
 import type { RoleId, Settings } from '@/api/types'
 import { Button } from '@/components/ui/button'
+import { Switch } from '@/components/ui/switch'
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { boxCardsOf, CARD_BOX, cardsMovedWith, deckOf, sameRoles, type BoxCard } from '@/game/deck'
 import { deckSizeFor, MAX_DECK, MAX_PLAYERS, MIN_DECK, MIN_PLAYERS } from '@/game/lobby'
@@ -28,6 +29,8 @@ interface DeckEditorProps {
   recommended: Readonly<Record<string, readonly RoleId[]>>
   /** 夜里每一步几秒，现在的设置。 */
   nightStep: number
+  /** 能不能投自己，现在的设置。 */
+  selfVote: boolean
   /** 点「完成」时调用。牌和按座位数推荐的一样时 deck 传 null，之后改座位数，牌会自动跟着变。 */
   onSave: (settings: Settings) => void
 }
@@ -40,6 +43,7 @@ export function DeckEditor({
   occupied,
   recommended,
   nightStep,
+  selfVote,
   onSave,
 }: DeckEditorProps) {
   return (
@@ -52,6 +56,7 @@ export function DeckEditor({
           occupied={occupied}
           recommended={recommended}
           nightStep={nightStep}
+          selfVote={selfVote}
           onSave={(settings) => {
             onSave(settings)
             onOpenChange(false)
@@ -71,14 +76,15 @@ const SECTION_LABEL = 'text-[13px] font-semibold text-muted-foreground'
 
 type BodyProps = Pick<
   DeckEditorProps,
-  'deck' | 'seats' | 'occupied' | 'recommended' | 'nightStep' | 'onSave'
+  'deck' | 'seats' | 'occupied' | 'recommended' | 'nightStep' | 'selfVote' | 'onSave'
 >
 
-function DeckEditorBody({ deck, seats, occupied, recommended, nightStep, onSave }: BodyProps) {
+function DeckEditorBody({ deck, seats, occupied, recommended, nightStep, selfVote, onSave }: BodyProps) {
   // 存牌盒里的 id 而不是角色：同一种角色的几张也分得清，牌库里点了哪张，就是哪张空出来
   const [picked, setPicked] = useState(() => idsOf(deck))
   const [size, setSize] = useState(seats)
   const [step, setStep] = useState(nightStep)
+  const [canVoteSelf, setCanVoteSelf] = useState(selfVote)
   const need = deckSizeFor(size)
   const chosen = deckOf(picked)
   const recommendedFor = (n: number) => recommended[n] ?? []
@@ -122,6 +128,10 @@ function DeckEditorBody({ deck, seats, occupied, recommended, nightStep, onSave 
             <h3 className={SECTION_LABEL}>夜间操作时间</h3>
             <NightStepPicker value={step} onChange={setStep} />
           </div>
+          <label className="flex items-center justify-between gap-3">
+            <span className={SECTION_LABEL}>可以投自己</span>
+            <Switch checked={canVoteSelf} onCheckedChange={setCanVoteSelf} />
+          </label>
         </div>
 
         <h3 className={cn(SECTION_LABEL, 'mt-2')}>牌库</h3>
@@ -185,7 +195,12 @@ function DeckEditorBody({ deck, seats, occupied, recommended, nightStep, onSave 
           size="xl"
           disabled={!savable}
           onClick={() =>
-            onSave({ seats: size, deck: isRecommended ? null : chosen, timings: { night_step: step } })
+            onSave({
+              seats: size,
+              deck: isRecommended ? null : chosen,
+              timings: { night_step: step },
+              self_vote: canVoteSelf,
+            })
           }
         >
           {savable ? '完成' : picked.length < MIN_DECK ? `至少要 ${MIN_DECK} 张牌` : `最多 ${MAX_DECK} 张牌`}

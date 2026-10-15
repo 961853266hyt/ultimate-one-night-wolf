@@ -28,6 +28,7 @@ class NightLogEntry(BaseModel):
 class Game(BaseModel):
     players: list[PlayerId]  # 座位顺序
     timings: Timings
+    self_vote: bool = True  # 能不能投自己，开局时从房间设置带过来
     dealt: dict[Slot, RoleId]  # 发牌时每个位置上的牌
     cards: dict[Slot, RoleId]  # 现在每个位置上的牌，夜里会被换
     phase: Phase = Phase.DEAL
@@ -51,6 +52,7 @@ class Game(BaseModel):
         deck: list[RoleId],
         timings: Timings,
         rng: random.Random,
+        self_vote: bool = True,
     ) -> Self:
         if len(deck) != len(players) + len(CENTER):
             raise RuleError(ErrorCode.DECK_SIZE)
@@ -61,6 +63,7 @@ class Game(BaseModel):
         return cls(
             players=list(players),
             timings=timings,
+            self_vote=self_vote,
             dealt=dealt,
             cards=dict(dealt),
             night_plan=night.plan_for(deck),
@@ -157,7 +160,7 @@ class Game(BaseModel):
         self._expect(Phase.VOTE, player)
         if player in self.votes:
             raise RuleError(ErrorCode.ALREADY_VOTED)
-        if target == player or target not in self.players:
+        if target not in self.players or (target == player and not self.self_vote):
             raise RuleError(ErrorCode.BAD_TARGETS)
         self.votes[player] = target
         if len(self.votes) == len(self.players):

@@ -117,6 +117,7 @@ export function LobbyPhase({ view, send }: PhaseProps) {
         occupied={seats.length}
         recommended={recommendedDecks}
         nightStep={timings.night_step}
+        selfVote={view.room.self_vote}
         onSave={saveSettings}
       />
       <DeckOverview
@@ -126,6 +127,7 @@ export function LobbyPhase({ view, send }: PhaseProps) {
         seats={size}
         need={need}
         nightStep={timings.night_step}
+        selfVote={view.room.self_vote}
       />
     </>
   )

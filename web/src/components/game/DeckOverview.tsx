@@ -13,9 +13,18 @@ interface DeckOverviewProps {
   seats: number
   need: number
   nightStep: number
+  selfVote: boolean
 }
 
-export function DeckOverview({ open, onOpenChange, deck, seats, need, nightStep }: DeckOverviewProps) {
+export function DeckOverview({
+  open,
+  onOpenChange,
+  deck,
+  seats,
+  need,
+  nightStep,
+  selfVote,
+}: DeckOverviewProps) {
   const plan = nightPlan(deck)
   return (
     <Drawer open={open} onOpenChange={onOpenChange} showSwipeHandle>
@@ -39,7 +48,7 @@ export function DeckOverview({ open, onOpenChange, deck, seats, need, nightStep 
             </section>
           )}
           <p className="text-sm text-muted-foreground">
-            房间 {seats} 人 · 夜间操作时间 {nightStep} 秒，房主可以调整
+            房间 {seats} 人 · 夜间操作时间 {nightStep} 秒 · {selfVote ? '可以' : '不能'}投自己，房主可以调整
           </p>
         </div>
       </DrawerContent>

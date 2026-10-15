@@ -45,6 +45,7 @@ def test_the_lobby_shows_members_and_the_public_deck():
     assert view.room.deck == [R.WEREWOLF, R.WEREWOLF, R.SEER, R.ROBBER, R.TROUBLEMAKER, R.VILLAGER]
     assert view.room.auto_deck and view.room.recommended_decks[3] == view.room.deck
     assert view.room.seats == 3
+    assert view.room.self_vote
     assert [m.seat for m in view.room.members] == [0, 1, 2]
     assert view.me.card is None
 
