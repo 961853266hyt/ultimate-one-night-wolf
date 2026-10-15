@@ -9,6 +9,10 @@
 
 ## 未发布
 
+### Added
+
+- 推送 `vX.Y.Z` tag 时，自动用 CHANGELOG 里这一版的内容建 GitHub Release；漏建的旧版本可以在 Actions 页面手动补
+
 ## 0.5.0 - 2026-10-15
 
 ### Added

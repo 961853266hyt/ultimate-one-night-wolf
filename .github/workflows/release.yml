@@ -1,0 +1,54 @@
+name: Release
+
+# 推 vX.Y.Z 的 tag 时，用 CHANGELOG.md 里这一版的那一段建 GitHub Release；已经建过就只更新说明。
+# 漏建的旧版本，在 Actions 页面手动运行这个工作流，填上 tag 就行。
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: '要建 Release 的 tag，比如 v0.4.0（tag 必须已经存在）'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ inputs.tag || github.ref_name }}
+    steps:
+      # 要所有 tag，才知道这一版是不是最新的
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.tag || github.ref }}
+          fetch-depth: 0
+
+      - name: Take the notes from CHANGELOG.md
+        run: |
+          set -euo pipefail
+          [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]] || { echo "不是版本号 tag：$TAG" >&2; exit 1; }
+          # 「## 0.4.0 - 日期」下面，到下一个「## 」之前；去掉开头的空行
+          awk -v v="${TAG#v}" '
+            /^## / { if (found) exit; if (index($0, "## " v " ") == 1) { found = 1; next } }
+            found { print }
+          ' CHANGELOG.md | sed '/./,$!d' > notes.md
+          grep -q '[^[:space:]]' notes.md || { echo "CHANGELOG.md 里没有 ${TAG#v} 这一版" >&2; exit 1; }
+          cat notes.md
+
+      - name: Create or update the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          # GitHub 默认把刚建的 Release 标成 Latest：补建旧版本时不能抢走最新那一版的 Latest
+          newest=$(git tag -l 'v*' --sort=-v:refname | head -1)
+          latest=$([ "$TAG" = "$newest" ] && echo true || echo false)
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --notes-file notes.md
+          else
+            gh release create "$TAG" --verify-tag --title "$TAG" --notes-file notes.md --latest="$latest"
+          fi
