@@ -74,6 +74,11 @@ class Harness:
         self.actor.post(self.conns[player], command, ref)
         await settle()
 
+    async def act_as(self, player: str, target: str | None) -> None:
+        """player 的连接改为替 target 操作；None 是换回自己。"""
+        self.actor.act_as(self.conns[player], target)
+        await settle()
+
     async def advance(self, to: float | None = None) -> None:
         """把时钟拨到 to（默认是下一个截止时间），让 actor 结算。"""
         deadline = self.room.next_deadline()

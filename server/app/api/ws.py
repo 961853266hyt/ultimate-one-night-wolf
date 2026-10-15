@@ -12,14 +12,14 @@ from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import TypeAdapter, ValidationError
 
 from ..domain.commands import Command
-from ..protocol import ErrorMessage, Hello, ProtocolErrorCode
+from ..protocol import ActAs, ErrorMessage, Hello, ProtocolErrorCode
 from ..runtime.actor import RoomActor
 from ..runtime.connection import Connection
 
 HELLO_TIMEOUT = 10  # 秒
 
 router = APIRouter()
-_commands: TypeAdapter[Command] = TypeAdapter(Command)
+_commands: TypeAdapter[Command | ActAs] = TypeAdapter(Command | ActAs)
 
 
 @router.websocket("/ws/rooms/{code}")
@@ -75,6 +75,9 @@ def _relay(text: str, conn: Connection, actor: RoomActor) -> None:
         command = _commands.validate_python(raw)
     except (json.JSONDecodeError, ValidationError):
         conn.send_error(ProtocolErrorCode.BAD_MESSAGE)
+        return
+    if isinstance(command, ActAs):
+        actor.act_as(conn, command.player)
         return
     ref = raw.get("ref")
     actor.post(conn, command, ref if isinstance(ref, str) else None)

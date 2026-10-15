@@ -27,11 +27,17 @@ class Connection:
 
     def __init__(self, player: PlayerId, socket: Socket) -> None:
         self.player = player
+        self.acting: PlayerId | None = None  # 房主替哪个机器人操作；None 是自己
         self._socket = socket
         self._state: str | None = None
         self._errors: deque[str] = deque()
         self._closing = False
         self._wake = asyncio.Event()
+
+    @property
+    def viewer(self) -> PlayerId:
+        """这条连接现在以谁的身份收视图、发指令。"""
+        return self.acting or self.player
 
     def send_state(self, frame: str) -> None:
         self._state = frame

@@ -6,7 +6,20 @@
  */
 
 export type ClientMessage =
-  Hello | Configure | Kick | TakeSeat | Start | Leave | ConfirmCard | NightAction | ReadyToVote | Vote | Rematch;
+  | Hello
+  | ActAs
+  | Configure
+  | Kick
+  | TakeSeat
+  | AddBots
+  | Start
+  | Leave
+  | ConfirmCard
+  | NightAction
+  | EndStep
+  | ReadyToVote
+  | Vote
+  | Rematch;
 export type RoleId =
   | "copycat"
   | "doppelganger"
@@ -57,6 +70,15 @@ export interface Hello {
   token: string;
   name: string;
 }
+/**
+ * 房主这条连接改为替一个机器人操作：收它的视图，指令也算它的。player 为 None 是换回自己。
+ *
+ * 这是连接上的事，不是房间规则，所以不在 domain 的指令里。
+ */
+export interface ActAs {
+  type: "act_as";
+  player: string | null;
+}
 export interface Configure {
   type: "configure";
   settings: Settings;
@@ -84,6 +106,12 @@ export interface TakeSeat {
   type: "take_seat";
   seat: number;
 }
+/**
+ * 房主把所有空座位坐上机器人。机器人自己不行动，房主可以替它们操作。
+ */
+export interface AddBots {
+  type: "add_bots";
+}
 export interface Start {
   type: "start";
 }
@@ -96,6 +124,12 @@ export interface ConfirmCard {
 export interface NightAction {
   type: "night_action";
   targets: string[];
+}
+/**
+ * 有机器人的一局，夜里每一步不限时，由房主（或者房主替机器人）手动结束这一步。
+ */
+export interface EndStep {
+  type: "end_step";
 }
 export interface ReadyToVote {
   type: "ready_to_vote";
@@ -142,12 +176,16 @@ export interface MemberView {
   id: string;
   name: string;
   online: boolean;
+  bot: boolean;
   seat: number | null;
 }
 export interface MeView {
   id: string;
   seat: number | null;
   card: RoleId | null;
+  known_dealt: {
+    [k: string]: RoleId;
+  };
   knowledge: (SawCard | SawPlayers | Swapped | Copied)[];
 }
 /**
@@ -212,6 +250,7 @@ export interface NightView {
   step: RoleId;
   index: number;
   total: number;
+  manual: boolean;
 }
 export interface DayView {
   ready: string[];

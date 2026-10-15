@@ -4,6 +4,7 @@ import { toast } from 'sonner'
 import { goHome, type Session } from '@/api/session'
 import type { ErrorMessage, Phase } from '@/api/types'
 import { useRoom } from '@/api/useRoom'
+import { ActAsBar } from '@/components/game/ActAsBar'
 import { SeatNotesProvider } from '@/components/game/SeatNotes'
 import { Curtain } from '@/components/layout/Curtain'
 import { FullScreenLoading } from '@/components/layout/FullScreenLoading'
@@ -63,7 +64,10 @@ export function RoomScreen({ code, session, name }: RoomScreenProps) {
 
   const { view, send } = room
   const CurrentPhase = PHASES[view.phase]
+  // 房主可能正在替机器人操作：先换回自己再离开，不然离开的是机器人
+  const actingAsBot = view.me.id !== session.player_id
   const leave = () => {
+    if (actingAsBot) send({ type: 'act_as', player: null })
     send({ type: 'leave' })
     goHome()
   }
@@ -78,9 +82,17 @@ export function RoomScreen({ code, session, name }: RoomScreenProps) {
         confirmLeave={view.me.seat !== null && view.phase !== 'reveal'}
         onLeave={leave}
       />
-      {/* 换阶段、夜里换一步时重新挂载，上一步没选完的目标不会带到下一步 */}
-      <SeatNotesProvider view={view}>
-        <CurrentPhase key={`${view.phase}-${view.night?.index ?? 0}`} view={view} send={send} />
+      {session.player_id === view.room.host && (
+        <ActAsBar
+          self={session.player_id}
+          current={view.me.id}
+          members={view.room.members}
+          onSwitch={(player) => send({ type: 'act_as', player })}
+        />
+      )}
+      {/* 换阶段、夜里换一步、房主换了替谁操作时都重新挂载：没选完的目标、各自的标记不会串 */}
+      <SeatNotesProvider key={view.me.id} view={view}>
+        <CurrentPhase key={`${view.me.id}-${view.phase}-${view.night?.index ?? 0}`} view={view} send={send} />
       </SeatNotesProvider>
       {/* 天亮的过场盖住深色换回浅色的那一下 */}
       {dawn > 0 && (

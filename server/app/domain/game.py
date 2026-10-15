@@ -29,6 +29,7 @@ class Game(BaseModel):
     players: list[PlayerId]  # 座位顺序
     timings: Timings
     self_vote: bool = True  # 能不能投自己，开局时从房间设置带过来
+    manual_steps: bool = False  # 夜里每一步不限时、手动结束：有机器人的一局，方便一个人测试
     dealt: dict[Slot, RoleId]  # 发牌时每个位置上的牌
     cards: dict[Slot, RoleId]  # 现在每个位置上的牌，夜里会被换
     phase: Phase = Phase.DEAL
@@ -53,6 +54,7 @@ class Game(BaseModel):
         timings: Timings,
         rng: random.Random,
         self_vote: bool = True,
+        manual_steps: bool = False,
     ) -> Self:
         if len(deck) != len(players) + len(CENTER):
             raise RuleError(ErrorCode.DECK_SIZE)
@@ -64,6 +66,7 @@ class Game(BaseModel):
             players=list(players),
             timings=timings,
             self_vote=self_vote,
+            manual_steps=manual_steps,
             dealt=dealt,
             cards=dict(dealt),
             night_plan=night.plan_for(deck),
@@ -172,6 +175,15 @@ class Game(BaseModel):
         """夜里这一步到了截止时间就进入下一步，新的一步从 now 开始计时。只有夜里限时。"""
         if self.phase is not Phase.NIGHT or self.ends_at is None or now < self.ends_at:
             return
+        self._next_step(now, rng)
+
+    def end_step(self, now: float, rng: random.Random) -> None:
+        """手动结束夜里这一步，和到了截止时间一样：必须做的还没做就随机代选，然后进下一步。"""
+        if self.phase is not Phase.NIGHT or not self.manual_steps:
+            raise RuleError(ErrorCode.WRONG_PHASE)
+        self._next_step(now, rng)
+
+    def _next_step(self, now: float, rng: random.Random) -> None:
         self._finish_step(rng)
         if self.night_index + 1 < len(self.night_plan):
             self.night_index += 1
@@ -211,7 +223,7 @@ class Game(BaseModel):
 
     def _enter_step(self, now: float) -> None:
         self.acted = set()
-        self.ends_at = now + self.timings.night_step
+        self.ends_at = None if self.manual_steps else now + self.timings.night_step
         role = ROLES[self.night_plan[self.night_index]]
         for player in self.wakers():
             self._learn(player, role.wake_info(self, player))

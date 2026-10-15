@@ -1,3 +1,4 @@
+import { SkipForward } from 'lucide-react'
 import { useState } from 'react'
 import { CENTER, type Copied, type Prompt, type RoleId } from '@/api/types'
 import { CenterPeek } from '@/components/game/CenterPeek'
@@ -50,6 +51,10 @@ export function NightPhase({ view, send }: PhaseProps) {
   const canFlip = (slot: string) => peeks && !sightings.now.has(slot) && canPickCenter(prompt!, slot)
   const tapCenter = (slot: string) =>
     peeks || sightings.now.has(slot) ? setPeeking(slot) : targets.tap(slot)
+  // 有机器人的一局，每一步不限时：房主（或者正在替机器人操作）手动结束这一步
+  const meIsBot = view.room.members.some((member) => member.id === view.me.id && member.bot)
+  const canEndStep = night.manual && (view.me.id === view.room.host || meIsBot)
+
   const flip = (slot: string) => {
     send({ type: 'night_action', targets: [slot] })
     targets.clear() // 预言家先点了人又去翻底牌，就当没点过人
@@ -64,7 +69,17 @@ export function NightPhase({ view, send }: PhaseProps) {
     <>
       <PageContent>
         <div className="flex flex-col gap-6">
-          <PhaseProgress current={night.index} total={night.total} label="夜晚进度" />
+          <div className="flex items-center gap-3">
+            <div className="flex-1">
+              <PhaseProgress current={night.index} total={night.total} label="夜晚进度" />
+            </div>
+            {canEndStep && (
+              <Button variant="outline" size="sm" onClick={() => send({ type: 'end_step' })}>
+                <SkipForward aria-hidden />
+                结束这一步
+              </Button>
+            )}
+          </div>
           <PageTitle
             title={`${ROLES[night.step].name}请睁眼`}
             description={hint(hintRole, prompt, learned)}

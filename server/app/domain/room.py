@@ -7,9 +7,11 @@ from typing import Self
 from pydantic import BaseModel, Field
 
 from .commands import (
+    AddBots,
     Command,
     Configure,
     ConfirmCard,
+    EndStep,
     Kick,
     Leave,
     NightAction,
@@ -34,6 +36,7 @@ class Member(BaseModel):
     id: PlayerId
     name: str
     seat: int  # 座位号，从 0 开始。大厅里可以换到空座位，开局后按座位号排
+    bot: bool = False  # 机器人：一直在线，不当房主，由房主替它操作
     online: bool = False
     offline_since: float | None = None
 
@@ -45,6 +48,7 @@ class Room(BaseModel):
     settings: Settings = Field(default_factory=Settings)
     game: Game | None = None
     touched_at: float  # 最近一次有人上线或下线的时间
+    bots_added: int = 0  # 一共加过几个机器人，给新机器人编号，移出过的号不再用
 
     @classmethod
     def create(cls, code: str, host: PlayerId, name: str, now: float) -> Self:
@@ -60,6 +64,11 @@ class Room(BaseModel):
 
     def member(self, player: PlayerId) -> Member | None:
         return next((m for m in self.members if m.id == player), None)
+
+    def can_act_as(self, player: PlayerId, target: PlayerId) -> bool:
+        """player 能不能替 target 操作：只有房主能替机器人操作。"""
+        member = self.member(target)
+        return player == self.host and member is not None and member.bot
 
     def deck(self) -> list[RoleId]:
         """这一局（或者下一局）用的牌堆。牌堆是公开信息。"""
@@ -135,6 +144,9 @@ class Room(BaseModel):
                 if self.member(target) is None:
                     raise RuleError(ErrorCode.UNKNOWN_PLAYER)
                 self._remove(target)
+            case AddBots():
+                self._expect_host_in_lobby(player)
+                self._add_bots()
             case TakeSeat(seat=seat):
                 self._take_seat(player, seat)
             case Start():
@@ -155,6 +167,12 @@ class Room(BaseModel):
                 self._current_game().ready_to_vote(player, now)
             case Vote(target=target):
                 self._current_game().vote(player, target, now)
+            case EndStep():
+                member = self.member(player)
+                if player != self.host and not (member and member.bot):
+                    raise RuleError(ErrorCode.NOT_HOST)
+                self._current_game().end_step(now, rng)
+        self._bots_get_ready(now)
 
     # ------------------------------------------------------------ 时钟
 
@@ -166,6 +184,7 @@ class Room(BaseModel):
                 if m.offline_since is not None and now >= m.offline_since + LOBBY_GRACE:
                     self._remove(m.id)
         self._hand_over_if_host_away(now)
+        self._bots_get_ready(now)
 
     # ------------------------------------------------------------ 内部
 
@@ -192,8 +211,25 @@ class Room(BaseModel):
         players = [m.id for m in sorted(self.members, key=lambda m: m.seat)]
         settings = self.settings
         self.game = Game.deal(
-            players, self.deck(), settings.timings, rng, self_vote=settings.self_vote
+            players,
+            self.deck(),
+            settings.timings,
+            rng,
+            self_vote=settings.self_vote,
+            manual_steps=any(m.bot for m in self.members),  # 有机器人就是在一个人测试
         )
+
+    def _bots_get_ready(self, now: float) -> None:
+        """机器人不用想：看牌时直接「记住了」，白天直接同意投票。夜里行动和投票由房主替它们做。"""
+        game = self.game
+        if game is None:
+            return
+        bots = [m.id for m in self.members if m.bot and m.id in game.players]
+        for bot in bots:
+            if game.phase is Phase.DEAL and bot not in game.confirmed:
+                game.confirm_card(bot, now)
+            elif game.phase is Phase.DAY and bot not in game.ready:
+                game.ready_to_vote(bot, now)
 
     def _free_seat(self) -> int | None:
         """号最小的空座位；坐满了就是 None。"""
@@ -208,6 +244,14 @@ class Room(BaseModel):
         member = self.member(player)
         assert member is not None  # handle 已经查过是成员
         member.seat = seat
+
+    def _add_bots(self) -> None:
+        while (seat := self._free_seat()) is not None:
+            self.bots_added += 1
+            n = self.bots_added
+            self.members.append(
+                Member(id=f"bot-{n}", name=f"机器人{n}", seat=seat, bot=True, online=True)
+            )
 
     def _reseat_overflow(self) -> None:
         """座位变少后，坐在多出来的座位上的人挪到前面的空座位。人数已经查过放得下。"""
@@ -232,19 +276,21 @@ class Room(BaseModel):
     def _remove(self, player: PlayerId) -> None:
         self.members = [m for m in self.members if m.id != player]
         if player == self.host and self.members:
-            online = [m for m in self.members if m.online]
-            self.host = (online or self.members)[0].id
+            people = [m for m in self.members if not m.bot]
+            online = [m for m in people if m.online]
+            self.host = (online or people or self.members)[0].id
 
     def _hand_over_if_host_away(self, now: float) -> None:
         host = self.member(self.host)
         if host is None or host.offline_since is None or now < host.offline_since + HOST_GRACE:
             return
-        online = [m for m in self.members if m.online]
+        online = [m for m in self.members if m.online and not m.bot]
         if online:
             self.host = online[0].id
 
     def _someone_online(self) -> bool:
-        return any(m.online for m in self.members)
+        """有没有真人在线。机器人一直在线，不算：只剩机器人的房间也要能过期回收。"""
+        return any(m.online and not m.bot for m in self.members)
 
 
 def _check_deck(deck: list[RoleId] | None) -> None:

@@ -60,7 +60,7 @@ export function useSeatNotes(): SeatNotesValue {
 const SWITCHABLE: readonly Phase[] = ['night', 'day', 'vote']
 
 export function SeatNotesProvider({ view, children }: { view: PlayerView; children: ReactNode }) {
-  const [notes, setNotes] = useStoredNotes(view.room.code, view.phase === 'lobby')
+  const [notes, setNotes] = useStoredNotes(view.room.code, view.me.id, view.phase === 'lobby')
   const active = view.phase !== 'lobby' && view.phase !== 'reveal'
   const switchable = SWITCHABLE.includes(view.phase)
 
@@ -73,27 +73,34 @@ export function SeatNotesProvider({ view, children }: { view: PlayerView; childr
 
   // 发牌时牌还没翻开，自己的头像先不露底；入夜之后就显示发到的牌
   const myCard = view.phase === 'deal' ? null : view.me.card
+  // 有机器人的一局：房主和机器人互相看得到发到的牌，直接画在头像上，不用备注
+  const known = view.me.known_dealt
 
   // 抽屉关上时还留着是谁，收起的动画里标题不会突然变空
   const [editing, setEditing] = useState<Seat | null>(null)
   const [open, setOpen] = useState(false)
 
   const value = useMemo<SeatNotesValue>(() => {
-    const roleIn = (which: Identity, seat: Seat) =>
-      which === 'initial' && seat.isMe ? (myCard ?? undefined) : notes[which][seat.id]
+    const knownIn = (which: Identity, seat: Seat) =>
+      which === 'initial' && (seat.isMe || known[seat.id] !== undefined)
+    const roleIn = (which: Identity, seat: Seat) => {
+      if (which !== 'initial') return notes[which][seat.id]
+      if (seat.isMe) return myCard ?? undefined
+      return known[seat.id] ?? notes.initial[seat.id]
+    }
     return {
       active,
       identity,
       switchable,
       setIdentity,
       roleOf: (seat) => (active ? roleIn(identity, seat) : undefined),
-      canEdit: (seat) => !(seat.isMe && identity === 'initial'),
+      canEdit: (seat) => !knownIn(identity, seat),
       edit: (seat) => {
         setEditing(seat)
         setOpen(true)
       },
     }
-  }, [active, identity, switchable, notes, myCard])
+  }, [active, identity, switchable, notes, myCard, known])
 
   const pick = (role: RoleId | null) => {
     if (editing) {
@@ -155,9 +162,12 @@ export function IdentitySwitch() {
   )
 }
 
-/** 存在 localStorage 里的标记，每个房间一份。inLobby 时清空：回到大厅就是下一局了。 */
-function useStoredNotes(code: string, inLobby: boolean) {
-  const key = storageKey(`notes.${code}`)
+/**
+ * 存在 localStorage 里的标记，每个房间、每个身份一份：房主替机器人操作时，机器人有它自己的一套。
+ * inLobby 时清空：回到大厅就是下一局了。
+ */
+function useStoredNotes(code: string, me: string, inLobby: boolean) {
+  const key = storageKey(`notes.${code}.${me}`)
   const [notes, setNotes] = useState<Notes>(() => load(key))
 
   useEffect(() => {
