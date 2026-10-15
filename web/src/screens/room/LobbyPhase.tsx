@@ -46,9 +46,13 @@ export function LobbyPhase({ view, send }: PhaseProps) {
           action={
             // 一个人也能开局：空座位都坐上机器人，房主替它们操作
             isHost && seats.length < size ? (
-              <Button variant="outline" size="sm" onClick={() => send({ type: 'add_bots' })}>
+              <Button
+                variant="outline"
+                size="icon"
+                aria-label="补满机器人"
+                onClick={() => send({ type: 'add_bots' })}
+              >
                 <Bot aria-hidden />
-                补满机器人
               </Button>
             ) : undefined
           }
@@ -60,6 +64,7 @@ export function LobbyPhase({ view, send }: PhaseProps) {
                   key={seat.id}
                   seat={seat}
                   badge={seat.isHost ? '房主' : seat.isBot ? '机器人' : undefined}
+                  badgeVariant={seat.isBot ? 'secondary' : 'default'}
                   muted={!seat.online}
                   status={
                     seat.online ? (

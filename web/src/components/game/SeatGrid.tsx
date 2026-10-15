@@ -17,6 +17,8 @@ interface SeatTileProps {
   seat: Seat
   /** 头像左上角的小标签，比如「房主」。 */
   badge?: string
+  /** 标签的样式：房主是黑底；机器人用浅色，和房主分开。 */
+  badgeVariant?: 'default' | 'secondary'
   /** 最下面的状态条，见 SeatStatus。 */
   status?: ReactNode
   /** 名字和状态条之间的补充信息，比如揭晓时的身份变化。 */
@@ -38,6 +40,7 @@ interface SeatTileProps {
 export function SeatTile({
   seat,
   badge,
+  badgeVariant = 'default',
   status,
   children,
   muted = false,
@@ -60,7 +63,14 @@ export function SeatTile({
           >
             {notes.active && !note ? <span className="text-muted-foreground">?</span> : undefined}
           </PlayerAvatar>
-          {badge && <Badge className="absolute -top-2 -left-6">{badge}</Badge>}
+          {badge && (
+            <Badge
+              variant={badgeVariant}
+              className={cn('absolute -top-2 -left-6', badgeVariant === 'secondary' && 'border-border')}
+            >
+              {badge}
+            </Badge>
+          )}
         </span>
         <span
           className={cn(
