@@ -1,4 +1,4 @@
-import { UserPlus } from 'lucide-react'
+import { Bot, UserPlus } from 'lucide-react'
 import { useState } from 'react'
 import type { Settings } from '@/api/types'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
@@ -43,6 +43,15 @@ export function LobbyPhase({ view, send }: PhaseProps) {
         <Section
           title="座位"
           caption={`${seats.length}/${size} 人已入座${isHost && seats.length > 1 ? ' · 点头像可以移出房间' : ''}`}
+          action={
+            // 一个人也能开局：空座位都坐上机器人，房主替它们操作
+            isHost && seats.length < size ? (
+              <Button variant="outline" size="sm" onClick={() => send({ type: 'add_bots' })}>
+                <Bot aria-hidden />
+                补满机器人
+              </Button>
+            ) : undefined
+          }
         >
           <SeatGrid>
             {bySeat.map((seat, index) =>
@@ -50,7 +59,7 @@ export function LobbyPhase({ view, send }: PhaseProps) {
                 <SeatTile
                   key={seat.id}
                   seat={seat}
-                  badge={seat.isHost ? '房主' : undefined}
+                  badge={seat.isHost ? '房主' : seat.isBot ? '机器人' : undefined}
                   muted={!seat.online}
                   status={
                     seat.online ? (
@@ -103,7 +112,7 @@ export function LobbyPhase({ view, send }: PhaseProps) {
         open={kickOpen}
         onOpenChange={setKickOpen}
         title={`把 ${kickTarget ? seatLabel(kickTarget) : ''} 移出房间？`}
-        description="被移出的人还可以用房间号重新进来。"
+        description={kickTarget?.isBot ? undefined : '被移出的人还可以用房间号重新进来。'}
         confirmLabel="移出"
         onConfirm={() => kickTarget && send({ type: 'kick', player: kickTarget.id })}
       />

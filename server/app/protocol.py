@@ -10,8 +10,10 @@ from typing import Annotated, Any, Literal
 from pydantic import BaseModel, Field, StringConstraints
 
 from .domain.commands import (
+    AddBots,
     Configure,
     ConfirmCard,
+    EndStep,
     Kick,
     Leave,
     NightAction,
@@ -35,16 +37,29 @@ class Hello(BaseModel):
     name: Name
 
 
-# 客户端之后发的每一帧都是 domain 里的一条指令，见 domain/commands.py
+class ActAs(BaseModel):
+    """房主这条连接改为替一个机器人操作：收它的视图，指令也算它的。player 为 None 是换回自己。
+
+    这是连接上的事，不是房间规则，所以不在 domain 的指令里。
+    """
+
+    type: Literal["act_as"] = "act_as"
+    player: str | None
+
+
+# 客户端之后发的每一帧都是 domain 里的一条指令（见 domain/commands.py），或者 ActAs
 ClientMessage = Annotated[
     Hello
+    | ActAs
     | Configure
     | Kick
     | TakeSeat
+    | AddBots
     | Start
     | Leave
     | ConfirmCard
     | NightAction
+    | EndStep
     | ReadyToVote
     | Vote
     | Rematch,

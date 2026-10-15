@@ -15,6 +15,8 @@ export interface Seat {
   online: boolean
   isMe: boolean
   isHost: boolean
+  /** 机器人：房主替它操作。 */
+  isBot: boolean
 }
 
 /**
@@ -30,6 +32,7 @@ export function seatsOf(view: PlayerView): Seat[] {
     online: member.online,
     isMe: member.id === view.me.id,
     isHost: member.id === view.room.host,
+    isBot: member.bot,
   })
 
   return view.room.members

@@ -9,6 +9,8 @@ interface CardBackProps {
   /** 决定牌的大小和圆角。 */
   className?: string
   iconClassName?: string
+  /** 夜里的绿光：表示这张牌还盖着。翻开的时候关掉。 */
+  glow?: boolean
   /** 图标下面的小字。 */
   children?: ReactNode
 }
@@ -18,11 +20,16 @@ interface CardBackProps {
  * 夜里背景也是黑的，牌后面垫一层绿光（见 index.css 的 card-glow）才看得出是张牌。
  * 外层只管大小、圆角和阴影，牌面在里层，盖住绿光的中间部分。
  */
-export function CardBack({ className, iconClassName, children }: CardBackProps) {
+export function CardBack({ className, iconClassName, glow = true, children }: CardBackProps) {
   return (
     <span className={cn('@container relative isolate flex rounded-lg', className)}>
-      <span aria-hidden className="card-glow absolute -z-10 hidden rounded-[inherit] dark:block" />
-      <span className="flex size-full flex-col items-center justify-center gap-3 rounded-[inherit] bg-card-back text-card-back-foreground dark:card-glow-base">
+      {glow && <span aria-hidden className="card-glow absolute -z-10 hidden rounded-[inherit] dark:block" />}
+      <span
+        className={cn(
+          'flex size-full flex-col items-center justify-center gap-3 rounded-[inherit] bg-card-back text-card-back-foreground',
+          glow && 'dark:card-glow-base',
+        )}
+      >
         <img src="/icon.svg" alt="" className={cn('size-10', iconClassName)} />
         {children}
       </span>

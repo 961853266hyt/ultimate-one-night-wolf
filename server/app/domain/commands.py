@@ -24,6 +24,12 @@ class TakeSeat(BaseModel):
     seat: int
 
 
+class AddBots(BaseModel):
+    """房主把所有空座位坐上机器人。机器人自己不行动，房主可以替它们操作。"""
+
+    type: Literal["add_bots"] = "add_bots"
+
+
 class Start(BaseModel):
     type: Literal["start"] = "start"
 
@@ -39,6 +45,12 @@ class ConfirmCard(BaseModel):
 class NightAction(BaseModel):
     type: Literal["night_action"] = "night_action"
     targets: list[Slot]
+
+
+class EndStep(BaseModel):
+    """有机器人的一局，夜里每一步不限时，由房主（或者房主替机器人）手动结束这一步。"""
+
+    type: Literal["end_step"] = "end_step"
 
 
 class ReadyToVote(BaseModel):
@@ -58,10 +70,12 @@ Command = Annotated[
     Configure
     | Kick
     | TakeSeat
+    | AddBots
     | Start
     | Leave
     | ConfirmCard
     | NightAction
+    | EndStep
     | ReadyToVote
     | Vote
     | Rematch,
