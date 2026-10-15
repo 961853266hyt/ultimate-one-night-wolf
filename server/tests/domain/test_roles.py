@@ -123,7 +123,15 @@ def test_a_seer_who_saw_a_player_is_done():
 @pytest.mark.parametrize(
     "targets",
     [[], ["p0"], ["p9"], ["C0", "C2"], ["C0", "C0"], ["p1", "p2"], ["p1", "C0"]],
-    ids=["nothing", "self", "stranger", "two-centers-at-once", "same-center", "two-players", "mixed"],
+    ids=[
+        "nothing",
+        "self",
+        "stranger",
+        "two-centers-at-once",
+        "same-center",
+        "two-players",
+        "mixed",
+    ],
 )
 def test_seer_rejects_targets_that_fit_no_option(targets):
     game = new_game(R.SEER, R.WEREWOLF, R.VILLAGER, R.ROBBER, R.DRUNK, R.WEREWOLF)
