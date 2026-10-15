@@ -2,13 +2,13 @@
  * 顶栏右上角的菜单：点开从右边滑出一个抽屉，里面是角色介绍，最底下是版本和作者的落款。首页和房间里共用。
  */
 import { Collapsible } from '@base-ui/react/collapsible'
-import { ChevronDown, Menu, X } from 'lucide-react'
+import { ChevronDown, Menu, MessageSquareWarning, X } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { RoleId, Team } from '@/api/types'
 import { RoleAvatar } from '@/components/game/RoleAvatar'
 import { RoleButton } from '@/components/game/RoleDetails'
 import { GitHubIcon } from '@/components/icons/GitHubIcon'
-import { Button } from '@/components/ui/button'
+import { Button, buttonVariants } from '@/components/ui/button'
 import { Drawer, DrawerClose, DrawerContent, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer'
 import { cn } from '@/lib/utils'
 import { ROLES, TEAMS } from '@/roles/catalog'
@@ -65,19 +65,44 @@ export function AppMenu({ footer }: AppMenuProps) {
           </Fold>
         </div>
 
-        {/* 贴在抽屉最底下：有操作时先放操作，落款永远在最后 */}
-        <div
-          className={cn(
-            'flex shrink-0 flex-col gap-3 border-t px-5 pb-[max(1rem,env(safe-area-inset-bottom))]',
-            footer ? 'pt-4' : 'pt-3',
-          )}
-        >
+        {/* 贴在抽屉最底下：反馈问题、房间里的「离开房间」，落款永远在最后 */}
+        <div className="flex shrink-0 flex-col gap-3 border-t px-5 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          {/* 和房间里的「离开房间」一样大、一样居中，上下两个按钮的图标和字对齐 */}
+          <a
+            href={feedbackUrl()}
+            target="_blank"
+            rel="noreferrer"
+            className={cn(buttonVariants({ variant: 'outline', size: 'xl' }), 'w-full')}
+          >
+            <MessageSquareWarning aria-hidden className="size-4.5" />
+            反馈问题
+          </a>
           {footer}
           <Credits />
         </div>
       </DrawerContent>
     </Drawer>
   )
+}
+
+/**
+ * 反馈问题：打开仓库的新建 Issue 页面，正文先填好模板和排查要用的版本、页面、设备。
+ * 链接在点开菜单时才生成，页面地址是当时的。
+ */
+function feedbackUrl(): string {
+  const body = [
+    '**遇到了什么问题**',
+    '',
+    '',
+    '**怎么能再碰到一次**',
+    '',
+    '',
+    '---',
+    `版本：v${__APP_VERSION__}`,
+    `页面：${location.pathname}`,
+    `设备：${navigator.userAgent}`,
+  ].join('\n')
+  return `${SOURCE_URL}/issues/new?${new URLSearchParams({ body })}`
 }
 
 /** 落款：版本、作者、源码。小字、淡色、居中，不当菜单项。 */
