@@ -7,7 +7,7 @@ import { PageContent, PageFooter } from '@/components/layout/Page'
 import { PageTitle, Section } from '@/components/layout/Section'
 import { Button } from '@/components/ui/button'
 import { cluesOf } from '@/game/knowledge'
-import { seatLabel, seatsOf } from '@/game/seats'
+import { seatLabel, seatsOf, type Seat } from '@/game/seats'
 import type { PhaseProps } from './types'
 
 export function VotePhase({ view, send }: PhaseProps) {
@@ -19,6 +19,8 @@ export function VotePhase({ view, send }: PhaseProps) {
   const playing = view.me.seat !== null
   // 投出去就不能改了，之后只显示投给了谁
   const canPick = playing && mine === null
+  // 房间设置里关了「可以投自己」，自己的座位就点不了
+  const canPickSeat = (isMe: boolean) => canPick && (view.room.self_vote || !isMe)
   const picked = seats.find((seat) => seat.id === (mine ?? target))
 
   return (
@@ -40,7 +42,7 @@ export function VotePhase({ view, send }: PhaseProps) {
                 key={seat.id}
                 seat={seat}
                 selected={seat.id === picked?.id}
-                onSelect={canPick && !seat.isMe ? () => setTarget(seat.id) : undefined}
+                onSelect={canPickSeat(seat.isMe) ? () => setTarget(seat.id) : undefined}
                 status={
                   <SeatProgress done={voted.has(seat.id)} doneText="已投票" pendingText="思考中…" />
                 }
@@ -59,7 +61,7 @@ export function VotePhase({ view, send }: PhaseProps) {
             disabled={!canPick || !picked}
             onClick={() => picked && send({ type: 'vote', target: picked.id })}
           >
-            {voteButtonText(mine !== null, picked && seatLabel(picked))}
+            {voteButtonText(mine !== null, picked)}
           </Button>
         </PageFooter>
       )}
@@ -67,7 +69,9 @@ export function VotePhase({ view, send }: PhaseProps) {
   )
 }
 
-function voteButtonText(hasVoted: boolean, pickedLabel: string | undefined): string {
-  if (hasVoted) return pickedLabel ? `已投给 ${pickedLabel}` : '已投票'
-  return pickedLabel ? `投给 ${pickedLabel}` : '先选一个人'
+function voteButtonText(hasVoted: boolean, picked: Seat | undefined): string {
+  // 「投给 3 号阿杰」「投给自己」
+  const whom = picked ? (picked.isMe ? '自己' : ` ${seatLabel(picked)}`) : null
+  if (hasVoted) return whom ? `已投给${whom}` : '已投票'
+  return whom ? `投给${whom}` : '先选一个人'
 }

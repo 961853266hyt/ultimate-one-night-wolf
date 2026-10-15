@@ -14,11 +14,13 @@
 cd server && uv run uvicorn app.main:create_app --factory --reload --port 8000   # 后端
 cd web && pnpm install && pnpm dev                                               # 前端，http://localhost:5173
 cd server && uv run pytest     # 后端测试
+cd server && uv run ruff check app tests && uv run ruff format --check app tests   # 后端代码检查和格式检查
+cd server && uv run ruff format app tests   # 自动格式化后端代码
 cd web && pnpm typecheck       # 前端类型检查
 cd web && pnpm gen:types       # 改了 server/app/protocol.py 之后重新生成 src/api/protocol.gen.ts
 ```
 
-改完代码，提交前这两项检查都要通过：`uv run pytest` 和 `pnpm typecheck`。
+改完代码，提交前这几项检查都要通过：后端 `uv run pytest`、`uv run ruff check app tests`、`uv run ruff format --check app tests`，前端 `pnpm typecheck`。
 
 ## 必须守住的
 

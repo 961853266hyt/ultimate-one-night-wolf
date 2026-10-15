@@ -190,7 +190,10 @@ class Room(BaseModel):
         if not all(m.online for m in self.members):
             raise RuleError(ErrorCode.PLAYERS_OFFLINE)
         players = [m.id for m in sorted(self.members, key=lambda m: m.seat)]
-        self.game = Game.deal(players, self.deck(), self.settings.timings, rng)
+        settings = self.settings
+        self.game = Game.deal(
+            players, self.deck(), settings.timings, rng, self_vote=settings.self_vote
+        )
 
     def _free_seat(self) -> int | None:
         """号最小的空座位；坐满了就是 None。"""

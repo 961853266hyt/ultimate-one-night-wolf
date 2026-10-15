@@ -12,7 +12,10 @@ class Seer(Role):
         match table.my_actions(me):
             case []:
                 return Prompt(
-                    options=[TargetOption(kind="player", count=1), TargetOption(kind="center", count=1)]
+                    options=[
+                        TargetOption(kind="player", count=1),
+                        TargetOption(kind="center", count=1),
+                    ]
                 )
             case [[looked]] if looked in CENTER:
                 # 看了一张底牌就要再看一张，不能是同一张；到时间还没选由系统随机代选

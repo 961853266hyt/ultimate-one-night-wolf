@@ -65,6 +65,7 @@ export interface Settings {
   seats: number;
   deck: RoleId[] | null;
   timings: Timings;
+  self_vote: boolean;
 }
 /**
  * 各阶段时长，单位秒。看牌、白天讨论和投票都不限时，所以只有夜里每一步。
@@ -135,6 +136,7 @@ export interface RoomView {
     [k: string]: RoleId[];
   };
   timings: Timings;
+  self_vote: boolean;
 }
 export interface MemberView {
   id: string;

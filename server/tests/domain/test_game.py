@@ -107,12 +107,27 @@ def test_voting_has_no_time_limit():
     assert game.phase is Phase.VOTE
 
 
-@pytest.mark.parametrize("target", ["p0", "p9"])
-def test_you_must_vote_for_another_player(target):
+def test_you_cannot_vote_for_someone_who_is_not_playing():
     game = a_game()
     until_phase(game, Phase.VOTE)
     with pytest.raises(RuleError) as error:
-        game.vote("p0", target, now=1000)
+        game.vote("p0", "p9", now=1000)
+    assert error.value.code is ErrorCode.BAD_TARGETS
+
+
+def test_you_may_vote_for_yourself_by_default():
+    game = a_game()
+    until_phase(game, Phase.VOTE)
+    game.vote("p0", "p0", now=1000)
+    assert game.votes == {"p0": "p0"}
+
+
+def test_you_cannot_vote_for_yourself_when_the_room_turns_it_off():
+    deck = [R.WEREWOLF, R.SEER, R.VILLAGER, R.ROBBER, R.TROUBLEMAKER, R.WEREWOLF]
+    game = Game.deal(["p0", "p1", "p2"], deck, T, NoShuffle(0), self_vote=False)
+    until_phase(game, Phase.VOTE)
+    with pytest.raises(RuleError) as error:
+        game.vote("p0", "p0", now=1000)
     assert error.value.code is ErrorCode.BAD_TARGETS
 
 

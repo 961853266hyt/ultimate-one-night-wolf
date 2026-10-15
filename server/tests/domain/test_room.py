@@ -110,6 +110,14 @@ def test_fewer_seats_move_people_off_the_removed_ones():
     assert sorted(m.seat for m in room.members) == [0, 1, 2]
 
 
+def test_the_game_takes_the_self_vote_setting_from_the_room():
+    room = new_room(3)
+    assert room.settings.self_vote  # 默认可以投自己
+    room.handle("p0", Configure(settings=Settings(self_vote=False)), 0, RNG)
+    room.handle("p0", Start(), 0, RNG)
+    assert room.game is not None and not room.game.self_vote
+
+
 def test_the_game_starts_only_when_every_seat_is_taken():
     room = new_room(3)
     room.handle("p0", Configure(settings=Settings(seats=4)), 0, RNG)

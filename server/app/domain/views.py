@@ -29,7 +29,8 @@ class MemberView(BaseModel):
     id: PlayerId
     name: str
     online: bool
-    seat: int | None  # 座位号，从 0 开始。大厅里是选的座位；开局后是这一局的座位，没参加这一局就是 None
+    # 座位号，从 0 开始。大厅里是选的座位；开局后是这一局的座位，没参加这一局就是 None
+    seat: int | None
 
 
 class RoomView(BaseModel):
@@ -42,6 +43,7 @@ class RoomView(BaseModel):
     # 每种座位数推荐的牌堆。房主配牌时拿来对比和「恢复推荐」；改座位数时直接换成新人数的推荐
     recommended_decks: dict[int, list[RoleId]]
     timings: Timings
+    self_vote: bool  # 能不能投自己
 
 
 class MeView(BaseModel):
@@ -144,6 +146,7 @@ def _room_view(room: Room) -> RoomView:
         seats=room.settings.seats,
         recommended_decks={n: recommended_deck(n) for n in range(MIN_PLAYERS, MAX_PLAYERS + 1)},
         timings=room.settings.timings,
+        self_vote=room.game.self_vote if room.game else room.settings.self_vote,
     )
 
 

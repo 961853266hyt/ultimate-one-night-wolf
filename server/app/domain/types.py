@@ -55,6 +55,7 @@ class Settings(BaseModel):
     seats: int = Field(default=3, ge=MIN_PLAYERS, le=MAX_PLAYERS)  # 房间几个座位，坐满才能开局
     deck: list[RoleId] | None = None  # None 表示按座位数自动推荐
     timings: Timings = Field(default_factory=Timings)
+    self_vote: bool = True  # 能不能投自己。官方规则不能，这里默认放开，房主可以关掉
 
 
 # ---------------------------------------------------------------- 夜里得到的信息
