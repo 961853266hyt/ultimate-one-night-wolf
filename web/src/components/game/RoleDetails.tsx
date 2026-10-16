@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogClose, DialogContent } from '@/components/ui/dialog'
 import { cn } from '@/lib/utils'
 import { RoleArtCard } from './RoleArtCard'
+import { useT } from '@/i18n'
 
 // 默认什么也不做：不在 Provider 里时，角色名照常显示，只是点了没反应
 const ShowRoleContext = createContext<(role: RoleId) => void>(() => {})
@@ -26,6 +27,7 @@ export function RoleDetailsProvider({ children }: { children: ReactNode }) {
   const [expanded, setExpanded] = useState(false)
   const titleId = useId()
   const descriptionId = useId()
+  const t = useT()
   // 引用保持不变：开关弹窗时，页面上那些角色按钮不用跟着重新渲染
   const show = useCallback((next: RoleId) => {
     setRole(next)
@@ -59,7 +61,7 @@ export function RoleDetailsProvider({ children }: { children: ReactNode }) {
               <Button
                 variant="ghost"
                 size="icon-xl"
-                aria-label="关闭"
+                aria-label={t.common.close}
                 className="rounded-full bg-white/15 text-white hover:bg-white/25 hover:text-white"
               />
             }

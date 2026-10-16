@@ -1,5 +1,6 @@
 /** 大厅里的规则：能不能开局、要几张牌。合不合法最终由服务端判断。 */
 import { CENTER, type RoleId } from '@/api/types'
+import { t } from '@/i18n'
 import type { Seat } from './seats'
 
 export const MIN_PLAYERS = 3
@@ -16,11 +17,11 @@ export function deckSizeFor(players: number): number {
 
 /** 还不能开局的原因；可以开局时返回 null。房间有 size 个座位，坐满才能开局。 */
 export function startBlocker(seats: readonly Seat[], size: number, deck: readonly RoleId[]): string | null {
-  if (seats.length < size) return `还差 ${size - seats.length} 人坐满`
+  if (seats.length < size) return t().lobby.needMore(size - seats.length)
   const offline = seats.filter((seat) => !seat.online)
-  if (offline.length) return `${offline.map((seat) => seat.name).join('、')}离线，回来后才能开始`
+  if (offline.length) return t().lobby.offline(offline.map((seat) => seat.name))
   const missing = deckSizeFor(size) - deck.length
-  if (missing > 0) return `牌少了 ${missing} 张，补上才能开始`
-  if (missing < 0) return `牌多了 ${-missing} 张，拿掉才能开始`
+  if (missing > 0) return t().lobby.cardsShort(missing)
+  if (missing < 0) return t().lobby.cardsOver(-missing)
   return null
 }

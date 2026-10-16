@@ -1,4 +1,4 @@
-import { Bot, UserPlus } from 'lucide-react'
+import { UserPlus } from 'lucide-react'
 import { useState } from 'react'
 import type { Settings } from '@/api/types'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
@@ -14,6 +14,7 @@ import { deckSizeFor, startBlocker } from '@/game/lobby'
 import { seatLabel, seatsOf, type Seat } from '@/game/seats'
 import { inviteFriends } from './invite'
 import type { PhaseProps } from './types'
+import { useT } from '@/i18n'
 
 export function LobbyPhase({ view, send }: PhaseProps) {
   const { code, deck, seats: size, recommended_decks: recommendedDecks, timings } = view.room
@@ -24,15 +25,18 @@ export function LobbyPhase({ view, send }: PhaseProps) {
   // 座位号从 1 开始，空着的座位是 undefined
   const bySeat = Array.from({ length: size }, (_, index) => seats.find((seat) => seat.number === index + 1))
   const invite = () => void inviteFriends(code)
+  const t = useT()
 
   // 本局设置：房主点开能改，其他人点开只能看
   const [settingsOpen, setSettingsOpen] = useState(false)
   const saveSettings = (settings: Settings) => send({ type: 'configure', settings })
 
-  // 房主点别人的头像，确认后把人移出房间
+  // 房主点别人的头像把人移出房间：真人要确认一下，机器人直接移走
   const [kickTarget, setKickTarget] = useState<Seat | null>(null)
   const [kickOpen, setKickOpen] = useState(false)
+  const kick = (seat: Seat) => send({ type: 'kick', player: seat.id })
   const askToKick = (seat: Seat) => {
+    if (seat.isBot) return kick(seat)
     setKickTarget(seat)
     setKickOpen(true)
   }
@@ -41,17 +45,8 @@ export function LobbyPhase({ view, send }: PhaseProps) {
     <>
       <PageContent>
         <Section
-          title="座位"
-          caption={`${seats.length}/${size} 人已入座${isHost && seats.length > 1 ? ' · 点头像可以移出房间' : ''}`}
-          action={
-            // 一个人也能开局：空座位都坐上机器人，房主替它们操作
-            isHost && seats.length < size ? (
-              <Button variant="outline" size="sm" onClick={() => send({ type: 'add_bots' })}>
-                <Bot aria-hidden />
-                补满机器人
-              </Button>
-            ) : undefined
-          }
+          title={t.common.seats}
+          caption={t.lobby.seatsCaption(seats.length, size, isHost && seats.length > 1)}
         >
           <SeatGrid>
             {bySeat.map((seat, index) =>
@@ -59,13 +54,14 @@ export function LobbyPhase({ view, send }: PhaseProps) {
                 <SeatTile
                   key={seat.id}
                   seat={seat}
-                  badge={seat.isHost ? '房主' : seat.isBot ? '机器人' : undefined}
+                  badge={seat.isHost ? t.seat.host : seat.isBot ? t.seat.botBadge : undefined}
+                  badgeVariant={seat.isBot ? 'secondary' : 'default'}
                   muted={!seat.online}
                   status={
                     seat.online ? (
-                      <SeatStatus tone="done">已就位</SeatStatus>
+                      <SeatStatus tone="done">{t.seat.ready}</SeatStatus>
                     ) : (
-                      <SeatStatus tone="offline">离线</SeatStatus>
+                      <SeatStatus tone="offline">{t.seat.offline}</SeatStatus>
                     )
                   }
                   onSelect={isHost && !seat.isMe ? () => askToKick(seat) : undefined}
@@ -93,7 +89,7 @@ export function LobbyPhase({ view, send }: PhaseProps) {
         <div className="flex gap-2.5">
           <Button variant="outline" size="xl" className="flex-1" onClick={invite}>
             <UserPlus aria-hidden />
-            邀请朋友
+            {t.lobby.invite}
           </Button>
           {isHost && (
             <Button
@@ -102,7 +98,7 @@ export function LobbyPhase({ view, send }: PhaseProps) {
               disabled={blocker !== null}
               onClick={() => send({ type: 'start' })}
             >
-              开始游戏
+              {t.lobby.start}
             </Button>
           )}
         </div>
@@ -111,10 +107,10 @@ export function LobbyPhase({ view, send }: PhaseProps) {
       <ConfirmDialog
         open={kickOpen}
         onOpenChange={setKickOpen}
-        title={`把 ${kickTarget ? seatLabel(kickTarget) : ''} 移出房间？`}
-        description={kickTarget?.isBot ? undefined : '被移出的人还可以用房间号重新进来。'}
-        confirmLabel="移出"
-        onConfirm={() => kickTarget && send({ type: 'kick', player: kickTarget.id })}
+        title={t.lobby.kickTitle(kickTarget ? seatLabel(kickTarget) : '')}
+        description={t.lobby.kickDescription}
+        confirmLabel={t.lobby.kick}
+        onConfirm={() => kickTarget && kick(kickTarget)}
       />
 
       {/* 房主身份转走或转来时，跟着换成只能看或者能改的那一个 */}
@@ -123,10 +119,11 @@ export function LobbyPhase({ view, send }: PhaseProps) {
         onOpenChange={setSettingsOpen}
         deck={deck}
         seats={size}
-        occupied={seats.length}
+        occupied={seats.filter((seat) => !seat.isBot).length}
         recommended={recommendedDecks}
         nightStep={timings.night_step}
         selfVote={view.room.self_vote}
+        debug={view.room.debug}
         onSave={saveSettings}
       />
       <DeckOverview
@@ -137,6 +134,7 @@ export function LobbyPhase({ view, send }: PhaseProps) {
         need={need}
         nightStep={timings.night_step}
         selfVote={view.room.self_vote}
+        debug={view.room.debug}
       />
     </>
   )

@@ -17,11 +17,10 @@ import { cn } from '@/lib/utils'
 import { ROLES } from '@/roles/catalog'
 import { CardGrid, CardSlot } from './CardGrid'
 import { CornerMark } from './CornerMark'
+import { useT } from '@/i18n'
 
 /** 看哪一套身份：发到的牌，还是夜里换完之后的牌。 */
 export type Identity = 'initial' | 'final'
-
-export const IDENTITY_NAME: Record<Identity, string> = { initial: '初始身份', final: '最终身份' }
 
 type Notes = Record<Identity, Record<string, RoleId>>
 
@@ -78,6 +77,7 @@ export function SeatNotesProvider({ view, children }: { view: PlayerView; childr
 
   // 抽屉关上时还留着是谁，收起的动画里标题不会突然变空
   const [editing, setEditing] = useState<Seat | null>(null)
+  const t = useT()
   const [open, setOpen] = useState(false)
 
   const value = useMemo<SeatNotesValue>(() => {
@@ -116,7 +116,7 @@ export function SeatNotesProvider({ view, children }: { view: PlayerView; childr
   const other: Identity = identity === 'initial' ? 'final' : 'initial'
   const otherRole =
     editing && (other === 'initial' && editing.isMe ? myCard : notes[other][editing.id])
-  const otherNote = `${IDENTITY_NAME[other]}：${otherRole ? ROLES[otherRole].name : '未备注'}`
+  const otherNote = t.notes.other(t.notes.identity[other], otherRole ? ROLES[otherRole].name : t.notes.none)
 
   return (
     <SeatNotesContext.Provider value={value}>
@@ -138,15 +138,16 @@ export function SeatNotesProvider({ view, children }: { view: PlayerView; childr
 /** 座位标题右边的开关：看初始身份还是最终身份。发牌之后才有。 */
 export function IdentitySwitch() {
   const { switchable, identity, setIdentity } = useSeatNotes()
+  const t = useT()
   if (!switchable) return null
   return (
-    <div role="group" aria-label="看哪一套身份" className="flex gap-0.5 rounded-lg bg-muted p-0.5">
+    <div role="group" aria-label={t.notes.whichIdentity} className="flex gap-0.5 rounded-lg bg-muted p-0.5">
       {(['initial', 'final'] as const).map((option) => (
         <button
           key={option}
           type="button"
           aria-pressed={identity === option}
-          aria-label={IDENTITY_NAME[option]}
+          aria-label={t.notes.identity[option]}
           onClick={() => setIdentity(option)}
           className={cn(
             'h-7 rounded-md px-2.5 text-xs font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
@@ -155,7 +156,7 @@ export function IdentitySwitch() {
               : 'text-muted-foreground hover:text-foreground',
           )}
         >
-          {option === 'initial' ? '初始' : '最终'}
+          {t.notes.identityShort[option]}
         </button>
       ))}
     </div>
@@ -222,16 +223,17 @@ function NoteDrawer({
   note,
   onPick,
 }: NoteDrawerProps) {
+  const t = useT()
   return (
     <Drawer open={open} onOpenChange={onOpenChange} showSwipeHandle>
       <DrawerContent className="mx-auto w-full max-w-md">
         <DrawerHeader className="items-center gap-1.5">
           <DrawerTitle>
-            {seat && (seat.isMe ? '给自己添加备注' : `给 ${seat.number} 号添加备注`)}
+            {seat && (seat.isMe ? t.notes.addForSelf : t.notes.addFor(seat.number))}
           </DrawerTitle>
           <p className="flex items-center gap-2 text-xs text-muted-foreground">
             <span className="rounded-full bg-foreground px-2 py-0.5 font-medium text-background">
-              {IDENTITY_NAME[identity]}
+              {t.notes.identity[identity]}
             </span>
             {otherNote}
           </p>
@@ -243,14 +245,14 @@ function NoteDrawer({
                 key={role}
                 role={role}
                 onSelect={() => onPick(role)}
-                selectLabel={`标记为${ROLES[role].name}`}
+                selectLabel={t.notes.markAs(ROLES[role].name)}
                 corner={role === note ? <PickedMark /> : undefined}
               />
             ))}
           </CardGrid>
           {note && (
             <Button variant="outline" size="xl" onClick={() => onPick(null)}>
-              清除备注
+              {t.notes.clear}
             </Button>
           )}
         </div>

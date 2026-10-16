@@ -12,6 +12,7 @@ import { Dialog, DialogClose, DialogContent, DialogTitle } from '@/components/ui
 import { cn } from '@/lib/utils'
 import { CardBack } from './PlayingCard'
 import { RoleArtCard } from './RoleArtCard'
+import { useT } from '@/i18n'
 
 interface CenterPeekProps {
   /** 放大的是哪张底牌，null 时关着。 */
@@ -52,6 +53,7 @@ function PeekCard({ letter, role, canFlip, hint, onFlip }: PeekCardProps) {
   const [expanded, setExpanded] = useState(false)
   const faceUp = role !== undefined
   const waiting = requested && !faceUp
+  const t = useT()
 
   const flip = () => {
     if (!canFlip || requested) return
@@ -61,7 +63,7 @@ function PeekCard({ letter, role, canFlip, hint, onFlip }: PeekCardProps) {
 
   return (
     <>
-      <DialogTitle className="text-base font-medium text-white">{letter} 号底牌</DialogTitle>
+      <DialogTitle className="text-base font-medium text-white">{t.night.centerCard(letter)}</DialogTitle>
 
       {/* 正反两面叠在一起，整张转 180 度。打开时已经是正面的，第一次渲染就在正面，不会转 */}
       <div className="perspective-[1200px]">
@@ -75,12 +77,12 @@ function PeekCard({ letter, role, canFlip, hint, onFlip }: PeekCardProps) {
             type="button"
             onClick={flip}
             disabled={!canFlip || requested}
-            aria-label={`翻开 ${letter} 号底牌`}
+            aria-label={t.night.flipCenter(letter)}
             className="absolute inset-0 rounded-[24px] outline-none backface-hidden focus-visible:ring-3 focus-visible:ring-white/60"
           >
             <CardBack className="size-full rounded-[24px] shadow-2xl" iconClassName="size-24" glow={!faceUp}>
               <span className="text-xs text-card-back-foreground/60">
-                {waiting ? '翻开中…' : canFlip ? '点一下翻开' : ''}
+                {waiting ? t.night.flipping : canFlip ? t.deal.tapToFlip : ''}
               </span>
             </CardBack>
           </button>
@@ -97,7 +99,7 @@ function PeekCard({ letter, role, canFlip, hint, onFlip }: PeekCardProps) {
           <Button
             variant="ghost"
             size="icon-xl"
-            aria-label={faceUp ? '放回' : '先不看'}
+            aria-label={faceUp ? t.night.putBack : t.night.notNow}
             className="rounded-full bg-white/15 text-white hover:bg-white/25 hover:text-white"
           />
         }

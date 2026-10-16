@@ -1,7 +1,6 @@
 import { ClueCard } from '@/components/game/Clues'
 import { NightOrder } from '@/components/game/Deck'
-import { PeekRoleRow } from '@/components/game/PeekRole'
-import { IDENTITY_NAME, IdentitySwitch, useSeatNotes } from '@/components/game/SeatNotes'
+import { IdentitySwitch, useSeatNotes } from '@/components/game/SeatNotes'
 import { SeatGrid, SeatTile } from '@/components/game/SeatGrid'
 import { SeatProgress } from '@/components/game/SeatStatus'
 import { PageContent, PageFooter } from '@/components/layout/Page'
@@ -11,35 +10,31 @@ import { cluesOf } from '@/game/knowledge'
 import { nightPlan } from '@/game/night'
 import { seatsOf } from '@/game/seats'
 import type { PhaseProps } from './types'
+import { useT } from '@/i18n'
 
 export function DayPhase({ view, send }: PhaseProps) {
   const seats = seatsOf(view)
   const ready = new Set(view.day?.ready)
   const clues = cluesOf(view)
   const plan = nightPlan(view.room.deck)
-  const card = view.me.card
   const done = ready.has(view.me.id)
   const notes = useSeatNotes()
+  const t = useT()
 
   return (
     <>
       <PageContent>
-        {(card || clues.length > 0) && (
-          <div className="flex flex-col gap-3">
-            {card && <PeekRoleRow role={card} />}
-            {clues.length > 0 && <ClueCard clues={clues} />}
-          </div>
-        )}
+        {clues.length > 0 && <ClueCard clues={clues} />}
 
         {plan.length > 0 && (
-          <Section title="今晚的行动顺序" caption="照着回忆：谁可能换过谁的牌">
+          <Section title={t.day.nightOrder}>
             <NightOrder roles={plan} />
           </Section>
         )}
 
         <Section
-          title="座位"
-          caption={`${ready.size}/${seats.length} 准备投票 · 点头像备注${IDENTITY_NAME[notes.identity]}`}
+          title={t.common.seats}
+          caption={t.day.seatsCaption(t.notes.identity[notes.identity])}
           action={<IdentitySwitch />}
         >
           <SeatGrid>
@@ -49,7 +44,7 @@ export function DayPhase({ view, send }: PhaseProps) {
                 seat={seat}
                 onSelect={notes.canEdit(seat) ? () => notes.edit(seat) : undefined}
                 status={
-                  <SeatProgress done={ready.has(seat.id)} doneText="可以投了" pendingText="讨论中" />
+                  <SeatProgress done={ready.has(seat.id)} doneText={t.day.readyDone} pendingText={t.day.discussing} />
                 }
               />
             ))}
@@ -60,7 +55,11 @@ export function DayPhase({ view, send }: PhaseProps) {
       {view.me.seat !== null && (
         <PageFooter>
           <Button size="xl" disabled={done} onClick={() => send({ type: 'ready_to_vote' })}>
-            {done ? '等其他人…' : '讨论好了，可以投票'}
+            {done ? t.day.waitOthers : t.day.readyButton}
+            {/* 几个人已经同意开始投票 */}
+            <span className="font-mono opacity-60">
+              {ready.size}/{seats.length}
+            </span>
           </Button>
         </PageFooter>
       )}

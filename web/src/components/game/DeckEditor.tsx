@@ -1,8 +1,8 @@
 /**
- * 房主调整本局设置。最上面是房间人数、夜间操作时间和能不能投自己；中间是牌库，点一下放进本局；
+ * 房主调整本局设置。最上面是房间人数、夜间操作时间、能不能投自己和调试模式；中间是牌库，点一下放进本局；
  * 下面是本局，点「−」放回牌库，点头像看介绍。
  *
- * 守夜人这类要成对放的牌，点一张另一张跟着进出。改完点「完成」才发给服务端，中途关掉就当没改过。
+ * 守夜人这类要成对放的牌，点一张另一张跟着进出。改完点「保存设置」才发给服务端，中途关掉就当没改过。
  */
 import { Minus, Plus, RotateCcw, X } from 'lucide-react'
 import { useState } from 'react'
@@ -15,6 +15,7 @@ import { deckSizeFor, MAX_DECK, MAX_PLAYERS, MIN_DECK, MIN_PLAYERS } from '@/gam
 import { cn } from '@/lib/utils'
 import { ROLES } from '@/roles/catalog'
 import { CardGrid, CardSlot, EmptyCardSlot } from './CardGrid'
+import { useT } from '@/i18n'
 
 interface DeckEditorProps {
   open: boolean
@@ -23,7 +24,7 @@ interface DeckEditorProps {
   deck: readonly RoleId[]
   /** 房间现在几个座位，决定要几张牌。 */
   seats: number
-  /** 已经进来几个人：座位不能比这更少。 */
+  /** 已经进来几个真人：座位不能比这更少。机器人会让座，不算。 */
   occupied: number
   /** 每种座位数推荐的牌，服务端给的。 */
   recommended: Readonly<Record<string, readonly RoleId[]>>
@@ -31,7 +32,9 @@ interface DeckEditorProps {
   nightStep: number
   /** 能不能投自己，现在的设置。 */
   selfVote: boolean
-  /** 点「完成」时调用。牌和按座位数推荐的一样时 deck 传 null，之后改座位数，牌会自动跟着变。 */
+  /** 调试模式开没开，现在的设置。 */
+  debug: boolean
+  /** 点「保存设置」时调用。牌和按座位数推荐的一样时 deck 传 null，之后改座位数，牌会自动跟着变。 */
   onSave: (settings: Settings) => void
 }
 
@@ -44,6 +47,7 @@ export function DeckEditor({
   recommended,
   nightStep,
   selfVote,
+  debug,
   onSave,
 }: DeckEditorProps) {
   return (
@@ -57,6 +61,7 @@ export function DeckEditor({
           recommended={recommended}
           nightStep={nightStep}
           selfVote={selfVote}
+          debug={debug}
           onSave={(settings) => {
             onSave(settings)
             onOpenChange(false)
@@ -76,15 +81,17 @@ const SECTION_LABEL = 'text-[13px] font-semibold text-muted-foreground'
 
 type BodyProps = Pick<
   DeckEditorProps,
-  'deck' | 'seats' | 'occupied' | 'recommended' | 'nightStep' | 'selfVote' | 'onSave'
+  'deck' | 'seats' | 'occupied' | 'recommended' | 'nightStep' | 'selfVote' | 'debug' | 'onSave'
 >
 
-function DeckEditorBody({ deck, seats, occupied, recommended, nightStep, selfVote, onSave }: BodyProps) {
+function DeckEditorBody({ deck, seats, occupied, recommended, nightStep, selfVote, debug, onSave }: BodyProps) {
   // 存牌盒里的 id 而不是角色：同一种角色的几张也分得清，牌库里点了哪张，就是哪张空出来
   const [picked, setPicked] = useState(() => idsOf(deck))
   const [size, setSize] = useState(seats)
   const [step, setStep] = useState(nightStep)
   const [canVoteSelf, setCanVoteSelf] = useState(selfVote)
+  const [debugMode, setDebugMode] = useState(debug)
+  const t = useT()
   const need = deckSizeFor(size)
   const chosen = deckOf(picked)
   const recommendedFor = (n: number) => recommended[n] ?? []
@@ -112,8 +119,8 @@ function DeckEditorBody({ deck, seats, occupied, recommended, nightStep, selfVot
   return (
     <>
       <DrawerHeader className="flex-row items-center justify-between py-1 pr-2 pl-5">
-        <DrawerTitle className="text-[17px] font-semibold">本局设置</DrawerTitle>
-        <DrawerClose render={<Button variant="ghost" size="icon-xl" aria-label="取消" />}>
+        <DrawerTitle className="text-[17px] font-semibold">{t.settings.title}</DrawerTitle>
+        <DrawerClose render={<Button variant="ghost" size="icon-xl" aria-label={t.common.cancel} />}>
           <X className="size-5" />
         </DrawerClose>
       </DrawerHeader>
@@ -121,20 +128,24 @@ function DeckEditorBody({ deck, seats, occupied, recommended, nightStep, selfVot
       <section className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-y-auto px-5 pt-2 pb-6">
         <div className="flex flex-col gap-3 rounded-xl border px-3.5 py-3">
           <div className="flex items-center justify-between gap-3">
-            <h3 className={SECTION_LABEL}>房间人数</h3>
+            <h3 className={SECTION_LABEL}>{t.settings.roomSize}</h3>
             <SeatCountStepper value={size} min={Math.max(MIN_PLAYERS, occupied)} onChange={resize} />
           </div>
           <div className="flex items-center justify-between gap-3">
-            <h3 className={SECTION_LABEL}>夜间操作时间</h3>
+            <h3 className={SECTION_LABEL}>{t.settings.nightTime}</h3>
             <NightStepPicker value={step} onChange={setStep} />
           </div>
           <label className="flex items-center justify-between gap-3">
-            <span className={SECTION_LABEL}>可以投自己</span>
+            <span className={SECTION_LABEL}>{t.settings.selfVote}</span>
             <Switch checked={canVoteSelf} onCheckedChange={setCanVoteSelf} />
+          </label>
+          <label className="flex items-center justify-between gap-3">
+            <span className={SECTION_LABEL}>{t.settings.debug}</span>
+            <Switch checked={debugMode} onCheckedChange={setDebugMode} />
           </label>
         </div>
 
-        <h3 className={cn(SECTION_LABEL, 'mt-2')}>牌库</h3>
+        <h3 className={cn(SECTION_LABEL, 'mt-2')}>{t.settings.box}</h3>
         <CardGrid>
           {CARD_BOX.map((card) => {
             const { name, pairs } = ROLES[card.role]
@@ -142,14 +153,14 @@ function DeckEditorBody({ deck, seats, occupied, recommended, nightStep, selfVot
               // 放进本局的牌在牌库里留个空位，别的牌不挪地方
               <EmptyCardSlot key={card.id}>
                 {name}
-                <span className="sr-only">，已放进本局</span>
+                <span className="sr-only">{t.settings.inDeck}</span>
               </EmptyCardSlot>
             ) : (
               <CardSlot
                 key={card.id}
                 role={card.role}
                 onSelect={() => take(card)}
-                selectLabel={`把${pairs ? '一对' : ''}${name}放进本局`}
+                selectLabel={t.settings.take(name, pairs === true)}
               />
             )
           })}
@@ -159,21 +170,21 @@ function DeckEditorBody({ deck, seats, occupied, recommended, nightStep, selfVot
       <section className="flex shrink-0 flex-col gap-4 border-t bg-muted/50 px-5 pt-4 pb-[max(1.75rem,env(safe-area-inset-bottom))]">
         <header className="flex min-h-8 items-center justify-between gap-3">
           <div className="flex items-baseline gap-2.5">
-            <h3 className={SECTION_LABEL}>本局</h3>
+            <h3 className={SECTION_LABEL}>{t.settings.inGame}</h3>
             <p aria-live="polite" className="text-[13px] text-muted-foreground">
-              {size} 人 ·{' '}
+              {t.settings.deckCount(size)}{' '}
               <span className={cn('font-mono font-medium', countTone)}>
                 {picked.length}/{need}
               </span>{' '}
-              张
+              {t.settings.cards}
             </p>
           </div>
           {isRecommended ? (
-            <span className="text-xs text-muted-foreground">按人数推荐</span>
+            <span className="text-xs text-muted-foreground">{t.settings.recommended}</span>
           ) : (
             <Button variant="outline" className="text-xs" onClick={() => setPicked(idsOf(recommendedFor(size)))}>
               <RotateCcw aria-hidden className="size-3.5" />
-              恢复推荐
+              {t.settings.resetRecommended}
             </Button>
           )}
         </header>
@@ -187,7 +198,7 @@ function DeckEditorBody({ deck, seats, occupied, recommended, nightStep, selfVot
             />
           ))}
           {Array.from({ length: Math.max(0, missing) }, (_, index) => (
-            <EmptyCardSlot key={`empty-${index}`}>空位</EmptyCardSlot>
+            <EmptyCardSlot key={`empty-${index}`}>{t.settings.emptySlot}</EmptyCardSlot>
           ))}
         </CardGrid>
 
@@ -200,10 +211,11 @@ function DeckEditorBody({ deck, seats, occupied, recommended, nightStep, selfVot
               deck: isRecommended ? null : chosen,
               timings: { night_step: step },
               self_vote: canVoteSelf,
+              debug: debugMode,
             })
           }
         >
-          {savable ? '完成' : picked.length < MIN_DECK ? `至少要 ${MIN_DECK} 张牌` : `最多 ${MAX_DECK} 张牌`}
+          {savable ? t.settings.save : picked.length < MIN_DECK ? t.settings.atLeast(MIN_DECK) : t.settings.atMost(MAX_DECK)}
         </Button>
       </section>
     </>
@@ -212,18 +224,19 @@ function DeckEditorBody({ deck, seats, occupied, recommended, nightStep, selfVot
 
 /** 房间几个座位：− 数字 +。不能少于已经进来的人，最多 10 个。 */
 function SeatCountStepper({ value, min, onChange }: { value: number; min: number; onChange: (value: number) => void }) {
+  const t = useT()
   const step = 'flex size-7 items-center justify-center rounded-md outline-none transition-colors hover:bg-background focus-visible:ring-3 focus-visible:ring-ring/50 disabled:opacity-35 disabled:hover:bg-transparent'
   return (
-    <div role="group" aria-label="房间人数" className="flex items-center gap-1 rounded-lg bg-muted p-0.5">
-      <button type="button" aria-label="少一个座位" disabled={value <= min} onClick={() => onChange(value - 1)} className={step}>
+    <div role="group" aria-label={t.settings.roomSize} className="flex items-center gap-1 rounded-lg bg-muted p-0.5">
+      <button type="button" aria-label={t.settings.fewerSeats} disabled={value <= min} onClick={() => onChange(value - 1)} className={step}>
         <Minus aria-hidden className="size-3.5" />
       </button>
       <span aria-live="polite" className="min-w-11 text-center text-xs font-medium">
-        <span className="font-mono">{value}</span> 人
+        {t.settings.people(value)}
       </span>
       <button
         type="button"
-        aria-label="多一个座位"
+        aria-label={t.settings.moreSeats}
         disabled={value >= MAX_PLAYERS}
         onClick={() => onChange(value + 1)}
         className={step}
@@ -240,21 +253,22 @@ const NIGHT_STEPS = [10, 15, 20, 30, 45, 60]
 /** 选夜里每一步几秒。房间里现在的值不在选项里时，也列出来。 */
 function NightStepPicker({ value, onChange }: { value: number; onChange: (value: number) => void }) {
   const options = NIGHT_STEPS.includes(value) ? NIGHT_STEPS : [...NIGHT_STEPS, value].sort((a, b) => a - b)
+  const t = useT()
   return (
-    <div role="group" aria-label="夜间操作时间" className="flex gap-0.5 rounded-lg bg-muted p-0.5">
+    <div role="group" aria-label={t.settings.nightTime} className="flex gap-0.5 rounded-lg bg-muted p-0.5">
       {options.map((option) => (
         <button
           key={option}
           type="button"
           aria-pressed={value === option}
-          aria-label={`${option} 秒`}
+          aria-label={t.settings.seconds(option)}
           onClick={() => onChange(option)}
           className={cn(
             'h-7 min-w-9 rounded-md px-1.5 font-mono text-xs font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
             value === option ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
           )}
         >
-          {option}s
+          {t.settings.secondsShort(option)}
         </button>
       ))}
     </div>
@@ -264,11 +278,12 @@ function NightStepPicker({ value, onChange }: { value: number; onChange: (value:
 /** 本局里每张牌右上角的「−」：点了放回牌库。 */
 function PutBackButton({ role, onClick }: { role: RoleId; onClick: () => void }) {
   const { name, pairs } = ROLES[role]
+  const t = useT()
   return (
     <button
       type="button"
       onClick={onClick}
-      aria-label={`把${pairs ? '一对' : ''}${name}放回牌库`}
+      aria-label={t.settings.putBack(name, pairs === true)}
       // 看得见的圆点只有 20px，能按的范围放大到 28px，手指好点
       className="group/put-back absolute -top-2.5 left-[calc(50%+6px)] flex size-7 items-center justify-center rounded-full outline-none"
     >

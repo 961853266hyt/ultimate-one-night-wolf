@@ -29,7 +29,7 @@ class Game(BaseModel):
     players: list[PlayerId]  # 座位顺序
     timings: Timings
     self_vote: bool = True  # 能不能投自己，开局时从房间设置带过来
-    manual_steps: bool = False  # 夜里每一步不限时、手动结束：有机器人的一局，方便一个人测试
+    manual_steps: bool = False  # 夜里每一步不限时、手动结束：调试模式下的一局，方便一个人测试
     dealt: dict[Slot, RoleId]  # 发牌时每个位置上的牌
     cards: dict[Slot, RoleId]  # 现在每个位置上的牌，夜里会被换
     phase: Phase = Phase.DEAL

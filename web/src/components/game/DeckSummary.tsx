@@ -5,13 +5,14 @@
 import { ChevronRight, Timer } from 'lucide-react'
 import type { RoleId, Team } from '@/api/types'
 import { cn } from '@/lib/utils'
-import { ROLES } from '@/roles/catalog'
+import { ROLES, TEAMS } from '@/roles/catalog'
 import { RoleAvatar } from './RoleAvatar'
+import { useT } from '@/i18n'
 
 /** 头像最多叠几个，多出来的显示「+N」。 */
 const MAX_FACES = 4
 
-const TEAM_SHORT: Record<Team, string> = { village: '好人', werewolf: '狼人', tanner: '皮匠' }
+const TEAM_ORDER: readonly Team[] = ['village', 'werewolf', 'tanner']
 
 interface DeckSummaryProps {
   deck: readonly RoleId[]
@@ -29,6 +30,7 @@ export function DeckSummary({ deck, seats, need, nightStep, onOpen }: DeckSummar
   const extra = deck.length - faces.length
   // 牌数对上是平常的样子，少了橙色，多了红色
   const tone = deck.length < need ? 'warning' : deck.length > need ? 'destructive' : null
+  const t = useT()
 
   return (
     <button
@@ -59,13 +61,13 @@ export function DeckSummary({ deck, seats, need, nightStep, onOpen }: DeckSummar
             tone === 'destructive' && 'text-destructive',
           )}
         >
-          {seats} 人局 · {tone ? `${deck.length}/${need} 张` : `${deck.length} 张`}
+          {t.settings.summaryTitle(seats, t.settings.cardsOf(deck.length, tone ? need : undefined))}
         </span>
         <span className="truncate text-xs text-muted-foreground">
           {teamCounts(deck)} ·{' '}
           {/* 地方不够写「夜间操作时间」，用时钟图标代替，读屏软件照样念出来 */}
           <Timer aria-hidden className="inline size-3 align-[-1px]" />
-          <span className="sr-only">夜间操作</span> {nightStep} 秒
+          <span className="sr-only">{t.settings.nightTimeSr}</span> {t.settings.summaryTime(nightStep)}
         </span>
       </span>
       <ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
@@ -75,9 +77,9 @@ export function DeckSummary({ deck, seats, need, nightStep, onOpen }: DeckSummar
 
 /** 「好人 4 · 狼人 2」：按阵营数牌，没有的阵营不写。 */
 function teamCounts(deck: readonly RoleId[]): string {
-  return (Object.keys(TEAM_SHORT) as Team[])
+  return TEAM_ORDER
     .map((team) => [team, deck.filter((role) => ROLES[role].team === team).length] as const)
     .filter(([, count]) => count > 0)
-    .map(([team, count]) => `${TEAM_SHORT[team]} ${count}`)
+    .map(([team, count]) => `${TEAMS[team].short} ${count}`)
     .join(' · ')
 }

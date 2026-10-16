@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 import { CornerMark } from './CornerMark'
 import { RoleThumbnail } from './RoleArtCard'
 import { RoleButton } from './RoleDetails'
+import { useT } from '@/i18n'
 
 interface CardBackProps {
   /** 决定牌的大小和圆角。 */
@@ -58,6 +59,7 @@ interface CenterCardProps {
 
 /** 一张底牌，下面写着「A 号」。 */
 export function CenterCard({ letter, role, note, selected = false, seen = false, onSelect }: CenterCardProps) {
+  const t = useT()
   // 能选的牌本身就是按钮，里面的角色名就不能再点了
   const card = role ? (
     <CardFace role={role} interactive={!onSelect} />
@@ -73,7 +75,7 @@ export function CenterCard({ letter, role, note, selected = false, seen = false,
           type="button"
           onClick={onSelect}
           aria-pressed={selected}
-          aria-label={`${letter} 号底牌`}
+          aria-label={t.night.centerCard(letter)}
           className={cn(
             'relative rounded-lg transition-transform outline-none focus-visible:ring-3 focus-visible:ring-ring/50',
             // 选中只往上抬一截，不加边框和对勾
@@ -87,7 +89,7 @@ export function CenterCard({ letter, role, note, selected = false, seen = false,
         card
       )}
       <span className={cn('text-sm', selected ? 'font-medium' : 'text-muted-foreground')}>
-        {letter} 号
+        {t.night.centerShort(letter)}
       </span>
       {note && <span className="-mt-1 text-[11px] text-muted-foreground">{note}</span>}
     </li>

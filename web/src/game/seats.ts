@@ -4,6 +4,7 @@
  * 界面组件只认这里的 Seat，不直接读 PlayerView：服务端的视图怎么变，改这一个文件就够了。
  */
 import { CENTER, type MemberView, type PlayerView } from '@/api/types'
+import { t } from '@/i18n'
 
 /** 牌桌上的一个座位。 */
 export interface Seat {
@@ -28,7 +29,7 @@ export function seatsOf(view: PlayerView): Seat[] {
   const toSeat = (member: MemberView, number: number): Seat => ({
     id: member.id,
     number,
-    name: member.name,
+    name: memberName(member),
     online: member.online,
     isMe: member.id === view.me.id,
     isHost: member.id === view.room.host,
@@ -42,7 +43,15 @@ export function seatsOf(view: PlayerView): Seat[] {
 
 /** 「2 号阿杰」。 */
 export function seatLabel(seat: Seat): string {
-  return `${seat.number} 号${seat.name}`
+  return t().seat.label(seat.number, seat.name)
+}
+
+/**
+ * 给人看的名字。机器人的名字是服务端用中文起的（「机器人2」），这里按 id 里的编号用当前语言重新叫。
+ */
+export function memberName(member: MemberView): string {
+  const number = member.bot ? Number(member.id.replace(/^bot-/, '')) : NaN
+  return Number.isInteger(number) ? t().seat.bot(number) : member.name
 }
 
 /** 底牌的字母：C0、C1、C2 依次是 A、B、C。 */
@@ -64,8 +73,8 @@ export type SlotLabeler = (slot: string) => string
 export function slotLabeler(view: PlayerView): SlotLabeler {
   const seats = new Map(seatsOf(view).map((seat) => [seat.id, seat]))
   return (slot) => {
-    if (slot === view.me.id) return '你'
-    if (isCenter(slot)) return `${centerLetter(slot)} 号底牌`
+    if (slot === view.me.id) return t().seat.you
+    if (isCenter(slot)) return t().seat.center(centerLetter(slot))
     const seat = seats.get(slot)
     return seat ? seatLabel(seat) : '?'
   }

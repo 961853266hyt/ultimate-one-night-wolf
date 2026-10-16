@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { t as tr, useT } from '@/i18n'
 import { ClueCard } from '@/components/game/Clues'
 import { SeatGrid, SeatTile } from '@/components/game/SeatGrid'
 import { IdentitySwitch } from '@/components/game/SeatNotes'
@@ -12,6 +13,7 @@ import type { PhaseProps } from './types'
 
 export function VotePhase({ view, send }: PhaseProps) {
   const [target, setTarget] = useState<string | null>(null)
+  const t = useT()
   const seats = seatsOf(view)
   const voted = new Set(view.vote?.voted)
   const mine = view.vote?.mine ?? null
@@ -27,13 +29,13 @@ export function VotePhase({ view, send }: PhaseProps) {
     <>
       <PageContent>
         <PageTitle
-          title={mine ? '投好了，等大家亮票' : '你觉得谁是狼？'}
-          description="得票最多且至少 2 票的人出局，平票一起出局"
+          title={mine ? t.vote.voted : t.vote.title}
+          description={t.vote.rule}
         />
 
         <Section
-          title="座位"
-          caption={`${voted.size}/${seats.length} 已投票 · 全部投完同时亮票`}
+          title={t.common.seats}
+          caption={t.vote.seatsCaption(voted.size, seats.length)}
           action={<IdentitySwitch />}
         >
           <SeatGrid>
@@ -44,7 +46,7 @@ export function VotePhase({ view, send }: PhaseProps) {
                 selected={seat.id === picked?.id}
                 onSelect={canPickSeat(seat.isMe) ? () => setTarget(seat.id) : undefined}
                 status={
-                  <SeatProgress done={voted.has(seat.id)} doneText="已投票" pendingText="思考中…" />
+                  <SeatProgress done={voted.has(seat.id)} doneText={t.vote.done} pendingText={t.vote.thinking} />
                 }
               />
             ))}
@@ -69,9 +71,7 @@ export function VotePhase({ view, send }: PhaseProps) {
   )
 }
 
+/** 「投给 3 号阿杰」「投给自己」。 */
 function voteButtonText(hasVoted: boolean, picked: Seat | undefined): string {
-  // 「投给 3 号阿杰」「投给自己」
-  const whom = picked ? (picked.isMe ? '自己' : ` ${seatLabel(picked)}`) : null
-  if (hasVoted) return whom ? `已投给${whom}` : '已投票'
-  return whom ? `投给${whom}` : '先选一个人'
+  return tr().vote.button(hasVoted, picked ? (picked.isMe ? 'self' : seatLabel(picked)) : null)
 }

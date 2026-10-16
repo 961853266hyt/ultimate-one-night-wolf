@@ -11,7 +11,7 @@ import { FullScreenLoading } from '@/components/layout/FullScreenLoading'
 import { FullScreenMessage } from '@/components/layout/FullScreenMessage'
 import { Page } from '@/components/layout/Page'
 import { Button } from '@/components/ui/button'
-import { ERROR_TEXT, phaseLabel } from '@/game/text'
+import { errorText, phaseLabel } from '@/game/text'
 import { useNightTheme } from '@/hooks/useNightTheme'
 import { DayPhase } from './DayPhase'
 import { DealPhase } from './DealPhase'
@@ -21,6 +21,7 @@ import { RevealPhase } from './RevealPhase'
 import { RoomHeader } from './RoomHeader'
 import type { PhaseProps } from './types'
 import { VotePhase } from './VotePhase'
+import { useT } from '@/i18n'
 
 /** 每个阶段对应的页面。加新阶段时在这里登记，漏了 TypeScript 会报错。 */
 const PHASES: Record<Phase, ComponentType<PhaseProps>> = {
@@ -44,22 +45,23 @@ export function RoomScreen({ code, session, name }: RoomScreenProps) {
   const phase = room.view?.phase
   useNightTheme(phase === 'night')
   const dawn = useDawn(phase)
+  const t = useT()
 
   if (room.fatal) {
     return (
       <FullScreenMessage
         action={
           <Button size="xl" onClick={goHome}>
-            回首页
+            {t.room.backHome}
           </Button>
         }
       >
-        {ERROR_TEXT[room.fatal]}
+        {errorText(room.fatal)}
       </FullScreenMessage>
     )
   }
   if (!room.view) {
-    return <FullScreenLoading label={room.connected ? '正在进入房间…' : '正在连接…'} />
+    return <FullScreenLoading label={room.connected ? t.room.entering : t.room.connecting} />
   }
 
   const { view, send } = room
@@ -99,8 +101,8 @@ export function RoomScreen({ code, session, name }: RoomScreenProps) {
         <Curtain key={dawn}>
           <Sun aria-hidden className="size-12 text-muted-foreground" strokeWidth={1.5} />
           <div className="flex flex-col gap-1.5">
-            <p className="text-2xl font-semibold tracking-wide">天亮了</p>
-            <p className="text-sm text-muted-foreground">所有人请睁眼</p>
+            <p className="text-2xl font-semibold tracking-wide">{t.room.dawn}</p>
+            <p className="text-sm text-muted-foreground">{t.room.everyoneOpenEyes}</p>
           </div>
         </Curtain>
       )}
@@ -127,7 +129,7 @@ function useErrorToast(error: ErrorMessage['code'] | null, clearError: () => voi
   useEffect(() => {
     if (!error) return
     // 用错误码当 id：同一个错误连着来，只显示一条
-    toast.error(ERROR_TEXT[error], { id: error })
+    toast.error(errorText(error), { id: error })
     clearError()
   }, [error, clearError])
 }

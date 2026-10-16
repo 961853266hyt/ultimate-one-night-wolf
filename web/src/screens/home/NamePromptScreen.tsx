@@ -3,6 +3,7 @@ import { Page } from '@/components/layout/Page'
 import { PageTitle } from '@/components/layout/Section'
 import { Button } from '@/components/ui/button'
 import { NameField } from './NameField'
+import { useT } from '@/i18n'
 
 interface NamePromptScreenProps {
   code: string
@@ -13,6 +14,7 @@ interface NamePromptScreenProps {
 export function NamePromptScreen({ code, onSubmit }: NamePromptScreenProps) {
   const [name, setName] = useState('')
   const trimmed = name.trim()
+  const t = useT()
 
   const submit = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -22,11 +24,11 @@ export function NamePromptScreen({ code, onSubmit }: NamePromptScreenProps) {
   return (
     <Page className="justify-center px-5">
       <form onSubmit={submit} className="flex flex-col gap-8">
-        <PageTitle title={`进入房间 ${code}`} />
+        <PageTitle title={t.home.enterRoom(code)} />
         <div className="flex flex-col gap-3">
           <NameField value={name} onChange={setName} autoFocus />
           <Button type="submit" size="xl" disabled={!trimmed}>
-            进入
+            {t.home.enter}
           </Button>
         </div>
       </form>

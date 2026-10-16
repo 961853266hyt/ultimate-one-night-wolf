@@ -7,7 +7,6 @@ from typing import Self
 from pydantic import BaseModel, Field
 
 from .commands import (
-    AddBots,
     Command,
     Configure,
     ConfirmCard,
@@ -48,7 +47,7 @@ class Room(BaseModel):
     settings: Settings = Field(default_factory=Settings)
     game: Game | None = None
     touched_at: float  # 最近一次有人上线或下线的时间
-    bots_added: int = 0  # 一共加过几个机器人，给新机器人编号，移出过的号不再用
+    bots_added: int = 0  # 一共加过几个机器人，给新机器人编号；调试模式开着时，移出过的号不再用
 
     @classmethod
     def create(cls, code: str, host: PlayerId, name: str, now: float) -> Self:
@@ -133,10 +132,11 @@ class Room(BaseModel):
             case Configure(settings=settings):
                 self._expect_host_in_lobby(player)
                 _check_deck(settings.deck)
-                if settings.seats < len(self.members):
+                # 机器人可以让座，真人不行
+                if settings.seats < len([m for m in self.members if not m.bot]):
                     raise RuleError(ErrorCode.TOO_FEW_SEATS)
                 self.settings = settings
-                self._reseat_overflow()
+                self._seat_bots()
             case Kick(player=target):
                 self._expect_host_in_lobby(player)
                 if target == player:
@@ -144,9 +144,6 @@ class Room(BaseModel):
                 if self.member(target) is None:
                     raise RuleError(ErrorCode.UNKNOWN_PLAYER)
                 self._remove(target)
-            case AddBots():
-                self._expect_host_in_lobby(player)
-                self._add_bots()
             case TakeSeat(seat=seat):
                 self._take_seat(player, seat)
             case Start():
@@ -216,7 +213,7 @@ class Room(BaseModel):
             settings.timings,
             rng,
             self_vote=settings.self_vote,
-            manual_steps=any(m.bot for m in self.members),  # 有机器人就是在一个人测试
+            manual_steps=settings.debug,
         )
 
     def _bots_get_ready(self, now: float) -> None:
@@ -244,6 +241,19 @@ class Room(BaseModel):
         member = self.member(player)
         assert member is not None  # handle 已经查过是成员
         member.seat = seat
+
+    def _seat_bots(self) -> None:
+        """调试模式下空座位都坐上机器人，座位变少时机器人先让座；关掉调试模式，机器人全部移出。"""
+        bots = sorted((m for m in self.members if m.bot), key=lambda m: m.seat)
+        people = len(self.members) - len(bots)
+        room_for = self.settings.seats - people if self.settings.debug else 0
+        for bot in bots[room_for:]:
+            self._remove(bot.id)
+        self._reseat_overflow()
+        if self.settings.debug:
+            self._add_bots()
+        else:
+            self.bots_added = 0  # 机器人都走了，下次打开重新从机器人1 编号
 
     def _add_bots(self) -> None:
         while (seat := self._free_seat()) is not None:

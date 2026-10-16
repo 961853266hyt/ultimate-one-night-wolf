@@ -11,7 +11,6 @@ export type ClientMessage =
   | Configure
   | Kick
   | TakeSeat
-  | AddBots
   | Start
   | Leave
   | ConfirmCard
@@ -88,6 +87,7 @@ export interface Settings {
   deck: RoleId[] | null;
   timings: Timings;
   self_vote: boolean;
+  debug: boolean;
 }
 /**
  * 各阶段时长，单位秒。看牌、白天讨论和投票都不限时，所以只有夜里每一步。
@@ -105,12 +105,6 @@ export interface Kick {
 export interface TakeSeat {
   type: "take_seat";
   seat: number;
-}
-/**
- * 房主把所有空座位坐上机器人。机器人自己不行动，房主可以替它们操作。
- */
-export interface AddBots {
-  type: "add_bots";
 }
 export interface Start {
   type: "start";
@@ -171,6 +165,7 @@ export interface RoomView {
   };
   timings: Timings;
   self_vote: boolean;
+  debug: boolean;
 }
 export interface MemberView {
   id: string;

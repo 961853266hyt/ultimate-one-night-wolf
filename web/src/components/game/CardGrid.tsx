@@ -17,7 +17,8 @@ const TAPPABLE = cn(
   FACE,
   'rounded-lg outline-none transition-opacity hover:opacity-80 focus-visible:ring-3 focus-visible:ring-ring/50',
 )
-const LABEL = 'text-xs leading-4 whitespace-nowrap'
+// 英文长名字（Doppelgänger、Troublemaker）在软连字符处断成两行，不挤到旁边那张
+const LABEL = 'text-center text-xs leading-4'
 
 interface CardSlotProps {
   role: RoleId

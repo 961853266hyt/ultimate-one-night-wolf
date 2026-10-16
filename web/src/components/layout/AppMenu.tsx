@@ -10,6 +10,7 @@ import { RoleButton } from '@/components/game/RoleDetails'
 import { GitHubIcon } from '@/components/icons/GitHubIcon'
 import { Button, buttonVariants } from '@/components/ui/button'
 import { Drawer, DrawerClose, DrawerContent, DrawerTitle, DrawerTrigger } from '@/components/ui/drawer'
+import { LOCALE_NAME, LOCALES, setLocale, t as tr, useLocale, useT } from '@/i18n'
 import { cn } from '@/lib/utils'
 import { ROLES, TEAMS } from '@/roles/catalog'
 
@@ -30,28 +31,30 @@ interface AppMenuProps {
 }
 
 export function AppMenu({ footer }: AppMenuProps) {
+  const t = useT()
   return (
     <Drawer swipeDirection="right">
       <DrawerTrigger
-        render={<Button variant="ghost" size="icon-xl" aria-label="菜单" className="text-muted-foreground" />}
+        render={<Button variant="ghost" size="icon-xl" aria-label={t.common.menu} className="text-muted-foreground" />}
       >
         <Menu className="size-5" />
       </DrawerTrigger>
       <DrawerContent>
         <div className="flex h-15 shrink-0 items-center justify-between pr-2 pl-5 pt-[env(safe-area-inset-top)]">
-          <DrawerTitle>菜单</DrawerTitle>
+          <DrawerTitle>{t.common.menu}</DrawerTitle>
           <DrawerClose
-            render={<Button variant="ghost" size="icon-xl" aria-label="关闭" className="text-muted-foreground" />}
+            render={<Button variant="ghost" size="icon-xl" aria-label={t.common.close} className="text-muted-foreground" />}
           >
             <X className="size-5" />
           </DrawerClose>
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 pt-2 pb-6">
-          <Fold label="角色介绍" className="text-[13px] font-semibold">
+          <LanguageRow />
+          <Fold label={t.menu.roles} className="text-[13px] font-semibold">
             <div className="flex flex-col gap-1 pt-1">
               {ROLES_BY_TEAM.map(({ team, roles }) => (
-                <Fold key={team} label={`${TEAMS[team].name} · ${roles.length}`} className="text-xs">
+                <Fold key={team} label={t.menu.teamGroup(TEAMS[team].name, roles.length)} className="text-xs">
                   <ul className="-mx-2 flex flex-col">
                     {roles.map((role) => (
                       <li key={role}>
@@ -75,7 +78,7 @@ export function AppMenu({ footer }: AppMenuProps) {
             className={cn(buttonVariants({ variant: 'outline', size: 'xl' }), 'w-full')}
           >
             <MessageSquareWarning aria-hidden className="size-4.5" />
-            反馈问题
+            {t.menu.feedback}
           </a>
           {footer}
           <Credits />
@@ -90,26 +93,17 @@ export function AppMenu({ footer }: AppMenuProps) {
  * 链接在点开菜单时才生成，页面地址是当时的。
  */
 function feedbackUrl(): string {
-  const body = [
-    '**遇到了什么问题**',
-    '',
-    '',
-    '**怎么能再碰到一次**',
-    '',
-    '',
-    '---',
-    `版本：v${__APP_VERSION__}`,
-    `页面：${location.pathname}`,
-    `设备：${navigator.userAgent}`,
-  ].join('\n')
+  const body = tr().menu.feedbackBody(__APP_VERSION__, location.pathname, navigator.userAgent)
   return `${SOURCE_URL}/issues/new?${new URLSearchParams({ body })}`
 }
 
 /** 落款：版本、作者、源码。小字、淡色、居中，不当菜单项。 */
 function Credits() {
+  const t = useT()
   return (
-    <p className="flex items-center justify-center gap-1.5 text-xs text-muted-foreground/70">
-      <span>一夜狼 v{__APP_VERSION__}</span>
+    // 英文一行放不下时整段换行，每一段自己不拆开
+    <p className="flex flex-wrap items-center justify-center gap-x-1.5 gap-y-0.5 text-xs whitespace-nowrap text-muted-foreground/70">
+      <span>{t.menu.credits(__APP_VERSION__)}</span>
       <span aria-hidden>·</span>
       <span>
         by{' '}
@@ -118,16 +112,45 @@ function Credits() {
         </a>
       </span>
       <span aria-hidden>·</span>
+      {/* 只放图标；读屏软件念 aria-label */}
       <a
         href={SOURCE_URL}
         target="_blank"
         rel="noreferrer"
-        className="inline-flex items-center gap-1 underline-offset-2 hover:text-foreground hover:underline"
+        aria-label="GitHub"
+        className="-m-1 inline-flex p-1 hover:text-foreground"
       >
-        <GitHubIcon className="size-3" />
-        GitHub
+        <GitHubIcon className="size-3.5" />
       </a>
     </p>
+  )
+}
+
+/** 界面语言：「语言  中文 | English」。选项用各自的语言写，看不懂当前语言也找得到。 */
+function LanguageRow() {
+  const t = useT()
+  const locale = useLocale()
+  return (
+    <div className="flex items-center justify-between gap-3 py-2">
+      <span className="text-[13px] font-semibold text-muted-foreground">{t.menu.language}</span>
+      <div role="group" aria-label={t.menu.language} className="flex gap-0.5 rounded-lg bg-muted p-0.5">
+        {LOCALES.map((option) => (
+          <button
+            key={option}
+            type="button"
+            lang={option === 'zh' ? 'zh-CN' : 'en'}
+            aria-pressed={locale === option}
+            onClick={() => setLocale(option)}
+            className={cn(
+              'h-7 rounded-md px-2.5 text-xs font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
+              locale === option ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+            )}
+          >
+            {LOCALE_NAME[option]}
+          </button>
+        ))}
+      </div>
+    </div>
   )
 }
 

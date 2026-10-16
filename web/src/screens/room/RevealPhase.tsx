@@ -17,11 +17,13 @@ import {
   type SeatResult,
 } from '@/game/result'
 import type { RoleId } from '@/api/types'
+import { t as tr, useT } from '@/i18n'
 import { ROLES } from '@/roles/catalog'
 import type { PhaseProps } from './types'
 
 export function RevealPhase({ view, send }: PhaseProps) {
   const result = view.result
+  const t = useT()
   if (!result) return null
 
   const isHost = view.me.id === view.room.host
@@ -39,7 +41,7 @@ export function RevealPhase({ view, send }: PhaseProps) {
           summary={outcomeSummary(view, result)}
         />
 
-        <Section title="牌堆">
+        <Section title={t.common.centerCards}>
           <CenterCardRow>
             {centerResults(result).map((card) => (
               <CenterCard
@@ -52,7 +54,7 @@ export function RevealPhase({ view, send }: PhaseProps) {
           </CenterCardRow>
         </Section>
 
-        <Section title="座位" caption="发到的牌 → 最后的牌">
+        <Section title={t.common.seats} caption={t.reveal.seatsCaption}>
           <SeatGrid>
             {seatResults(view, result).map((outcome) => (
               <SeatTile
@@ -67,11 +69,11 @@ export function RevealPhase({ view, send }: PhaseProps) {
                 </span>
                 {outcome.copied && (
                   <span className="text-[11px] text-muted-foreground">
-                    算作 <RoleName role={outcome.copied} />
+                    {t.reveal.countsAs} <RoleName role={outcome.copied} />
                   </span>
                 )}
                 {outcome.votedFor !== null && (
-                  <span className="text-[11px] text-muted-foreground">投给 {outcome.votedFor} 号</span>
+                  <span className="text-[11px] text-muted-foreground">{t.reveal.votedFor(outcome.votedFor)}</span>
                 )}
               </SeatTile>
             ))}
@@ -79,7 +81,7 @@ export function RevealPhase({ view, send }: PhaseProps) {
         </Section>
 
         {log.length > 0 && (
-          <Section title="夜里发生了什么">
+          <Section title={t.reveal.whatHappened}>
             <NightLog lines={log} />
           </Section>
         )}
@@ -88,10 +90,10 @@ export function RevealPhase({ view, send }: PhaseProps) {
       <PageFooter>
         {isHost ? (
           <Button size="xl" onClick={() => send({ type: 'rematch' })}>
-            再来一局
+            {t.reveal.rematch}
           </Button>
         ) : (
-          <p className="py-3 text-center text-sm text-muted-foreground">等房主开始下一局…</p>
+          <p className="py-3 text-center text-sm text-muted-foreground">{t.reveal.waitHost}</p>
         )}
       </PageFooter>
     </>
@@ -101,17 +103,18 @@ export function RevealPhase({ view, send }: PhaseProps) {
 /** 底牌下面的小字：「原来是失眠者」「算作狼人」（化身幽灵的牌），两样都有就都写。 */
 function centerNote(dealt: RoleId, final: RoleId, copied: RoleId | null): string | undefined {
   const parts = [
-    dealt !== final && `原来是${ROLES[dealt].name}`,
-    copied && `算作${ROLES[copied].name}`,
+    dealt !== final && tr().reveal.wasRole(ROLES[dealt].name),
+    copied && tr().reveal.countsAsRole(ROLES[copied].name),
   ].filter(Boolean)
   return parts.length ? parts.join(' · ') : undefined
 }
 
 function OutcomeStatus({ outcome, voted }: { outcome: SeatResult; voted: boolean }) {
+  const t = useT()
   // 没投票的局所有人都赢，也没有票数可写
-  if (!voted) return <SeatStatus tone="win">胜</SeatStatus>
-  const votes = `${outcome.votes} 票`
-  if (outcome.out) return <SeatStatus tone="out">出局 · {votes}</SeatStatus>
-  if (outcome.won) return <SeatStatus tone="win">胜 · {votes}</SeatStatus>
+  if (!voted) return <SeatStatus tone="win">{t.reveal.win}</SeatStatus>
+  const votes = t.reveal.votes(outcome.votes)
+  if (outcome.out) return <SeatStatus tone="out">{t.reveal.out} · {votes}</SeatStatus>
+  if (outcome.won) return <SeatStatus tone="win">{t.reveal.win} · {votes}</SeatStatus>
   return <SeatStatus>{votes}</SeatStatus>
 }
