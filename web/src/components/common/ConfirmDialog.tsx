@@ -1,3 +1,4 @@
+import { AlertDialog as AlertDialogPrimitive } from '@base-ui/react/alert-dialog'
 import type { ReactElement } from 'react'
 import {
   AlertDialog,
@@ -46,9 +47,10 @@ export function ConfirmDialog({
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel>{cancelLabel ?? t.common.cancel}</AlertDialogCancel>
-          <AlertDialogAction variant="destructive" onClick={onConfirm}>
+          {/* 点了确定也要关掉：不然像移出别人这样留在原页面的操作，对话框会一直开着 */}
+          <AlertDialogPrimitive.Close render={<AlertDialogAction variant="destructive" />} onClick={onConfirm}>
             {confirmLabel}
-          </AlertDialogAction>
+          </AlertDialogPrimitive.Close>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

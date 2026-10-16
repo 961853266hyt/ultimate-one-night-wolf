@@ -1,4 +1,4 @@
-import { Bot, UserPlus } from 'lucide-react'
+import { UserPlus } from 'lucide-react'
 import { useState } from 'react'
 import type { Settings } from '@/api/types'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
@@ -31,10 +31,12 @@ export function LobbyPhase({ view, send }: PhaseProps) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const saveSettings = (settings: Settings) => send({ type: 'configure', settings })
 
-  // 房主点别人的头像，确认后把人移出房间
+  // 房主点别人的头像把人移出房间：真人要确认一下，机器人直接移走
   const [kickTarget, setKickTarget] = useState<Seat | null>(null)
   const [kickOpen, setKickOpen] = useState(false)
+  const kick = (seat: Seat) => send({ type: 'kick', player: seat.id })
   const askToKick = (seat: Seat) => {
+    if (seat.isBot) return kick(seat)
     setKickTarget(seat)
     setKickOpen(true)
   }
@@ -45,19 +47,6 @@ export function LobbyPhase({ view, send }: PhaseProps) {
         <Section
           title={t.common.seats}
           caption={t.lobby.seatsCaption(seats.length, size, isHost && seats.length > 1)}
-          action={
-            // 一个人也能开局：空座位都坐上机器人，房主替它们操作
-            isHost && seats.length < size ? (
-              <Button
-                variant="outline"
-                size="icon"
-                aria-label={t.lobby.addBots}
-                onClick={() => send({ type: 'add_bots' })}
-              >
-                <Bot aria-hidden />
-              </Button>
-            ) : undefined
-          }
         >
           <SeatGrid>
             {bySeat.map((seat, index) =>
@@ -119,9 +108,9 @@ export function LobbyPhase({ view, send }: PhaseProps) {
         open={kickOpen}
         onOpenChange={setKickOpen}
         title={t.lobby.kickTitle(kickTarget ? seatLabel(kickTarget) : '')}
-        description={kickTarget?.isBot ? undefined : t.lobby.kickDescription}
+        description={t.lobby.kickDescription}
         confirmLabel={t.lobby.kick}
-        onConfirm={() => kickTarget && send({ type: 'kick', player: kickTarget.id })}
+        onConfirm={() => kickTarget && kick(kickTarget)}
       />
 
       {/* 房主身份转走或转来时，跟着换成只能看或者能改的那一个 */}
@@ -130,10 +119,11 @@ export function LobbyPhase({ view, send }: PhaseProps) {
         onOpenChange={setSettingsOpen}
         deck={deck}
         seats={size}
-        occupied={seats.length}
+        occupied={seats.filter((seat) => !seat.isBot).length}
         recommended={recommendedDecks}
         nightStep={timings.night_step}
         selfVote={view.room.self_vote}
+        debug={view.room.debug}
         onSave={saveSettings}
       />
       <DeckOverview
@@ -144,6 +134,7 @@ export function LobbyPhase({ view, send }: PhaseProps) {
         need={need}
         nightStep={timings.night_step}
         selfVote={view.room.self_vote}
+        debug={view.room.debug}
       />
     </>
   )

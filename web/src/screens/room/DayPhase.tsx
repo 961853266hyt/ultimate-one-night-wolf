@@ -1,6 +1,5 @@
 import { ClueCard } from '@/components/game/Clues'
 import { NightOrder } from '@/components/game/Deck'
-import { PeekRoleRow } from '@/components/game/PeekRole'
 import { IdentitySwitch, useSeatNotes } from '@/components/game/SeatNotes'
 import { SeatGrid, SeatTile } from '@/components/game/SeatGrid'
 import { SeatProgress } from '@/components/game/SeatStatus'
@@ -18,7 +17,6 @@ export function DayPhase({ view, send }: PhaseProps) {
   const ready = new Set(view.day?.ready)
   const clues = cluesOf(view)
   const plan = nightPlan(view.room.deck)
-  const card = view.me.card
   const done = ready.has(view.me.id)
   const notes = useSeatNotes()
   const t = useT()
@@ -26,22 +24,17 @@ export function DayPhase({ view, send }: PhaseProps) {
   return (
     <>
       <PageContent>
-        {(card || clues.length > 0) && (
-          <div className="flex flex-col gap-3">
-            {card && <PeekRoleRow role={card} />}
-            {clues.length > 0 && <ClueCard clues={clues} />}
-          </div>
-        )}
+        {clues.length > 0 && <ClueCard clues={clues} />}
 
         {plan.length > 0 && (
-          <Section title={t.day.nightOrder} caption={t.day.nightOrderCaption}>
+          <Section title={t.day.nightOrder}>
             <NightOrder roles={plan} />
           </Section>
         )}
 
         <Section
           title={t.common.seats}
-          caption={t.day.seatsCaption(ready.size, seats.length, t.notes.identity[notes.identity])}
+          caption={t.day.seatsCaption(t.notes.identity[notes.identity])}
           action={<IdentitySwitch />}
         >
           <SeatGrid>
@@ -63,6 +56,10 @@ export function DayPhase({ view, send }: PhaseProps) {
         <PageFooter>
           <Button size="xl" disabled={done} onClick={() => send({ type: 'ready_to_vote' })}>
             {done ? t.day.waitOthers : t.day.readyButton}
+            {/* 几个人已经同意开始投票 */}
+            <span className="font-mono opacity-60">
+              {ready.size}/{seats.length}
+            </span>
           </Button>
         </PageFooter>
       )}

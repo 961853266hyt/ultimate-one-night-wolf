@@ -1,8 +1,8 @@
-"""机器人：房主拿来补空座位，一个人就能把一局从头打到尾。机器人自己不行动，由房主替它们操作。"""
+"""调试模式：空座位坐上机器人，一个人就能把一局从头打到尾。机器人自己不行动，由房主替它们操作。"""
 
 import pytest
 
-from app.domain.commands import AddBots, Configure, ConfirmCard, EndStep, Kick, Leave, Start
+from app.domain.commands import Configure, ConfirmCard, EndStep, Kick, Leave, Start
 from app.domain.errors import ErrorCode, RuleError
 from app.domain.room import EMPTY_TTL, HOST_GRACE, Room
 from app.domain.types import Phase, Settings
@@ -23,10 +23,15 @@ def bots(room: Room) -> list:
     return sorted((m for m in room.members if m.bot), key=lambda m: m.seat)
 
 
-def test_the_host_fills_every_empty_seat_with_bots():
+def debug(room: Room, on: bool = True, **settings) -> None:
+    """房主在房间设置里打开（或关掉）调试模式，其他设置不变。"""
+    seats = settings.pop("seats", room.settings.seats)
+    room.handle("p0", Configure(settings=Settings(seats=seats, debug=on, **settings)), 0, RNG)
+
+
+def test_debug_mode_fills_every_empty_seat_with_bots():
     room = new_room(1)
-    room.handle("p0", Configure(settings=Settings(seats=5)), 0, RNG)
-    room.handle("p0", AddBots(), 0, RNG)
+    debug(room, seats=5)
 
     assert [(m.seat, m.name) for m in bots(room)] == [
         (1, "机器人1"),
@@ -37,26 +42,39 @@ def test_the_host_fills_every_empty_seat_with_bots():
     assert all(m.online for m in bots(room))
 
 
-def test_only_the_host_adds_bots_and_only_in_the_lobby():
-    room = new_room(3)
-    rejects(ErrorCode.NOT_HOST, lambda: room.handle("p1", AddBots(), 0, RNG))
-    room.handle("p0", Start(), 0, RNG)
-    rejects(ErrorCode.WRONG_PHASE, lambda: room.handle("p0", AddBots(), 0, RNG))
+def test_bots_give_up_seats_when_the_room_shrinks_but_people_do_not():
+    room = new_room(4)
+    debug(room, seats=6)
+    debug(room, seats=5)
+    assert [m.seat for m in bots(room)] == [4]
+
+    rejects(ErrorCode.TOO_FEW_SEATS, lambda: debug(room, seats=3))
+
+
+def test_turning_debug_mode_off_sends_the_bots_away():
+    room = new_room(1)
+    debug(room)
+    debug(room, on=False)
+    assert bots(room) == []
+
+    debug(room)  # 再打开，又从机器人1 开始
+    assert [m.name for m in bots(room)] == ["机器人1", "机器人2"]
 
 
 def test_one_person_and_bots_can_start_a_game():
     room = new_room(1)
-    room.handle("p0", AddBots(), 0, RNG)
+    debug(room)
     room.handle("p0", Start(), 0, RNG)
     assert room.game is not None and len(room.game.players) == 3
 
 
 def test_a_kicked_bot_frees_its_seat_and_its_name_is_not_reused():
     room = new_room(1)
-    room.handle("p0", AddBots(), 0, RNG)
+    debug(room)
     first = bots(room)[0]
     room.handle("p0", Kick(player=first.id), 0, RNG)
-    room.handle("p0", AddBots(), 0, RNG)
+    assert room.member(first.id) is None
+    debug(room)  # 再存一次设置，空座位重新坐上机器人
 
     newest = next(m for m in bots(room) if m.seat == first.seat)
     assert newest.id != first.id and newest.name == "机器人3"
@@ -64,8 +82,7 @@ def test_a_kicked_bot_frees_its_seat_and_its_name_is_not_reused():
 
 def test_bots_never_become_host():
     room = new_room(2)
-    room.handle("p0", Configure(settings=Settings(seats=4)), 0, RNG)
-    room.handle("p0", AddBots(), 0, RNG)
+    debug(room, seats=4)
     room.handle("p0", Leave(), 0, RNG)
     assert room.host == "p1"
 
@@ -76,14 +93,14 @@ def test_bots_never_become_host():
 
 def test_a_room_left_to_its_bots_still_expires():
     room = new_room(1)
-    room.handle("p0", AddBots(), 0, RNG)
+    debug(room)
     room.disconnect("p0", now=10)
     assert room.expires_at() == 10 + EMPTY_TTL
 
 
 def test_only_the_host_may_act_as_a_bot():
     room = new_room(2)
-    room.handle("p0", AddBots(), 0, RNG)
+    debug(room)
     [bot] = bots(room)
     assert room.can_act_as("p0", bot.id)
     assert not room.can_act_as("p1", bot.id)  # 不是房主
@@ -91,13 +108,13 @@ def test_only_the_host_may_act_as_a_bot():
     assert not room.can_act_as("p0", "nobody")
 
 
-# ---------------------------------------------------------------- 有机器人的一局
+# ---------------------------------------------------------------- 调试模式下的一局
 
 
 def solo_game(humans: int = 1) -> Room:
-    """真人 p0（房主）……，空座位补满机器人，开局。"""
+    """真人 p0（房主）……，打开调试模式补满机器人，开局。"""
     room = new_room(humans)
-    room.handle("p0", AddBots(), 0, RNG)
+    debug(room)
     room.handle("p0", Start(), 0, RNG)
     return room
 
@@ -110,7 +127,7 @@ def test_bots_confirm_their_cards_on_their_own():
     assert game.phase is Phase.NIGHT
 
 
-def test_the_night_waits_for_the_host_when_there_are_bots():
+def test_the_night_waits_for_the_host_in_debug_mode():
     room = solo_game()
     room.handle("p0", ConfirmCard(), 0, RNG)
     game = room.game
@@ -133,17 +150,7 @@ def test_a_bot_can_end_the_step_but_another_person_cannot():
 
 def test_ending_a_step_picks_what_was_required():
     room = new_room(1)
-    room.handle(
-        "p0",
-        Configure(
-            settings=Settings(
-                deck=[R.DRUNK, R.SEER, R.VILLAGER, R.ROBBER, R.TROUBLEMAKER, R.WEREWOLF]
-            )
-        ),
-        0,
-        RNG,
-    )
-    room.handle("p0", AddBots(), 0, RNG)
+    debug(room, deck=[R.DRUNK, R.SEER, R.VILLAGER, R.ROBBER, R.TROUBLEMAKER, R.WEREWOLF])
     room.handle("p0", Start(), 0, RNG)  # 不洗牌：p0 是酒鬼
     room.handle("p0", ConfirmCard(), 0, RNG)
     game = room.game
@@ -154,7 +161,7 @@ def test_ending_a_step_picks_what_was_required():
     assert any(e.step is R.DRUNK and e.auto for e in game.night_log)
 
 
-def test_the_night_still_has_a_clock_without_bots():
+def test_the_night_still_has_a_clock_without_debug_mode():
     room = new_room(3)
     room.handle("p0", Start(), 0, RNG)
     for p in ("p0", "p1", "p2"):

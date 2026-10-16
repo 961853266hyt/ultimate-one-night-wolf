@@ -45,6 +45,7 @@ class RoomView(BaseModel):
     recommended_decks: dict[int, list[RoleId]]
     timings: Timings
     self_vote: bool  # 能不能投自己
+    debug: bool  # 调试模式：空座位坐机器人，夜里不限时
 
 
 class MeView(BaseModel):
@@ -153,6 +154,7 @@ def _room_view(room: Room) -> RoomView:
         recommended_decks={n: recommended_deck(n) for n in range(MIN_PLAYERS, MAX_PLAYERS + 1)},
         timings=room.settings.timings,
         self_vote=room.game.self_vote if room.game else room.settings.self_vote,
+        debug=room.settings.debug,
     )
 
 

@@ -1,8 +1,8 @@
 /**
- * 房主调整本局设置。最上面是房间人数、夜间操作时间和能不能投自己；中间是牌库，点一下放进本局；
+ * 房主调整本局设置。最上面是房间人数、夜间操作时间、能不能投自己和调试模式；中间是牌库，点一下放进本局；
  * 下面是本局，点「−」放回牌库，点头像看介绍。
  *
- * 守夜人这类要成对放的牌，点一张另一张跟着进出。改完点「完成」才发给服务端，中途关掉就当没改过。
+ * 守夜人这类要成对放的牌，点一张另一张跟着进出。改完点「保存设置」才发给服务端，中途关掉就当没改过。
  */
 import { Minus, Plus, RotateCcw, X } from 'lucide-react'
 import { useState } from 'react'
@@ -24,7 +24,7 @@ interface DeckEditorProps {
   deck: readonly RoleId[]
   /** 房间现在几个座位，决定要几张牌。 */
   seats: number
-  /** 已经进来几个人：座位不能比这更少。 */
+  /** 已经进来几个真人：座位不能比这更少。机器人会让座，不算。 */
   occupied: number
   /** 每种座位数推荐的牌，服务端给的。 */
   recommended: Readonly<Record<string, readonly RoleId[]>>
@@ -32,7 +32,9 @@ interface DeckEditorProps {
   nightStep: number
   /** 能不能投自己，现在的设置。 */
   selfVote: boolean
-  /** 点「完成」时调用。牌和按座位数推荐的一样时 deck 传 null，之后改座位数，牌会自动跟着变。 */
+  /** 调试模式开没开，现在的设置。 */
+  debug: boolean
+  /** 点「保存设置」时调用。牌和按座位数推荐的一样时 deck 传 null，之后改座位数，牌会自动跟着变。 */
   onSave: (settings: Settings) => void
 }
 
@@ -45,6 +47,7 @@ export function DeckEditor({
   recommended,
   nightStep,
   selfVote,
+  debug,
   onSave,
 }: DeckEditorProps) {
   return (
@@ -58,6 +61,7 @@ export function DeckEditor({
           recommended={recommended}
           nightStep={nightStep}
           selfVote={selfVote}
+          debug={debug}
           onSave={(settings) => {
             onSave(settings)
             onOpenChange(false)
@@ -77,15 +81,16 @@ const SECTION_LABEL = 'text-[13px] font-semibold text-muted-foreground'
 
 type BodyProps = Pick<
   DeckEditorProps,
-  'deck' | 'seats' | 'occupied' | 'recommended' | 'nightStep' | 'selfVote' | 'onSave'
+  'deck' | 'seats' | 'occupied' | 'recommended' | 'nightStep' | 'selfVote' | 'debug' | 'onSave'
 >
 
-function DeckEditorBody({ deck, seats, occupied, recommended, nightStep, selfVote, onSave }: BodyProps) {
+function DeckEditorBody({ deck, seats, occupied, recommended, nightStep, selfVote, debug, onSave }: BodyProps) {
   // 存牌盒里的 id 而不是角色：同一种角色的几张也分得清，牌库里点了哪张，就是哪张空出来
   const [picked, setPicked] = useState(() => idsOf(deck))
   const [size, setSize] = useState(seats)
   const [step, setStep] = useState(nightStep)
   const [canVoteSelf, setCanVoteSelf] = useState(selfVote)
+  const [debugMode, setDebugMode] = useState(debug)
   const t = useT()
   const need = deckSizeFor(size)
   const chosen = deckOf(picked)
@@ -133,6 +138,10 @@ function DeckEditorBody({ deck, seats, occupied, recommended, nightStep, selfVot
           <label className="flex items-center justify-between gap-3">
             <span className={SECTION_LABEL}>{t.settings.selfVote}</span>
             <Switch checked={canVoteSelf} onCheckedChange={setCanVoteSelf} />
+          </label>
+          <label className="flex items-center justify-between gap-3">
+            <span className={SECTION_LABEL}>{t.settings.debug}</span>
+            <Switch checked={debugMode} onCheckedChange={setDebugMode} />
           </label>
         </div>
 
@@ -202,10 +211,11 @@ function DeckEditorBody({ deck, seats, occupied, recommended, nightStep, selfVot
               deck: isRecommended ? null : chosen,
               timings: { night_step: step },
               self_vote: canVoteSelf,
+              debug: debugMode,
             })
           }
         >
-          {savable ? t.settings.done : picked.length < MIN_DECK ? t.settings.atLeast(MIN_DECK) : t.settings.atMost(MAX_DECK)}
+          {savable ? t.settings.save : picked.length < MIN_DECK ? t.settings.atLeast(MIN_DECK) : t.settings.atMost(MAX_DECK)}
         </Button>
       </section>
     </>

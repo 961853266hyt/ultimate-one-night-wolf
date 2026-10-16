@@ -113,7 +113,6 @@ export const en: Messages = {
   lobby: {
     seatsCaption: (taken, size, canKick) =>
       `${taken}/${size} seated${canKick ? ' · tap someone to remove them' : ''}`,
-    addBots: 'Fill empty seats with bots',
     invite: 'Invite friends',
     start: 'Start game',
     kickTitle: (label) => `Remove ${label} from the room?`,
@@ -131,10 +130,11 @@ export const en: Messages = {
     fewerSeats: 'One fewer seat',
     moreSeats: 'One more seat',
     people: (n) => `${n}`,
-    nightTime: 'Night timer',
+    nightTime: 'Timer',
     seconds: (n) => plural(n, 'second'),
     secondsShort: (n) => `${n}s`,
     selfVote: 'Can vote for yourself',
+    debug: 'Debug mode',
     box: 'Card box',
     inGame: 'This game',
     deckCount: (people) => `${plural(people, 'player')} ·`,
@@ -145,13 +145,13 @@ export const en: Messages = {
     inDeck: ', in this game',
     take: (name, pair) => `Add ${pair ? 'a pair of ' : ''}${name} to this game`,
     putBack: (name, pair) => `Put ${pair ? 'the pair of ' : ''}${name} back in the box`,
-    done: 'Done',
+    save: 'Save settings',
     atLeast: (n) => `At least ${n} cards`,
     atMost: (n) => `At most ${n} cards`,
     overviewRoles: 'Roles · tap one for details',
     overviewNightOrder: 'Night wake order',
-    overviewRest: (seats, nightStep, selfVote) =>
-      `${plural(seats, 'player')} · ${nightStep}s per night step · voting for yourself ${selfVote ? 'allowed' : 'not allowed'}. The host can change these.`,
+    overviewRest: (seats, nightStep, selfVote, debug) =>
+      `${plural(seats, 'player')} · ${debug ? 'debug mode, no night timer' : `${nightStep}s per night step`} · voting for yourself ${selfVote ? 'allowed' : 'not allowed'}. The host can change these.`,
     fillOne: 'Add one',
     toFill: 'Needed',
     summaryTitle: (seats, cards) => `${seats}-player game · ${cards}`,
@@ -217,22 +217,18 @@ export const en: Messages = {
 
   day: {
     nightOrder: "Tonight's wake order",
-    nightOrderCaption: 'Use it to recall who might have swapped whose card',
-    seatsCaption: (ready, total, identity) =>
-      `${ready}/${total} ready to vote · tap someone to note their ${identity.toLowerCase()}`,
+    seatsCaption: (identity) => `Tap someone to note their ${identity.toLowerCase()}`,
     readyDone: 'Ready',
     discussing: 'Discussing',
-    readyButton: 'Done talking, ready to vote',
+    readyButton: 'Start the vote',
     waitOthers: 'Waiting for the others…',
-    yourDealtCard: 'The card you were dealt · it may have been swapped at night',
-    holdToPeek: 'Hold to peek',
   },
 
   vote: {
     title: 'Who do you think is a werewolf?',
     voted: 'Vote cast. Waiting for everyone.',
     rule: 'Most votes (at least 2) is out; a tie takes everyone tied',
-    seatsCaption: (voted, total) => `${voted}/${total} voted · all votes are revealed together`,
+    seatsCaption: (voted, total) => `${voted}/${total} voted`,
     done: 'Voted',
     thinking: 'Thinking…',
     button: (hasVoted, whom) => {
@@ -355,7 +351,8 @@ export const en: Messages = {
       promptHint: () => 'Flip 1 center card; you become that role (required)',
     },
     doppelganger: {
-      name: 'Doppelgänger',
+      // 软连字符：地方窄时断成 Doppel-gänger 两行
+      name: 'Doppel\u00ADgänger',
       teamNote: 'Joins the team of the role it copies',
       summary: "Look at 1 player's card and become that role",
       ability:
@@ -418,7 +415,7 @@ export const en: Messages = {
           : 'Give the card you just saw to a player, yourself included (required)',
     },
     troublemaker: {
-      name: 'Troublemaker',
+      name: 'Trouble\u00ADmaker',
       summary: "Swap 2 other players' cards without looking",
       ability: "May swap the cards of two other players without looking at them.",
       notes: ["Neither player knows their card has changed."],

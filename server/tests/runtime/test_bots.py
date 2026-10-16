@@ -2,8 +2,8 @@
 
 import pytest
 
-from app.domain.commands import AddBots, ConfirmCard, EndStep, Leave, ReadyToVote, Start, Vote
-from app.domain.types import Phase
+from app.domain.commands import Configure, ConfirmCard, EndStep, Leave, ReadyToVote, Start, Vote
+from app.domain.types import Phase, Settings
 from tests.runtime.fakes import Harness
 
 pytestmark = pytest.mark.anyio
@@ -18,7 +18,7 @@ async def harness():
 
 async def test_the_host_sees_and_acts_as_a_bot(harness):
     await harness.join("p0")
-    await harness.send("p0", AddBots())
+    await harness.send("p0", Configure(settings=Settings(debug=True)))
     await harness.send("p0", Start())  # 不洗牌：p0 和 bot-1 是狼，一定会投票
     await harness.send("p0", ConfirmCard())  # 机器人自己已经记住了，入夜
     while harness.room.phase is Phase.NIGHT:
@@ -34,7 +34,7 @@ async def test_the_host_sees_and_acts_as_a_bot(harness):
 async def test_a_bot_cannot_do_what_only_the_host_can(harness):
     await harness.join("p0")
     await harness.act_as("p0", None)
-    await harness.send("p0", AddBots())
+    await harness.send("p0", Configure(settings=Settings(debug=True)))
     await harness.act_as("p0", "bot-1")
     harness.clear()
     await harness.send("p0", Start())
@@ -43,7 +43,7 @@ async def test_a_bot_cannot_do_what_only_the_host_can(harness):
 
 async def test_only_the_host_can_act_as_a_bot(harness):
     await harness.join("p0", "p1")
-    await harness.send("p0", AddBots())
+    await harness.send("p0", Configure(settings=Settings(debug=True)))
     harness.clear()
 
     await harness.act_as("p1", "bot-1")
@@ -54,7 +54,7 @@ async def test_only_the_host_can_act_as_a_bot(harness):
 
 async def test_a_bot_that_leaves_sends_its_controller_back_to_itself(harness):
     await harness.join("p0")
-    await harness.send("p0", AddBots())
+    await harness.send("p0", Configure(settings=Settings(debug=True)))
     await harness.act_as("p0", "bot-1")
     await harness.send("p0", Leave())
 
@@ -66,7 +66,7 @@ async def test_a_bot_that_leaves_sends_its_controller_back_to_itself(harness):
 
 async def test_the_host_can_switch_back_to_itself(harness):
     await harness.join("p0")
-    await harness.send("p0", AddBots())
+    await harness.send("p0", Configure(settings=Settings(debug=True)))
     await harness.act_as("p0", "bot-2")
     await harness.act_as("p0", None)
     assert harness.sockets["p0"].view()["me"]["id"] == "p0"

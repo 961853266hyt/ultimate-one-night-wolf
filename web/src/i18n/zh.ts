@@ -139,7 +139,6 @@ export const zh = {
   lobby: {
     seatsCaption: (taken: number, size: number, canKick: boolean) =>
       `${taken}/${size} 人已入座${canKick ? ' · 点头像可以移出房间' : ''}`,
-    addBots: '补满机器人',
     invite: '邀请朋友',
     start: '开始游戏',
     kickTitle: (label: string) => `把 ${label} 移出房间？`,
@@ -162,6 +161,7 @@ export const zh = {
     seconds: (n: number) => `${n} 秒`,
     secondsShort: (n: number) => `${n}s`,
     selfVote: '可以投自己',
+    debug: '调试模式',
     box: '牌库',
     inGame: '本局',
     deckCount: (people: number) => `${people} 人 ·`,
@@ -172,13 +172,13 @@ export const zh = {
     inDeck: '，已放进本局',
     take: (name: string, pair: boolean) => `把${pair ? '一对' : ''}${name}放进本局`,
     putBack: (name: string, pair: boolean) => `把${pair ? '一对' : ''}${name}放回牌库`,
-    done: '完成',
+    save: '保存设置',
     atLeast: (n: number) => `至少要 ${n} 张牌`,
     atMost: (n: number) => `最多 ${n} 张牌`,
     overviewRoles: '角色 · 点头像看介绍',
     overviewNightOrder: '夜里的醒来顺序',
-    overviewRest: (seats: number, nightStep: number, selfVote: boolean) =>
-      `房间 ${seats} 人 · 夜间操作时间 ${nightStep} 秒 · ${selfVote ? '可以' : '不能'}投自己，房主可以调整`,
+    overviewRest: (seats: number, nightStep: number, selfVote: boolean, debug: boolean) =>
+      `房间 ${seats} 人 · ${debug ? '调试模式，夜里不计时' : `夜间操作时间 ${nightStep} 秒`} · ${selfVote ? '可以' : '不能'}投自己，房主可以调整`,
     fillOne: '补一张',
     toFill: '待补',
     summaryTitle: (seats: number, cards: string) => `${seats} 人局 · ${cards}`,
@@ -246,22 +246,18 @@ export const zh = {
 
   day: {
     nightOrder: '今晚的行动顺序',
-    nightOrderCaption: '照着回忆：谁可能换过谁的牌',
-    seatsCaption: (ready: number, total: number, identity: string) =>
-      `${ready}/${total} 准备投票 · 点头像备注${identity}`,
+    seatsCaption: (identity: string) => `点头像备注${identity}`,
     readyDone: '可以投了',
     discussing: '讨论中',
-    readyButton: '讨论好了，可以投票',
+    readyButton: '开始公投',
     waitOthers: '等其他人…',
-    yourDealtCard: '你发到的牌 · 夜里可能被换过',
-    holdToPeek: '按住查看',
   },
 
   vote: {
     title: '你觉得谁是狼？',
     voted: '投好了，等大家亮票',
     rule: '得票最多且至少 2 票的人出局，平票一起出局',
-    seatsCaption: (voted: number, total: number) => `${voted}/${total} 已投票 · 全部投完同时亮票`,
+    seatsCaption: (voted: number, total: number) => `${voted}/${total} 已投票`,
     done: '已投票',
     thinking: '思考中…',
     /** 投票按钮：whom 是 null（还没选）、'self'（自己）或者「3 号阿杰」。 */

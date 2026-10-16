@@ -10,7 +10,6 @@ from typing import Annotated, Any, Literal
 from pydantic import BaseModel, Field, StringConstraints
 
 from .domain.commands import (
-    AddBots,
     Configure,
     ConfirmCard,
     EndStep,
@@ -54,7 +53,6 @@ ClientMessage = Annotated[
     | Configure
     | Kick
     | TakeSeat
-    | AddBots
     | Start
     | Leave
     | ConfirmCard
