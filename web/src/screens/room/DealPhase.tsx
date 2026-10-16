@@ -9,6 +9,7 @@ import { Button } from '@/components/ui/button'
 import { wakeOrder } from '@/game/night'
 import { seatsOf } from '@/game/seats'
 import type { PhaseProps } from './types'
+import { useT } from '@/i18n'
 
 export function DealPhase({ view, send }: PhaseProps) {
   const seats = seatsOf(view)
@@ -19,12 +20,13 @@ export function DealPhase({ view, send }: PhaseProps) {
   const notes = useSeatNotes()
   // 已经点过「我记住了」，比如刷新了页面，就直接翻开
   const faceUp = revealed || done
+  const t = useT()
 
   return (
     <>
       <PageContent>
         {card ? (
-          <Section title="你的身份">
+          <Section title={t.deal.yourCard}>
             <RoleCard
               role={card}
               wakeOrder={wakeOrder(view.room.deck, card)}
@@ -33,10 +35,10 @@ export function DealPhase({ view, send }: PhaseProps) {
             />
           </Section>
         ) : (
-          <PageTitle title="这一局已经开始了" description="等下一局吧" />
+          <PageTitle title={t.deal.alreadyStarted} description={t.deal.waitNext} />
         )}
 
-        <Section title="座位">
+        <Section title={t.common.seats}>
           <SeatGrid>
             {seats.map((seat) => (
               <SeatTile
@@ -44,7 +46,7 @@ export function DealPhase({ view, send }: PhaseProps) {
                 seat={seat}
                 onSelect={notes.canEdit(seat) ? () => notes.edit(seat) : undefined}
                 status={
-                  <SeatProgress done={confirmed.has(seat.id)} doneText="已看好" pendingText="看牌中…" />
+                  <SeatProgress done={confirmed.has(seat.id)} doneText={t.deal.seen} pendingText={t.deal.looking} />
                 }
               />
             ))}
@@ -60,7 +62,7 @@ export function DealPhase({ view, send }: PhaseProps) {
             disabled={done || !faceUp}
             onClick={() => send({ type: 'confirm_card' })}
           >
-            {done ? '等其他人看完…' : '我记住了'}
+            {done ? t.deal.waitOthers : t.deal.remembered}
           </Button>
         </PageFooter>
       )}

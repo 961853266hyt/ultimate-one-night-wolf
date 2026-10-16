@@ -1,5 +1,6 @@
 import { SkipForward } from 'lucide-react'
 import { useState } from 'react'
+import { t as tr, useT } from '@/i18n'
 import { CENTER, type Copied, type Prompt, type RoleId } from '@/api/types'
 import { CenterPeek } from '@/components/game/CenterPeek'
 import { CluesDrawer } from '@/components/game/Clues'
@@ -30,6 +31,7 @@ export function NightPhase({ view, send }: PhaseProps) {
   const { night, prompt } = view
   const targets = useNightTargets(prompt)
   const [peeking, setPeeking] = useState<string | null>(null)
+  const t = useT()
   if (!night) return null
 
   const seats = seatsOf(view)
@@ -71,22 +73,22 @@ export function NightPhase({ view, send }: PhaseProps) {
         <div className="flex flex-col gap-6">
           <div className="flex items-center gap-3">
             <div className="flex-1">
-              <PhaseProgress current={night.index} total={night.total} label="夜晚进度" />
+              <PhaseProgress current={night.index} total={night.total} label={t.night.progress} />
             </div>
             {canEndStep && (
               <Button variant="outline" size="sm" onClick={() => send({ type: 'end_step' })}>
                 <SkipForward aria-hidden />
-                结束这一步
+                {t.night.endStep}
               </Button>
             )}
           </div>
           <PageTitle
-            title={`${ROLES[night.step].name}请睁眼`}
+            title={t.night.wakeUp(ROLES[night.step].name)}
             description={hint(hintRole, prompt, learned)}
           />
         </div>
 
-        <Section title="牌堆">
+        <Section title={t.common.centerCards}>
           <CenterCardRow>
             {CENTER.map((slot) => (
               <CenterCard
@@ -101,7 +103,7 @@ export function NightPhase({ view, send }: PhaseProps) {
           </CenterCardRow>
         </Section>
 
-        <Section title="座位" action={<IdentitySwitch />}>
+        <Section title={t.common.seats} action={<IdentitySwitch />}>
           <SeatGrid>
             {seats.map((seat) => (
               <SeatTile
@@ -117,7 +119,7 @@ export function NightPhase({ view, send }: PhaseProps) {
 
       <PageFooter>
         <Button size="xl" disabled={!targets.ready} onClick={confirm}>
-          确定
+          {t.common.confirm}
         </Button>
         <CluesDrawer clues={clues} fresh={learned} />
       </PageFooter>
@@ -134,9 +136,9 @@ export function NightPhase({ view, send }: PhaseProps) {
 
       {/* 每一步都会重新挂载，所以每个角色醒来时都放一次 */}
       <Curtain>
-        {night.index === 1 && <p className="text-sm text-muted-foreground">天黑了，所有人请闭眼</p>}
+        {night.index === 1 && <p className="text-sm text-muted-foreground">{t.night.nightFalls}</p>}
         <RoleThumbnail role={night.step} className="w-32 rounded-xl" />
-        <p className="text-2xl font-semibold tracking-wide">{ROLES[night.step].name}请睁眼</p>
+        <p className="text-2xl font-semibold tracking-wide">{t.night.wakeUp(ROLES[night.step].name)}</p>
       </Curtain>
     </>
   )
@@ -144,6 +146,6 @@ export function NightPhase({ view, send }: PhaseProps) {
 
 function hint(step: RoleId, prompt: Prompt | null, learned: boolean): string {
   if (prompt) return ROLES[step].promptHint?.(prompt) ?? describePrompt(prompt)
-  if (learned) return '你得知了新线索，点开下面的「我的线索」看看'
-  return '没轮到你 · 随便点点，别让旁人看出来'
+  if (learned) return tr().night.learned
+  return tr().night.notYourTurn
 }

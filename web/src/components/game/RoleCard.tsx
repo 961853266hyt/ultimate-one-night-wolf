@@ -2,6 +2,7 @@ import { useState } from 'react'
 import type { RoleId } from '@/api/types'
 import { CardBack } from './PlayingCard'
 import { RoleArtCard } from './RoleArtCard'
+import { useT } from '@/i18n'
 
 interface RoleCardProps {
   role: RoleId
@@ -14,17 +15,18 @@ interface RoleCardProps {
 /** 看牌阶段的身份牌。扣着时点一下翻开；翻开后和角色详情里的牌一样，点一下看说明。 */
 export function RoleCard({ role, wakeOrder, revealed, onReveal }: RoleCardProps) {
   const [expanded, setExpanded] = useState(false)
+  const t = useT()
 
   if (!revealed) {
     return (
       <button
         type="button"
         onClick={onReveal}
-        aria-label="翻开你的身份"
+        aria-label={t.deal.flipYourCard}
         className="rounded-[24px] outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
       >
         <CardBack className="aspect-[200/274] w-74 rounded-[24px] shadow-lg" iconClassName="size-24">
-          <span className="text-xs text-card-back-foreground/60">点一下翻开</span>
+          <span className="text-xs text-card-back-foreground/60">{t.deal.tapToFlip}</span>
         </CardBack>
       </button>
     )

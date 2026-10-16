@@ -2,9 +2,11 @@ import type { NightLogLine } from '@/game/result'
 import { ROLES } from '@/roles/catalog'
 import { RoleButton } from './RoleDetails'
 import { PhraseText } from './RoleText'
+import { useT } from '@/i18n'
 
 /** 揭晓时回放夜里的每一次行动。 */
 export function NightLog({ lines }: { lines: readonly NightLogLine[] }) {
+  const t = useT()
   return (
     <ol className="w-full divide-y rounded-xl border">
       {lines.map((line, index) => (
@@ -17,7 +19,7 @@ export function NightLog({ lines }: { lines: readonly NightLogLine[] }) {
               {ROLES[line.step].name}
             </RoleButton>
             <PhraseText phrase={line.text} />
-            {line.auto && <span className="text-muted-foreground">（超时，系统代选）</span>}
+            {line.auto && <span className="text-muted-foreground">{t.reveal.autoPicked}</span>}
           </span>
         </li>
       ))}

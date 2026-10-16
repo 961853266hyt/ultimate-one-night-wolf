@@ -7,6 +7,7 @@ import { cn } from '@/lib/utils'
 import { ROLES } from '@/roles/catalog'
 import { RoleButton } from './RoleDetails'
 import { PhraseText } from './RoleText'
+import { useT } from '@/i18n'
 
 export function ClueList({ clues }: { clues: readonly Clue[] }) {
   return (
@@ -31,9 +32,10 @@ export function ClueList({ clues }: { clues: readonly Clue[] }) {
 
 /** 带标题的线索框。 */
 export function ClueCard({ clues }: { clues: readonly Clue[] }) {
+  const t = useT()
   return (
     <section className="flex flex-col gap-2.5 rounded-xl border px-3.5 py-3">
-      <h2 className="text-xs text-muted-foreground">我的线索</h2>
+      <h2 className="text-xs text-muted-foreground">{t.clues.title}</h2>
       <ClueList clues={clues} />
     </section>
   )
@@ -47,6 +49,7 @@ interface CluesDrawerProps {
 
 /** 夜里用：底部一条按钮显示线索条数，点开从下面滑出。 */
 export function CluesDrawer({ clues, fresh }: CluesDrawerProps) {
+  const t = useT()
   return (
     <Drawer showSwipeHandle>
       <DrawerTrigger
@@ -54,7 +57,7 @@ export function CluesDrawer({ clues, fresh }: CluesDrawerProps) {
       >
         <span className="flex items-center gap-2">
           <NotebookText aria-hidden className="text-muted-foreground" />
-          我的线索
+          {t.clues.title}
         </span>
         <span
           className={cn(
@@ -67,13 +70,13 @@ export function CluesDrawer({ clues, fresh }: CluesDrawerProps) {
       </DrawerTrigger>
       <DrawerContent>
         <DrawerHeader>
-          <DrawerTitle>我的线索</DrawerTitle>
+          <DrawerTitle>{t.clues.title}</DrawerTitle>
         </DrawerHeader>
         <div className="px-5 pt-4 pb-[max(2rem,env(safe-area-inset-bottom))]">
           {clues.length ? (
             <ClueList clues={clues} />
           ) : (
-            <p className="text-center text-sm text-muted-foreground">夜里得知的信息会记在这里</p>
+            <p className="text-center text-sm text-muted-foreground">{t.clues.empty}</p>
           )}
         </div>
       </DrawerContent>

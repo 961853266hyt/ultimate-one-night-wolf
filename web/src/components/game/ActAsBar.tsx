@@ -5,7 +5,9 @@
 import { Bot, User } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { MemberView } from '@/api/types'
+import { memberName } from '@/game/seats'
 import { cn } from '@/lib/utils'
+import { useT } from '@/i18n'
 
 interface ActAsBarProps {
   /** 自己的玩家 id：服务端视图里的 me 可能是机器人，这里是真正的自己。 */
@@ -18,24 +20,26 @@ interface ActAsBarProps {
 }
 
 export function ActAsBar({ self, current, members, onSwitch }: ActAsBarProps) {
+  const t = useT()
   const bots = members.filter((member) => member.bot)
   if (!bots.length) return null
   const acting = bots.find((bot) => bot.id === current)
 
   return (
     <div className="sticky top-15 z-20 flex flex-col gap-1.5 bg-background/95 px-5 pb-2 backdrop-blur">
-      <div role="group" aria-label="替谁操作" className="-mx-1 flex gap-1.5 overflow-x-auto px-1 py-0.5">
+      <div role="group" aria-label={t.room.actAs} className="-mx-1 flex gap-1.5 overflow-x-auto px-1 py-0.5">
         <Chip active={current === self} onClick={() => onSwitch(null)}>
-          <User aria-hidden className="size-3.5" />我
+          <User aria-hidden className="size-3.5" />
+          {t.room.me}
         </Chip>
         {bots.map((bot) => (
           <Chip key={bot.id} active={bot.id === current} onClick={() => onSwitch(bot.id)}>
             <Bot aria-hidden className="size-3.5" />
-            {bot.name}
+            {memberName(bot)}
           </Chip>
         ))}
       </div>
-      {acting && <p className="text-xs text-warning">正在替{acting.name}操作，看到的是它的牌和线索</p>}
+      {acting && <p className="text-xs text-warning">{t.room.actingAs(memberName(acting))}</p>}
     </div>
   )
 }

@@ -30,7 +30,8 @@ cd web && pnpm gen:types       # 改了 server/app/protocol.py 之后重新生�
 
 ## 代码风格
 
-- 注释、界面文案用中文，跟周围代码的密度和语气保持一致
+- 注释用中文，跟周围代码的密度和语气保持一致
+- 界面上的字不直接写在组件里：中文写进 `web/src/i18n/zh.ts`，英文写进 `en.ts`（两份结构一样，漏一条类型检查会报错）；组件里用 `useT()` 取
 - 颜色只用 `web/src/index.css` 里的语义令牌（`bg-primary`、`text-werewolf`……），不直接写色值
 - 界面按竖屏手机设计；优先复用 `components/ui`（shadcn）和 `components/layout` 里已有的组件
 - 按钮尽量用图标，不加文字：关闭、返回、菜单这类一看就懂的操作只放图标（比如关闭用 `X`），用 `aria-label` 写清楚是干什么的。只有图标表达不清的操作（比如「开始游戏」「离开房间」）才写文字

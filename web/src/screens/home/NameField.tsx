@@ -1,6 +1,7 @@
 import { useId } from 'react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { useT } from '@/i18n'
 
 /** 和服务端 protocol.py 里 Name 的长度上限一致。 */
 const NAME_MAX_LENGTH = 16
@@ -14,16 +15,17 @@ interface NameFieldProps {
 /** 「你的名字」输入框，首页和直接打开房间链接时都用它。标签只给屏幕阅读器，看得见的是占位文字。 */
 export function NameField({ value, onChange, autoFocus }: NameFieldProps) {
   const id = useId()
+  const t = useT()
   return (
     <div>
       <Label htmlFor={id} className="sr-only">
-        你的名字
+        {t.home.yourName}
       </Label>
       <Input
         id={id}
         value={value}
         onChange={(event) => onChange(event.target.value)}
-        placeholder="你的名字"
+        placeholder={t.home.yourName}
         maxLength={NAME_MAX_LENGTH}
         autoComplete="nickname"
         autoFocus={autoFocus}

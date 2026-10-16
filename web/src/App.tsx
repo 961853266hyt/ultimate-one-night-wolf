@@ -8,6 +8,7 @@ import { Toaster } from '@/components/ui/sonner'
 import { HomeScreen } from '@/screens/home/HomeScreen'
 import { NamePromptScreen } from '@/screens/home/NamePromptScreen'
 import { RoomScreen } from '@/screens/room/RoomScreen'
+import { useT } from '@/i18n'
 
 export default function App() {
   return (
@@ -23,9 +24,10 @@ function Screens() {
   const { session, failed } = useSession()
   const [name, setName] = useState(loadName)
   const code = roomCodeFromPath()
+  const t = useT()
 
-  if (failed) return <FullScreenMessage>连不上服务器，请稍后刷新重试</FullScreenMessage>
-  if (!session) return <FullScreenLoading label="加载中…" />
+  if (failed) return <FullScreenMessage>{t.app.cannotConnect}</FullScreenMessage>
+  if (!session) return <FullScreenLoading label={t.app.loading} />
   if (!code) return <HomeScreen session={session} />
   if (!name) {
     return (

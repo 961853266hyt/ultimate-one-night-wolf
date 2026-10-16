@@ -8,9 +8,10 @@ import {
   type SawCard,
   type Swapped,
 } from '@/api/types'
+import { t } from '@/i18n'
 import { TEAMS } from '@/roles/catalog'
 import { describeCopy } from './knowledge'
-import { joinPhrases, mention, type Phrase } from './phrase'
+import { joinPhrases, type Phrase } from './phrase'
 import { centerLetter, seatsOf, slotLabeler, type Seat, type SlotLabeler } from './seats'
 
 /** 一张牌最后算作什么角色：模仿者、化身幽灵的牌算作他们变成的角色，谁拿着都一样。 */
@@ -81,8 +82,7 @@ export function centerResults(result: ResultView): CenterResult[] {
 
 /** 「狼人阵营获胜」。 */
 export function headline(result: ResultView): string {
-  if (result.winning_teams.length === 0) return '没有人获胜'
-  return `${result.winning_teams.map((team) => TEAMS[team].name).join('、')}获胜`
+  return t().reveal.headline(result.winning_teams.map((team) => TEAMS[team].name))
 }
 
 /**
@@ -95,30 +95,25 @@ export function hadVote(result: ResultView): boolean {
 
 /** 标题下面的两句话：谁出局了、最后拿的是什么牌；狼牌最后在谁手里。没投票的局只有一句。 */
 export function outcomeSummary(view: PlayerView, result: ResultView): Phrase[] {
-  if (!hadVote(result)) return [['夜里过后玩家手里全是好人，不用投票']]
+  const text = t().reveal
+  if (!hadVote(result)) return [[text.noVote]]
 
   const label = slotLabeler(view)
 
   const deaths: Phrase = result.deaths.length
     ? [
-        '出局：',
+        text.outPrefix,
         ...joinPhrases(
-          result.deaths.map((id) => [
-            `${label(id)}（`,
-            mention(countsAs(result, result.final[id])),
-            '）',
-          ]),
-          '、',
+          result.deaths.map((id) => text.outItem(label(id), countsAs(result, result.final[id]))),
+          text.listSeparator,
         ),
       ]
-    : ['没有人出局']
+    : [text.noOneOut]
 
   const wolves = seatsOf(view).filter(
     (seat) => countsAs(result, result.final[seat.id]) === 'werewolf',
   )
-  const werewolves: Phrase = wolves.length
-    ? [`狼人：${wolves.map((seat) => label(seat.id)).join('、')}`]
-    : ['没有玩家拿着狼牌']
+  const werewolves: Phrase = [text.wolves(wolves.map((seat) => label(seat.id)))]
 
   return [deaths, werewolves]
 }
@@ -138,6 +133,7 @@ export interface NightLogLine {
  */
 export function nightLog(view: PlayerView, result: ResultView): NightLogLine[] {
   const label = slotLabeler(view)
+  const text = t().log
   return result.night_log.map((entry) => {
     const actor = entry.player
     const clauses: Phrase[] = [
@@ -151,13 +147,13 @@ export function nightLog(view: PlayerView, result: ResultView): NightLogLine[] {
     const seen = entry.learned
       .filter((fact): fact is SawCard => fact.type === 'saw_card')
       .map((fact) => sighting(fact, actor, label))
-    if (seen.length) clauses.push(['看到', ...joinPhrases(seen, '、')])
-    if (clauses.length === 0) clauses.push([`选了${entry.targets.map(label).join('、')}`])
+    if (seen.length) clauses.push([text.saw, ...joinPhrases(seen, t().reveal.listSeparator)])
+    if (clauses.length === 0) clauses.push([text.picked(entry.targets.map(label))])
 
     return {
       step: entry.step,
       auto: entry.auto,
-      text: [label(actor), ...joinPhrases(clauses, '，')],
+      text: text.sentence(label(actor), joinPhrases(clauses, text.clauseSeparator)),
     }
   })
 }
@@ -165,12 +161,12 @@ export function nightLog(view: PlayerView, result: ResultView): NightLogLine[] {
 /** 「和 2 号阿杰换了牌」「交换了 2 号阿杰和 A 号底牌的牌」。 */
 function describeSwap(fact: Swapped, actor: string, label: SlotLabeler): string {
   const [a, b] = fact.slots
-  if (a === actor) return `和${label(b)}换了牌`
-  if (b === actor) return `和${label(a)}换了牌` // 女巫把底牌换给了自己
-  return `交换了${label(a)}和${label(b)}的牌`
+  if (a === actor) return t().log.swappedWith(label(b))
+  if (b === actor) return t().log.swappedWith(label(a)) // 女巫把底牌换给了自己
+  return t().log.swapped(label(a), label(b))
 }
 
 /** 看到的一张牌，比如「A 号底牌是狼人」「自己现在是狼人」。 */
 function sighting(fact: SawCard, actor: string, label: SlotLabeler): Phrase {
-  return [fact.slot === actor ? '自己现在是' : `${label(fact.slot)}是`, mention(fact.role)]
+  return fact.slot === actor ? t().log.sawSelf(fact.role) : t().log.sawSlot(label(fact.slot), fact.role)
 }

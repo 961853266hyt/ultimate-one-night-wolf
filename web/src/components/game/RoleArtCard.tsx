@@ -7,6 +7,7 @@ import type { RoleId } from '@/api/types'
 import { cn } from '@/lib/utils'
 import { roleArt } from '@/roles/art'
 import { ROLES, TEAMS } from '@/roles/catalog'
+import { useT } from '@/i18n'
 
 interface RoleArtCardProps {
   role: RoleId
@@ -32,6 +33,7 @@ export function RoleArtCard({
   className,
 }: RoleArtCardProps) {
   const detailsId = useId()
+  const t = useT()
   const art = roleArt(role)
   const { name, team, icon: Icon, ability, notes, teamNote } = ROLES[role]
   const { name: teamName, textClass } = TEAMS[team]
@@ -49,7 +51,7 @@ export function RoleArtCard({
         // 再用 24px 的圆角裁，四个角就只剩卡面。这组数是对着现有的卡图逐像素算出来的
         <img
           src={art}
-          alt={`${name}的卡牌`}
+          alt={t.card.art(name)}
           draggable={false}
           className="size-full translate-x-px translate-y-px scale-[1.05] object-cover"
         />
@@ -96,7 +98,7 @@ export function RoleArtCard({
             </div>
             {wakeOrder !== undefined && (
               <p className="text-xs text-muted-foreground">
-                {wakeOrder ? `夜里第 ${wakeOrder} 个醒` : '夜里不醒'}
+                {t.card.wakeOrder(wakeOrder)}
               </p>
             )}
           </div>
@@ -117,7 +119,7 @@ export function RoleArtCard({
       <button
         type="button"
         onClick={onToggle}
-        aria-label="角色说明"
+        aria-label={t.card.details}
         aria-expanded={expanded}
         aria-controls={detailsId}
         className="absolute inset-0 rounded-[inherit] outline-none focus-visible:ring-3 focus-visible:ring-white/60 focus-visible:ring-inset"
@@ -152,7 +154,8 @@ export function RoleThumbnail({ role, className }: { role: RoleId; className?: s
       {/* 卡图上的英文名缩小后看不清，底下补一条中文名，颜色表示阵营；阵营不固定的用白色 */}
       <span
         className={cn(
-          'absolute inset-x-0 bottom-0 bg-linear-to-t from-black/85 via-black/60 to-transparent px-1 pt-5 pb-1.5 text-center text-[11px] leading-none font-semibold',
+          // 英文名比中文长（Troublemaker），两边留白和字距收紧一点才放得下
+          'absolute inset-x-0 bottom-0 overflow-hidden bg-linear-to-t from-black/85 via-black/60 to-transparent px-0.5 pt-5 pb-1.5 text-center text-[11px] leading-none font-semibold tracking-tight whitespace-nowrap',
           teamNote ? 'text-white' : TEAMS[team].textClass,
         )}
       >

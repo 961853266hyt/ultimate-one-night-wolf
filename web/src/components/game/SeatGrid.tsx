@@ -7,6 +7,7 @@ import type { Mark } from './CornerMark'
 import { PlayerAvatar } from './PlayerAvatar'
 import { useSeatNotes } from './SeatNotes'
 import { SeatStatus } from './SeatStatus'
+import { useT } from '@/i18n'
 
 /** 座位网格，一行三个。里面放 SeatTile 和 EmptySeatTile。 */
 export function SeatGrid({ children }: { children: ReactNode }) {
@@ -49,6 +50,7 @@ export function SeatTile({
   onSelect,
 }: SeatTileProps) {
   const notes = useSeatNotes()
+  const t = useT()
   const note = notes.roleOf(seat)
   return (
     <li className="flex min-w-0 flex-col items-center gap-1.5">
@@ -83,7 +85,7 @@ export function SeatTile({
             <span className="font-mono font-normal text-muted-foreground">{seat.number} </span>
           )}
           {seat.name}
-          {seat.isMe && <span className="font-normal text-muted-foreground"> · 你</span>}
+          {seat.isMe && <span className="font-normal text-muted-foreground">{t.common.youSuffix}</span>}
         </span>
       </Tappable>
       {children}
@@ -94,17 +96,16 @@ export function SeatTile({
 
 /** 大厅里还没人坐的座位。点一下换到这个座位上。 */
 export function EmptySeatTile({ number, onTake }: { number: number; onTake?: () => void }) {
+  const t = useT()
   return (
     <li className="flex min-w-0 flex-col items-center gap-1.5">
-      <Tappable onTap={onTake} label={`${number} 号空座位，换到这里`}>
+      <Tappable onTap={onTake} label={t.seat.emptyLabel(number)}>
         <PlayerAvatar tone="empty">
           <Plus className="size-5" strokeWidth={1.6} />
         </PlayerAvatar>
-        <span className="text-[13px] text-muted-foreground">
-          <span className="font-mono">{number}</span> 空位
-        </span>
+        <span className="text-[13px] text-muted-foreground">{t.seat.emptyName(number)}</span>
       </Tappable>
-      <SeatStatus tone="empty">{onTake ? '点击换座' : '空座位'}</SeatStatus>
+      <SeatStatus tone="empty">{onTake ? t.seat.tapToTake : t.seat.emptySeat}</SeatStatus>
     </li>
   )
 }

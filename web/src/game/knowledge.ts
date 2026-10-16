@@ -1,6 +1,7 @@
 /** 夜里得到的信息，变成给人看的「线索」。 */
 import { CENTER, type Copied, type Knowledge, type PlayerView, type RoleId } from '@/api/types'
-import { mention, type Phrase } from './phrase'
+import { t } from '@/i18n'
+import type { Phrase } from './phrase'
 import { slotLabeler, type SlotLabeler } from './seats'
 
 export interface Clue {
@@ -20,38 +21,33 @@ export function cluesOf(view: PlayerView): Clue[] {
 
 /** 用「我」的口吻描述一条信息。 */
 export function describeKnowledge(fact: Knowledge, me: string, label: SlotLabeler): Phrase {
+  const text = t().clues
   switch (fact.type) {
     case 'saw_card':
-      return fact.slot === me
-        ? ['你现在手里的牌是', mention(fact.role)]
-        : [`${label(fact.slot)}是`, mention(fact.role)]
+      return fact.slot === me ? text.yourCardNow(fact.role) : text.slotIs(label(fact.slot), fact.role)
     case 'saw_players': {
-      const names = fact.players.map(label).join('、')
-      if (fact.step === 'werewolf') return [names ? `你的狼同伴：${names}` : '你是唯一的狼']
-      if (fact.step === 'minion') return [names ? `狼是：${names}` : '没有玩家拿着狼牌']
-      return names
-        ? [`${names}也是`, mention(fact.role)]
-        : ['另一张', mention(fact.role), '在底牌里']
+      const names = fact.players.map(label)
+      if (fact.step === 'werewolf') return text.wolfMates(names)
+      if (fact.step === 'minion') return text.wolvesAre(names)
+      return text.alsoRole(names, fact.role)
     }
     case 'swapped': {
       const [a, b] = fact.slots
-      if (a === me) return [`你和${label(b)}换了牌`]
-      if (b === me) return [`你和${label(a)}换了牌`] // 女巫把底牌换给了自己
-      return [`你交换了${label(a)}和${label(b)}的牌`]
+      if (a === me) return text.youSwappedWith(label(b))
+      if (b === me) return text.youSwappedWith(label(a)) // 女巫把底牌换给了自己
+      return text.youSwapped(label(a), label(b))
     }
     case 'copied':
-      return ['你', ...describeCopy(fact, label)]
+      return text.copied(label(fact.slot), isCenter(fact.slot), fact.step !== 'copycat', fact.role)
   }
 }
 
 /**
- * 「看了 A 号底牌，变成了狼人」（模仿者）、「看了 2 号阿杰的牌，化身成了预言家」（化身幽灵）。
- * 前面不带主语，线索里补「你」，夜间记录里补是谁。
+ * 夜间记录里的「看了 A 号底牌，变成了狼人」（模仿者）、「看了 2 号阿杰的牌，化身成了预言家」（化身幽灵）。
+ * 前面不带主语，由夜间记录补上是谁。
  */
 export function describeCopy(fact: Copied, label: SlotLabeler): Phrase {
-  const looked = isCenter(fact.slot) ? label(fact.slot) : `${label(fact.slot)}的牌`
-  const became = fact.step === 'copycat' ? '变成了' : '化身成了'
-  return [`看了${looked}，${became}`, mention(fact.role)]
+  return t().log.copied(label(fact.slot), isCenter(fact.slot), fact.step !== 'copycat', fact.role)
 }
 
 export interface CenterSightings {

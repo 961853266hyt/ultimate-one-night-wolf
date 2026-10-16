@@ -4,6 +4,7 @@ import { cn } from '@/lib/utils'
 import { ROLES } from '@/roles/catalog'
 import { CardGrid, CardSlot, EmptyCardSlot } from './CardGrid'
 import { RoleButton } from './RoleDetails'
+import { useT } from '@/i18n'
 
 interface DeckTrayProps {
   deck: readonly RoleId[]
@@ -15,6 +16,7 @@ interface DeckTrayProps {
 
 /** 大厅里这局的牌：一张牌一个头像，点头像看介绍。 */
 export function DeckTray({ deck, size, onFill }: DeckTrayProps) {
+  const t = useT()
   const missing = Math.max(0, size - deck.length)
   return (
     <CardGrid>
@@ -24,10 +26,10 @@ export function DeckTray({ deck, size, onFill }: DeckTrayProps) {
       {Array.from({ length: missing }, (_, index) =>
         onFill ? (
           <EmptyCardSlot key={`empty-${index}`} warning onSelect={onFill}>
-            补一张
+            {t.settings.fillOne}
           </EmptyCardSlot>
         ) : (
-          <EmptyCardSlot key={`empty-${index}`}>待补</EmptyCardSlot>
+          <EmptyCardSlot key={`empty-${index}`}>{t.settings.toFill}</EmptyCardSlot>
         ),
       )}
     </CardGrid>
