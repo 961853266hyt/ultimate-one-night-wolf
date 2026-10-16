@@ -23,7 +23,7 @@ interface RoleNameProps {
   interactive?: boolean
 }
 
-/** 角色名，按阵营上色，换行时不拆开。默认可以点开角色详情，虚线下划线提示能点。 */
+/** 角色名，按阵营上色，换行时不拆开。默认可以点开角色详情。 */
 export function RoleName({ role, className, interactive = true }: RoleNameProps) {
   const { name, team } = ROLES[role]
   const style = cn('font-semibold whitespace-nowrap', TEAMS[team].textClass, className)
@@ -31,20 +31,10 @@ export function RoleName({ role, className, interactive = true }: RoleNameProps)
   return (
     <RoleButton
       role={role}
-      className={cn(style, 'underline decoration-current/40 decoration-dotted underline-offset-4')}
+      className={cn(style, 'transition-opacity hover:opacity-70')}
     >
       {name}
     </RoleButton>
-  )
-}
-
-/** 「强盗 → 狼人」：夜里牌被换过就划掉原来的；没换过只显示一个。 */
-export function RoleChange({ from, to }: { from: RoleId; to: RoleId }) {
-  if (from === to) return <RoleName role={to} />
-  return (
-    <span>
-      <s className="text-muted-foreground">{ROLES[from].name}</s> → <RoleName role={to} />
-    </span>
   )
 }
 

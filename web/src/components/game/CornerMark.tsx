@@ -1,15 +1,16 @@
-import { Check, Eye, X } from 'lucide-react'
+import { ArrowLeftRight, Check, Eye, X } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
-export type Mark = 'check' | 'out' | 'seen'
+export type Mark = 'check' | 'out' | 'seen' | 'swapped'
 
 const MARK_STYLE = {
   check: { Icon: Check, className: '-top-1 -right-1 bg-foreground text-background' },
   out: { Icon: X, className: '-right-1 -bottom-1 bg-destructive text-white' },
   seen: { Icon: Eye, className: '-top-1 -left-1 bg-muted-foreground text-background' },
+  swapped: { Icon: ArrowLeftRight, className: '-bottom-1 -left-1 bg-muted-foreground text-background' },
 }
 
-/** 头像或牌角上的小圆标：打勾表示选中，红叉表示出局，眼睛表示夜里看过。父元素要是 relative。 */
+/** 头像或牌角上的小圆标：打勾表示选中，红叉表示出局，眼睛表示夜里看过，双箭头表示夜里被换过牌。父元素要是 relative。 */
 export function CornerMark({ mark }: { mark: Mark }) {
   const { Icon, className } = MARK_STYLE[mark]
   return (

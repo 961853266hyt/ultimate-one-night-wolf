@@ -24,7 +24,8 @@ interface PlayerAvatarProps {
   children?: ReactNode
   tone?: Tone
   selected?: boolean
-  mark?: Mark
+  /** 角上的记号，可以同时挂几个，各在各的角上。 */
+  mark?: Mark | readonly Mark[]
 }
 
 /** 圆形头像，显示座位号或者自己做的角色标记。纯装饰，读屏软件会跳过，名字由旁边的文字提供。 */
@@ -47,7 +48,7 @@ export function PlayerAvatar({
     >
       {note ? (
         // 卡图放大过，只裁图，不裁角上的记号
-        <span className="flex size-full overflow-hidden rounded-full">
+        <span className={cn('flex size-full overflow-hidden rounded-full', tone === 'muted' && 'opacity-55 grayscale')}>
           <RoleFace role={note} />
         </span>
       ) : (
@@ -55,7 +56,9 @@ export function PlayerAvatar({
           {children ?? number}
         </AvatarFallback>
       )}
-      {mark && <CornerMark mark={mark} />}
+      {[mark ?? []].flat().map((one) => (
+        <CornerMark key={one} mark={one} />
+      ))}
     </Avatar>
   )
 }

@@ -1,5 +1,6 @@
 import { Plus } from 'lucide-react'
 import type { ReactNode } from 'react'
+import type { RoleId } from '@/api/types'
 import { Badge } from '@/components/ui/badge'
 import { seatLabel, type Seat } from '@/game/seats'
 import { cn } from '@/lib/utils'
@@ -28,15 +29,17 @@ interface SeatTileProps {
   muted?: boolean
   selected?: boolean
   /** 头像角上的记号。不传时，选中就打勾。 */
-  mark?: Mark
+  mark?: Mark | readonly Mark[]
+  /** 头像上直接画这个角色，盖过备注。揭晓时用：大家都亮了牌。 */
+  role?: RoleId
   /** 传了就能点。 */
   onSelect?: () => void
 }
 
 /**
  * 一个座位：头像和名字，下面可以挂补充信息和状态条。
- * 大厅和揭晓时头像上是座位号；开局之后头像显示身份（见 SeatNotes）：标了就是那个角色，
- * 没标是问号，座位号挪到名字前面。
+ * 大厅里头像上是座位号；开局之后头像显示身份（见 SeatNotes）：标了就是那个角色，
+ * 没标是问号，座位号挪到名字前面。揭晓时由 role 直接给出亮出来的牌。
  */
 export function SeatTile({
   seat,
@@ -47,11 +50,14 @@ export function SeatTile({
   muted = false,
   selected = false,
   mark,
+  role,
   onSelect,
 }: SeatTileProps) {
   const notes = useSeatNotes()
   const t = useT()
-  const note = notes.roleOf(seat)
+  const note = role ?? notes.roleOf(seat)
+  // 头像上画着角色时，座位号挪到名字前面
+  const numberInName = notes.active || role !== undefined
   return (
     <li className="flex min-w-0 flex-col items-center gap-1.5">
       <Tappable onTap={onSelect} pressed={selected} label={seatLabel(seat)}>
@@ -81,7 +87,7 @@ export function SeatTile({
             selected && 'font-semibold',
           )}
         >
-          {notes.active && (
+          {numberInName && (
             <span className="font-mono font-normal text-muted-foreground">{seat.number} </span>
           )}
           {seat.name}

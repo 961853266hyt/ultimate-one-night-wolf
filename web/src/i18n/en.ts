@@ -239,15 +239,16 @@ export const en: Messages = {
   },
 
   reveal: {
-    seatsCaption: 'Dealt card → final card',
     countsAs: 'counts as',
     votedFor: (number) => `voted for #${number}`,
+    votedForShort: (number) => `#${number}`,
     whatHappened: 'What happened at night',
     rematch: 'Play again',
     waitHost: 'Waiting for the host to start the next game…',
     wasRole: (role) => `was ${role}`,
     countsAsRole: (role) => `counts as ${role}`,
     win: 'Won',
+    lose: 'Lost',
     out: 'Out',
     votes: (n) => plural(n, 'vote'),
     youWon: 'You won',

@@ -269,15 +269,16 @@ export const zh = {
   },
 
   reveal: {
-    seatsCaption: '发到的牌 → 最后的牌',
     countsAs: '算作',
     votedFor: (number: number) => `投给 ${number} 号`,
+    votedForShort: (number: number) => `${number} 号`,
     whatHappened: '夜里发生了什么',
     rematch: '再来一局',
     waitHost: '等房主开始下一局…',
     wasRole: (role: string) => `原来是${role}`,
     countsAsRole: (role: string) => `算作${role}`,
     win: '胜',
+    lose: '负',
     out: '出局',
     votes: (n: number) => `${n} 票`,
     youWon: '你赢了',
