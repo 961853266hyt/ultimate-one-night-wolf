@@ -70,6 +70,8 @@ export const zh = {
     roles: '角色介绍',
     teamGroup: (team: string, count: number) => `${team} · ${count}`,
     language: '语言',
+    theme: '外观',
+    themes: { light: '浅色', dark: '深色', system: '跟随系统' },
     feedback: '反馈问题',
     feedbackBody: (version: string, page: string, device: string) =>
       [

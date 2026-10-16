@@ -47,6 +47,8 @@ export const en: Messages = {
     roles: 'Roles',
     teamGroup: (team, count) => `${team} · ${count}`,
     language: 'Language',
+    theme: 'Appearance',
+    themes: { light: 'Light', dark: 'Dark', system: 'System' },
     feedback: 'Report a problem',
     feedbackBody: (version, page, device) =>
       [
