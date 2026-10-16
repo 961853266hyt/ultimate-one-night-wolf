@@ -15,6 +15,8 @@
 - 英文版 README（README.en.md），和中文版互相链接
 - README 里加了截图：夜里叫醒狼人的画面和牌堆里的三张卡背，中英文各一套
 - README 里加了角色进度清单：按官方扩展包列出所有角色，标出已经实现的（目前 14/80）
+- README 末尾加了免责声明：非官方粉丝项目，与 Bezier Games 无关，游戏名是其商标，游戏和卡图版权归其所有
+- 加了 LICENSE：代码以 PolyForm Noncommercial 1.0.0 许可发布，只允许非商业使用，卡图不在许可范围内
 
 ### Changed
 

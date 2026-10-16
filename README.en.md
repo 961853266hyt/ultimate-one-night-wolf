@@ -170,3 +170,9 @@ flowchart LR
   end
   R -. "each player gets only what they may see" .-> P
 ```
+
+## Disclaimer
+
+This is an unofficial fan project. It is not affiliated with, endorsed by, or sponsored by Bezier Games. *One Night Ultimate Werewolf* is a trademark of Bezier Games, and the game and its card art are © Bezier Games.
+
+This project is free and not for commercial use. The code is released under the [PolyForm Noncommercial License 1.0.0](LICENSE), which permits noncommercial use only. The card art is not part of this project and is not covered by the license.

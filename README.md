@@ -160,3 +160,9 @@ flowchart LR
   end
   R -. "每人只收到自己能看的视图" .-> P
 ```
+
+## 声明
+
+这是一个非官方的粉丝项目，与 Bezier Games 无关，也没有得到其授权或认可。《一夜终极狼人》（One Night Ultimate Werewolf）是 Bezier Games 的商标，游戏和卡图的版权归 Bezier Games 所有。
+
+本项目免费、不用于商业用途。代码以 [PolyForm Noncommercial 1.0.0](LICENSE) 许可发布，只允许非商业使用；卡图不属于本项目，不在许可范围内。
