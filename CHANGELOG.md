@@ -12,6 +12,8 @@
 ### Added
 
 - 英文界面：菜单里新加「语言」，可以在中文和 English 之间切换，选过的会记住；没选过时跟着浏览器语言走。英文名用官方的 One Night Ultimate Werewolf，角色名也用官方英文版的叫法
+- 英文版 README（README.en.md），和中文版互相链接
+- README 里加了截图：夜里叫醒狼人的画面和牌堆里的三张卡背，中英文各一套
 
 ### Changed
 

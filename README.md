@@ -1,5 +1,7 @@
 # 一夜终极狼人 · 网页版
 
+简体中文 | [English](README.en.md)
+
 <p align="center">
   <img src="web/public/icon.svg" width="96" alt="">
 </p>
@@ -11,6 +13,13 @@
 </p>
 
 一个自部署的《一夜终极狼人》桌游助手
+
+## 截图
+
+<p align="center">
+  <img src="docs/screenshots/zh-wake.png" width="260" alt="夜里叫醒狼人：全屏显示狼人卡图和「狼人请睁眼」">
+  <img src="docs/screenshots/zh-night.png" width="260" alt="夜里的牌堆：三张带绿光的卡背">
+</p>
 
 ## 部署
 
