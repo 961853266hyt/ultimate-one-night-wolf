@@ -1,5 +1,5 @@
 import { cva, type VariantProps } from 'class-variance-authority'
-import { CircleCheck, WifiOff, type LucideIcon } from 'lucide-react'
+import { CircleCheck, CircleX, WifiOff, type LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 
 const statusVariants = cva(
@@ -12,7 +12,7 @@ const statusVariants = cva(
         offline: 'bg-muted/60 text-muted-foreground',
         empty: 'border-dashed text-muted-foreground',
         win: 'font-medium text-success',
-        out: 'border-destructive/25 bg-destructive/10 font-medium text-destructive',
+        lose: 'font-medium text-destructive',
       },
     },
     defaultVariants: { tone: 'waiting' },
@@ -24,10 +24,11 @@ type Tone = NonNullable<VariantProps<typeof statusVariants>['tone']>
 const TONE_ICON: Partial<Record<Tone, LucideIcon>> = {
   done: CircleCheck,
   win: CircleCheck,
+  lose: CircleX,
   offline: WifiOff,
 }
 
-/** 座位下面的状态条：已就位、已投票、出局…… */
+/** 座位下面的状态条：已就位、已投票、胜负…… */
 export function SeatStatus({ tone = 'waiting', children }: { tone?: Tone; children: ReactNode }) {
   const Icon = TONE_ICON[tone]
   return (

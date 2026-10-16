@@ -65,7 +65,7 @@ export function SeatTile({
           <PlayerAvatar
             number={seat.number}
             note={note}
-            tone={seat.isMe ? 'me' : muted ? 'muted' : 'default'}
+            tone={muted ? 'muted' : 'default'}
             selected={selected}
             mark={mark ?? (selected ? 'check' : undefined)}
           >

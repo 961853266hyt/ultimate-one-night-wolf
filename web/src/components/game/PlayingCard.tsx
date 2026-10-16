@@ -53,12 +53,22 @@ interface CenterCardProps {
   selected?: boolean
   /** 之前夜里翻开看过，现在扣着：牌角画一只眼睛。 */
   seen?: boolean
+  /** 揭晓时这张底牌夜里被换过：牌角画两个箭头。 */
+  swapped?: boolean
   /** 传了就能点。 */
   onSelect?: () => void
 }
 
-/** 一张底牌，下面写着「A 号」。 */
-export function CenterCard({ letter, role, note, selected = false, seen = false, onSelect }: CenterCardProps) {
+/** 一张底牌，下面一个写着 A、B、C 的小圆圈。 */
+export function CenterCard({
+  letter,
+  role,
+  note,
+  selected = false,
+  seen = false,
+  swapped = false,
+  onSelect,
+}: CenterCardProps) {
   const t = useT()
   // 能选的牌本身就是按钮，里面的角色名就不能再点了
   const card = role ? (
@@ -86,12 +96,21 @@ export function CenterCard({ letter, role, note, selected = false, seen = false,
           {seen && <CornerMark mark="seen" />}
         </button>
       ) : (
-        card
+        <span className="relative">
+          {card}
+          {swapped && <CornerMark mark="swapped" />}
+        </span>
       )}
-      <span className={cn('text-sm', selected ? 'font-medium' : 'text-muted-foreground')}>
-        {t.night.centerShort(letter)}
+      {/* 和行动顺序里的序号一样的小圆圈 */}
+      <span
+        className={cn(
+          'flex size-5 items-center justify-center rounded-full font-mono text-[11px] transition-colors',
+          selected ? 'bg-foreground text-background' : 'bg-muted text-muted-foreground',
+        )}
+      >
+        {letter}
       </span>
-      {note && <span className="-mt-1 text-[11px] text-muted-foreground">{note}</span>}
+      {note}
     </li>
   )
 }

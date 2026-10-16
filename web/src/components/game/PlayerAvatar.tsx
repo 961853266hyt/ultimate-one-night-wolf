@@ -5,12 +5,11 @@ import { cn } from '@/lib/utils'
 import { CornerMark, type Mark } from './CornerMark'
 import { RoleFace } from './RoleAvatar'
 
-type Tone = 'default' | 'me' | 'muted' | 'empty'
+type Tone = 'default' | 'muted' | 'empty'
 
 // 边框画在 Avatar 的 ::after 上，所以边框颜色用 after: 来改
 const TONE: Record<Tone, { root: string; fallback: string }> = {
   default: { root: '', fallback: 'text-foreground' },
-  me: { root: 'after:border-foreground', fallback: 'text-foreground' },
   muted: { root: '', fallback: 'bg-muted/40' },
   empty: { root: 'after:border-dashed after:border-muted-foreground/40', fallback: 'bg-transparent' },
 }

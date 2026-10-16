@@ -151,14 +151,17 @@ export function RoleThumbnail({ role, className }: { role: RoleId; className?: s
       ) : (
         <Icon aria-hidden className="m-auto size-7 text-muted-foreground" strokeWidth={1.5} />
       )}
-      {/* 卡图上的英文名缩小后看不清，底下补一条中文名，颜色表示阵营；阵营不固定的用白色 */}
+      {/* 卡图上的英文名缩小后看不清，底下补一条名字，白字，前面的小圆点表示阵营；阵营不固定的不画点 */}
       <span
         className={cn(
           // 英文名比中文长（Troublemaker），两边留白和字距收紧一点；还放不下就在软连字符处断成两行
           'absolute inset-x-0 bottom-0 overflow-hidden bg-linear-to-t from-black/85 via-black/60 to-transparent px-0.5 pt-5 pb-1.5 text-center text-[11px] leading-none font-semibold tracking-tight',
-          teamNote ? 'text-white' : TEAMS[team].textClass,
+          'text-white',
         )}
       >
+        {!teamNote && (
+          <span aria-hidden className={cn('mr-1 inline-block size-1.5 rounded-full align-[2px]', TEAMS[team].dotClass)} />
+        )}
         {name}
       </span>
     </span>
