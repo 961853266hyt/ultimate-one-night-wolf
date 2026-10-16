@@ -21,6 +21,126 @@ A self-hosted companion for the board game *One Night Ultimate Werewolf*
   <img src="docs/screenshots/en-night.png" width="260" alt="The center cards at night: three glowing card backs">
 </p>
 
+## Roles
+
+14 of 80 official roles are implemented.
+
+<details open>
+<summary>One Night Ultimate Werewolf · 12/12</summary>
+
+- [x] Doppelgänger
+- [x] Werewolf
+- [x] Minion
+- [x] Mason
+- [x] Seer
+- [x] Robber
+- [x] Troublemaker
+- [x] Drunk
+- [x] Insomniac
+- [x] Hunter
+- [x] Tanner
+- [x] Villager
+
+</details>
+
+<details>
+<summary>Daybreak · 1/11</summary>
+
+- [ ] Sentinel
+- [ ] Alpha Wolf
+- [ ] Mystic Wolf
+- [ ] Apprentice Seer
+- [ ] Paranormal Investigator
+- [x] Witch
+- [ ] Village Idiot
+- [ ] Revealer
+- [ ] Curator
+- [ ] Dream Wolf
+- [ ] Bodyguard
+
+</details>
+
+<details>
+<summary>Vampire · 1/14</summary>
+
+- [x] Copycat
+- [ ] Vampire
+- [ ] The Count
+- [ ] The Master
+- [ ] Renfield
+- [ ] Diseased
+- [ ] Cupid
+- [ ] Instigator
+- [ ] Priest
+- [ ] Assassin
+- [ ] Apprentice Assassin
+- [ ] Marksman
+- [ ] Pickpocket
+- [ ] Gremlin
+
+</details>
+
+<details>
+<summary>Alien · 0/12</summary>
+
+- [ ] Alien
+- [ ] Synthetic Alien
+- [ ] Cow
+- [ ] Groob
+- [ ] Zerb
+- [ ] Leader
+- [ ] Psychic
+- [ ] Rascal
+- [ ] Exposer
+- [ ] Blob
+- [ ] Mortician
+- [ ] Oracle
+
+</details>
+
+<details>
+<summary>Super Villains · 0/15</summary>
+
+- [ ] Temptress
+- [ ] Dr. Peeker
+- [ ] Rapscallion
+- [ ] Henchman #7
+- [ ] Mirror Man
+- [ ] Evilometer
+- [ ] Annoying Lad
+- [ ] Detector
+- [ ] Role Retriever
+- [ ] Voodoo Lou
+- [ ] Switcheroo
+- [ ] Self-Awareness Girl
+- [ ] Flipper
+- [ ] Mad Scientist
+- [ ] Intern
+
+</details>
+
+<details>
+<summary>Bonus Roles · 0/16</summary>
+
+- [ ] Aura Seer
+- [ ] Cursed
+- [ ] Prince
+- [ ] Apprentice Tanner
+- [ ] Beholder
+- [ ] Thing (That Goes Bump in the Night)
+- [ ] Squire
+- [ ] Body Snatcher
+- [ ] Empath
+- [ ] Nostradamus
+- [ ] Family Man
+- [ ] Windy Wendy
+- [ ] Defender-er
+- [ ] The Sponge
+- [ ] Ricochet Rhino
+- [ ] Innocent Bystander
+
+</details>
+
 ## Deploy
 
 ```bash
