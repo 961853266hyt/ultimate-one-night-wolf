@@ -93,29 +93,12 @@ export function hadVote(result: ResultView): boolean {
   return Object.keys(result.votes).length > 0
 }
 
-/** 标题下面的两句话：谁出局了、最后拿的是什么牌；狼牌最后在谁手里。没投票的局只有一句。 */
-export function outcomeSummary(view: PlayerView, result: ResultView): Phrase[] {
-  const text = t().reveal
-  if (!hadVote(result)) return [[text.noVote]]
-
-  const label = slotLabeler(view)
-
-  const deaths: Phrase = result.deaths.length
-    ? [
-        text.outPrefix,
-        ...joinPhrases(
-          result.deaths.map((id) => text.outItem(label(id), countsAs(result, result.final[id]))),
-          text.listSeparator,
-        ),
-      ]
-    : [text.noOneOut]
-
-  const wolves = seatsOf(view).filter(
-    (seat) => countsAs(result, result.final[seat.id]) === 'werewolf',
-  )
-  const werewolves: Phrase = [text.wolves(wolves.map((seat) => label(seat.id)))]
-
-  return [deaths, werewolves]
+/** 标题下面的两行：谁出局了，狼牌最后在谁手里。没投票的局不用写。 */
+export function outcomeSeats(seats: readonly SeatResult[], result: ResultView) {
+  return {
+    out: seats.filter((seat) => seat.out),
+    wolves: seats.filter((seat) => countsAs(result, seat.final) === 'werewolf'),
+  }
 }
 
 export interface NightLogLine {

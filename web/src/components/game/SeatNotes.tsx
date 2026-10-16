@@ -138,20 +138,25 @@ export function SeatNotesProvider({ view, children }: { view: PlayerView; childr
 /** 座位标题右边的开关：看初始身份还是最终身份。发牌之后才有。 */
 export function IdentitySwitch() {
   const { switchable, identity, setIdentity } = useSeatNotes()
-  const t = useT()
   if (!switchable) return null
+  return <IdentityToggle value={identity} onChange={setIdentity} />
+}
+
+/** 「初始 / 最终」两段的开关，只管样子。揭晓页拿它切换看发到的牌还是最后的牌。 */
+export function IdentityToggle({ value, onChange }: { value: Identity; onChange: (value: Identity) => void }) {
+  const t = useT()
   return (
     <div role="group" aria-label={t.notes.whichIdentity} className="flex gap-0.5 rounded-lg bg-muted p-0.5">
       {(['initial', 'final'] as const).map((option) => (
         <button
           key={option}
           type="button"
-          aria-pressed={identity === option}
+          aria-pressed={value === option}
           aria-label={t.notes.identity[option]}
-          onClick={() => setIdentity(option)}
+          onClick={() => onChange(option)}
           className={cn(
             'h-7 rounded-md px-2.5 text-xs font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
-            identity === option
+            value === option
               ? 'bg-background text-foreground shadow-sm'
               : 'text-muted-foreground hover:text-foreground',
           )}

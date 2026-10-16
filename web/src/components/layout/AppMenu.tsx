@@ -1,8 +1,9 @@
 /**
- * 顶栏右上角的菜单：点开从右边滑出一个抽屉，里面是角色介绍，最底下是版本和作者的落款。首页和房间里共用。
+ * 顶栏右上角的菜单：点开从右边滑出一个抽屉。上面是角色介绍，可以滚动；分割线下面贴底的是通用设置
+ * （语言、深浅色）、反馈问题，最后是版本和作者的落款。首页和房间里共用。
  */
 import { Collapsible } from '@base-ui/react/collapsible'
-import { ChevronDown, Menu, MessageSquareWarning, X } from 'lucide-react'
+import { ChevronDown, Menu, MessageSquareWarning, Moon, Sun, SunMoon, X, type LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { RoleId, Team } from '@/api/types'
 import { RoleAvatar } from '@/components/game/RoleAvatar'
@@ -13,6 +14,7 @@ import { Drawer, DrawerClose, DrawerContent, DrawerTitle, DrawerTrigger } from '
 import { LOCALE_NAME, LOCALES, setLocale, t as tr, useLocale, useT } from '@/i18n'
 import { cn } from '@/lib/utils'
 import { ROLES, TEAMS } from '@/roles/catalog'
+import { setTheme, THEMES, useTheme, type Theme } from '@/theme'
 
 const AUTHOR_URL = 'https://github.com/961853266hyt'
 const SOURCE_URL = `${AUTHOR_URL}/ultimate-one-night-wolf`
@@ -50,7 +52,6 @@ export function AppMenu({ footer }: AppMenuProps) {
         </div>
 
         <div className="flex-1 overflow-y-auto px-5 pt-2 pb-6">
-          <LanguageRow />
           <Fold label={t.menu.roles} className="text-[13px] font-semibold">
             <div className="flex flex-col gap-1 pt-1">
               {ROLES_BY_TEAM.map(({ team, roles }) => (
@@ -68,8 +69,12 @@ export function AppMenu({ footer }: AppMenuProps) {
           </Fold>
         </div>
 
-        {/* 贴在抽屉最底下：反馈问题、房间里的「离开房间」，落款永远在最后 */}
+        {/* 贴在抽屉最底下：通用设置、反馈问题、房间里的「离开房间」，落款永远在最后 */}
         <div className="flex shrink-0 flex-col gap-3 border-t px-5 pt-2 pb-[max(1rem,env(safe-area-inset-bottom))]">
+          <div className="flex flex-col">
+            <LanguageRow />
+            <ThemeRow />
+          </div>
           {/* 和房间里的「离开房间」一样大、一样居中，上下两个按钮的图标和字对齐 */}
           <a
             href={feedbackUrl()}
@@ -131,26 +136,83 @@ function LanguageRow() {
   const t = useT()
   const locale = useLocale()
   return (
-    <div className="flex items-center justify-between gap-3 py-2">
-      <span className="text-[13px] font-semibold text-muted-foreground">{t.menu.language}</span>
-      <div role="group" aria-label={t.menu.language} className="flex gap-0.5 rounded-lg bg-muted p-0.5">
-        {LOCALES.map((option) => (
-          <button
+    <SettingRow label={t.menu.language}>
+      {LOCALES.map((option) => (
+        <SegmentButton
+          key={option}
+          lang={option === 'zh' ? 'zh-CN' : 'en'}
+          pressed={locale === option}
+          onClick={() => setLocale(option)}
+        >
+          {LOCALE_NAME[option]}
+        </SegmentButton>
+      ))}
+    </SettingRow>
+  )
+}
+
+const THEME_ICON: Record<Theme, LucideIcon> = { light: Sun, dark: Moon, system: SunMoon }
+
+/** 深浅色：「外观  ☀ ☾ ◐」，三个图标分别是浅色、深色、跟随系统，读屏软件念 aria-label。 */
+function ThemeRow() {
+  const t = useT()
+  const theme = useTheme()
+  return (
+    <SettingRow label={t.menu.theme}>
+      {THEMES.map((option) => {
+        const Icon = THEME_ICON[option]
+        return (
+          <SegmentButton
             key={option}
-            type="button"
-            lang={option === 'zh' ? 'zh-CN' : 'en'}
-            aria-pressed={locale === option}
-            onClick={() => setLocale(option)}
-            className={cn(
-              'h-7 rounded-md px-2.5 text-xs font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
-              locale === option ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
-            )}
+            pressed={theme === option}
+            onClick={() => setTheme(option)}
+            label={t.menu.themes[option]}
           >
-            {LOCALE_NAME[option]}
-          </button>
-        ))}
+            <Icon aria-hidden className="size-3.5" />
+          </SegmentButton>
+        )
+      })}
+    </SettingRow>
+  )
+}
+
+/** 一行设置：左边灰字标题，右边一组分段按钮。 */
+function SettingRow({ label, children }: { label: string; children: ReactNode }) {
+  return (
+    <div className="flex items-center justify-between gap-3 py-2">
+      <span className="text-[13px] font-semibold text-muted-foreground">{label}</span>
+      <div role="group" aria-label={label} className="flex gap-0.5 rounded-lg bg-muted p-0.5">
+        {children}
       </div>
     </div>
+  )
+}
+
+interface SegmentButtonProps {
+  pressed: boolean
+  onClick: () => void
+  /** 只放图标时，给读屏软件念的名字。 */
+  label?: string
+  lang?: string
+  children: ReactNode
+}
+
+function SegmentButton({ pressed, onClick, label, lang, children }: SegmentButtonProps) {
+  return (
+    <button
+      type="button"
+      lang={lang}
+      aria-pressed={pressed}
+      aria-label={label}
+      title={label}
+      onClick={onClick}
+      className={cn(
+        'flex h-7 min-w-9 items-center justify-center rounded-md px-2.5 text-xs font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
+        pressed ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+      )}
+    >
+      {children}
+    </button>
   )
 }
 

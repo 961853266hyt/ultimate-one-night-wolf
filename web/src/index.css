@@ -49,6 +49,8 @@
 }
 
 .dark {
+  /* 滚动条、输入框这些浏览器自己画的东西也用深色 */
+  color-scheme: dark;
   --background: oklch(0.145 0 0);
   --foreground: oklch(0.985 0 0);
   --card: oklch(0.205 0 0);

@@ -21,6 +21,21 @@ A self-hosted companion for the board game *One Night Ultimate Werewolf*
   <img src="docs/screenshots/en-night.png" width="260" alt="The center cards at night: three glowing card backs">
 </p>
 
+## Create your own card
+
+Send this to an AI coding tool such as Claude Code or Codex, with the card lines changed to your own card:
+
+```text
+Clone https://github.com/961853266hyt/ultimate-one-night-wolf and add a new card for me.
+
+Card: Night Owl
+Team: Village
+Ability: whenever any role wakes up at night, the Night Owl may open their eyes too and see who is awake at that step. Once per night.
+If unused: they can keep their eyes closed all night and nothing happens.
+
+If any rule is unclear, ask me instead of guessing. When it's done, start the front end and back end, turn on debug mode in the room settings, and let me try a game with bots.
+```
+
 ## Roles
 
 14 of 80 official roles are implemented.
