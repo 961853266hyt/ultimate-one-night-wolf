@@ -1,6 +1,6 @@
 [project]
 name = "ultimate-one-night-wolf-server"
-version = "0.9.0"
+version = "0.10.0"
 description = "一夜终极狼人：游戏服务端"
 license = "PolyForm-Noncommercial-1.0.0"
 requires-python = ">=3.13"
