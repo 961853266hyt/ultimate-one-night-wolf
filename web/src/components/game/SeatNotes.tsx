@@ -13,6 +13,7 @@ import { storageKey } from '@/api/session'
 import type { Phase, PlayerView, RoleId } from '@/api/types'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
+import { boxCardsOf, type BoxCard } from '@/game/deck'
 import { centerLetter, type Seat } from '@/game/seats'
 import { cn } from '@/lib/utils'
 import { ROLES } from '@/roles/catalog'
@@ -147,7 +148,7 @@ export function SeatNotesProvider({ view, children }: { view: PlayerView; childr
         title={editing?.title ?? ''}
         identity={identity}
         otherNote={switchable ? otherNote : null}
-        roles={rolesIn(view.room.deck)}
+        cards={boxCardsOf(view.room.deck)}
         note={editing ? notes[identity][editing.id] : undefined}
         onPick={pick}
       />
@@ -219,11 +220,6 @@ function load(key: string): Notes {
   }
 }
 
-/** 这局牌里有哪些角色，每种一个，按角色目录的顺序。 */
-function rolesIn(deck: readonly RoleId[]): RoleId[] {
-  return (Object.keys(ROLES) as RoleId[]).filter((role) => deck.includes(role))
-}
-
 interface NoteDrawerProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -232,7 +228,8 @@ interface NoteDrawerProps {
   identity: Identity
   /** 另一套标了什么，写在标题下面作参考；发牌时只有一套，就是 null。 */
   otherNote: string | null
-  roles: readonly RoleId[]
+  /** 本局的每一张牌，重复的角色有几张就列几张：抽屉也拿来看这局配了什么。 */
+  cards: readonly BoxCard[]
   note: RoleId | undefined
   /** 选了一个角色；null 是清除标记。 */
   onPick: (role: RoleId | null) => void
@@ -244,7 +241,7 @@ function NoteDrawer({
   title,
   identity,
   otherNote,
-  roles,
+  cards,
   note,
   onPick,
 }: NoteDrawerProps) {
@@ -261,20 +258,24 @@ function NoteDrawer({
             {otherNote}
           </p>
         </DrawerHeader>
-        <div className="flex flex-col gap-6 px-5 pt-4 pb-[max(2rem,env(safe-area-inset-bottom))]">
+        <div className="flex flex-col gap-3.5 px-5 pt-4 pb-[max(2rem,env(safe-area-inset-bottom))]">
+          <h3 className="text-[13px] font-semibold text-muted-foreground">
+            {t.settings.inGame} · {t.settings.cardsOf(cards.length)}
+          </h3>
           <CardGrid>
-            {roles.map((role) => (
+            {cards.map((card) => (
               <CardSlot
-                key={role}
-                role={role}
-                onSelect={() => onPick(role)}
-                selectLabel={t.notes.markAs(ROLES[role].name)}
-                corner={role === note ? <PickedMark /> : undefined}
+                key={card.id}
+                role={card.role}
+                onSelect={() => onPick(card.role)}
+                selectLabel={t.notes.markAs(ROLES[card.role].name)}
+                // 同一种角色有好几张时，只在第一张上打勾
+                corner={card.role === note && card.copy === 1 ? <PickedMark /> : undefined}
               />
             ))}
           </CardGrid>
           {note && (
-            <Button variant="outline" size="xl" onClick={() => onPick(null)}>
+            <Button variant="outline" size="xl" className="mt-2.5" onClick={() => onPick(null)}>
               {t.notes.clear}
             </Button>
           )}
