@@ -12,6 +12,7 @@ import { Dialog, DialogClose, DialogContent, DialogTitle } from '@/components/ui
 import { cn } from '@/lib/utils'
 import { CardBack } from './PlayingCard'
 import { RoleArtCard } from './RoleArtCard'
+import { RoleButton } from './RoleDetails'
 import { useT } from '@/i18n'
 
 interface CenterPeekProps {
@@ -50,7 +51,6 @@ type PeekCardProps = Omit<CenterPeekProps, 'slot' | 'onClose'>
 
 function PeekCard({ letter, role, canFlip, hint, onFlip }: PeekCardProps) {
   const [requested, setRequested] = useState(false)
-  const [expanded, setExpanded] = useState(false)
   const faceUp = role !== undefined
   const waiting = requested && !faceUp
   const t = useT()
@@ -87,7 +87,11 @@ function PeekCard({ letter, role, canFlip, hint, onFlip }: PeekCardProps) {
             </CardBack>
           </button>
           <div className="absolute inset-0 rotate-y-180 backface-hidden">
-            {role && <RoleArtCard role={role} expanded={expanded} onToggle={() => setExpanded(!expanded)} />}
+            {role && (
+              <RoleButton role={role} className="rounded-[24px]">
+                <RoleArtCard role={role} />
+              </RoleButton>
+            )}
           </div>
         </div>
       </div>

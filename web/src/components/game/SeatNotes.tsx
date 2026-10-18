@@ -3,6 +3,7 @@
  *
  * 每个人有两套身份可以标：发到的牌（初始身份）和夜里换完之后的牌（最终身份）。座位标题右边的开关
  * 切换看哪一套，点头像标的也是正在看的那一套。自己的初始身份就是发到的牌，直接显示，不用标。
+ * 白天讨论时，三张底牌也能这样标，跟着同一个开关。
  *
  * 只是自己的备忘：存在这台设备上，不发给服务器，别人看不到。刷新不丢，回到大厅（下一局之前）清空。
  * 开局之后到投票都显示；揭晓时大家都亮了牌，就不显示了。
@@ -12,7 +13,8 @@ import { storageKey } from '@/api/session'
 import type { Phase, PlayerView, RoleId } from '@/api/types'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
-import type { Seat } from '@/game/seats'
+import { boxCardsOf, type BoxCard } from '@/game/deck'
+import { centerLetter, type Seat } from '@/game/seats'
 import { cn } from '@/lib/utils'
 import { ROLES } from '@/roles/catalog'
 import { CardGrid, CardSlot } from './CardGrid'
@@ -40,6 +42,18 @@ interface SeatNotesValue {
   canEdit: (seat: Seat) => boolean
   /** 打开抽屉，给这个座位标正在看的那一套。 */
   edit: (seat: Seat) => void
+  /** 底牌在正在看的那一套里标的是什么角色，没标就是 undefined。 */
+  roleOfCenter: (slot: string) => RoleId | undefined
+  /** 打开抽屉，给这张底牌标正在看的那一套。 */
+  editCenter: (slot: string) => void
+}
+
+/** 正在标的是谁：一个座位或者一张底牌。 */
+interface NoteTarget {
+  id: string
+  /** 抽屉的标题，比如「给 2 号添加备注」。 */
+  title: string
+  isMe: boolean
 }
 
 const SeatNotesContext = createContext<SeatNotesValue>({
@@ -50,6 +64,8 @@ const SeatNotesContext = createContext<SeatNotesValue>({
   roleOf: () => undefined,
   canEdit: () => false,
   edit: () => {},
+  roleOfCenter: () => undefined,
+  editCenter: () => {},
 })
 
 export function useSeatNotes(): SeatNotesValue {
@@ -76,7 +92,7 @@ export function SeatNotesProvider({ view, children }: { view: PlayerView; childr
   const known = view.me.known_dealt
 
   // 抽屉关上时还留着是谁，收起的动画里标题不会突然变空
-  const [editing, setEditing] = useState<Seat | null>(null)
+  const [editing, setEditing] = useState<NoteTarget | null>(null)
   const t = useT()
   const [open, setOpen] = useState(false)
 
@@ -96,11 +112,16 @@ export function SeatNotesProvider({ view, children }: { view: PlayerView; childr
       roleOf: (seat) => (active ? roleIn(identity, seat) : undefined),
       canEdit: (seat) => !knownIn(identity, seat),
       edit: (seat) => {
-        setEditing(seat)
+        setEditing({ id: seat.id, title: seat.isMe ? t.notes.addForSelf : t.notes.addFor(seat.number), isMe: seat.isMe })
+        setOpen(true)
+      },
+      roleOfCenter: (slot) => (active ? notes[identity][slot] : undefined),
+      editCenter: (slot) => {
+        setEditing({ id: slot, title: t.notes.addForCenter(centerLetter(slot)), isMe: false })
         setOpen(true)
       },
     }
-  }, [active, identity, switchable, notes, myCard, known])
+  }, [active, identity, switchable, notes, myCard, known, t])
 
   const pick = (role: RoleId | null) => {
     if (editing) {
@@ -124,10 +145,10 @@ export function SeatNotesProvider({ view, children }: { view: PlayerView; childr
       <NoteDrawer
         open={open}
         onOpenChange={setOpen}
-        seat={editing}
+        title={editing?.title ?? ''}
         identity={identity}
         otherNote={switchable ? otherNote : null}
-        roles={rolesIn(view.room.deck)}
+        cards={boxCardsOf(view.room.deck)}
         note={editing ? notes[identity][editing.id] : undefined}
         onPick={pick}
       />
@@ -199,20 +220,16 @@ function load(key: string): Notes {
   }
 }
 
-/** 这局牌里有哪些角色，每种一个，按角色目录的顺序。 */
-function rolesIn(deck: readonly RoleId[]): RoleId[] {
-  return (Object.keys(ROLES) as RoleId[]).filter((role) => deck.includes(role))
-}
-
 interface NoteDrawerProps {
   open: boolean
   onOpenChange: (open: boolean) => void
-  seat: Seat | null
+  title: string
   /** 标的是哪一套。 */
   identity: Identity
   /** 另一套标了什么，写在标题下面作参考；发牌时只有一套，就是 null。 */
   otherNote: string | null
-  roles: readonly RoleId[]
+  /** 本局的每一张牌，重复的角色有几张就列几张：抽屉也拿来看这局配了什么。 */
+  cards: readonly BoxCard[]
   note: RoleId | undefined
   /** 选了一个角色；null 是清除标记。 */
   onPick: (role: RoleId | null) => void
@@ -221,10 +238,10 @@ interface NoteDrawerProps {
 function NoteDrawer({
   open,
   onOpenChange,
-  seat,
+  title,
   identity,
   otherNote,
-  roles,
+  cards,
   note,
   onPick,
 }: NoteDrawerProps) {
@@ -233,9 +250,7 @@ function NoteDrawer({
     <Drawer open={open} onOpenChange={onOpenChange} showSwipeHandle>
       <DrawerContent className="mx-auto w-full max-w-md">
         <DrawerHeader className="items-center gap-1.5">
-          <DrawerTitle>
-            {seat && (seat.isMe ? t.notes.addForSelf : t.notes.addFor(seat.number))}
-          </DrawerTitle>
+          <DrawerTitle>{title}</DrawerTitle>
           <p className="flex items-center gap-2 text-xs text-muted-foreground">
             <span className="rounded-full bg-foreground px-2 py-0.5 font-medium text-background">
               {t.notes.identity[identity]}
@@ -243,20 +258,24 @@ function NoteDrawer({
             {otherNote}
           </p>
         </DrawerHeader>
-        <div className="flex flex-col gap-6 px-5 pt-4 pb-[max(2rem,env(safe-area-inset-bottom))]">
+        <div className="flex flex-col gap-3.5 px-5 pt-4 pb-[max(2rem,env(safe-area-inset-bottom))]">
+          <h3 className="text-[13px] font-semibold text-muted-foreground">
+            {t.settings.inGame} · {t.settings.cardsOf(cards.length)}
+          </h3>
           <CardGrid>
-            {roles.map((role) => (
+            {cards.map((card) => (
               <CardSlot
-                key={role}
-                role={role}
-                onSelect={() => onPick(role)}
-                selectLabel={t.notes.markAs(ROLES[role].name)}
-                corner={role === note ? <PickedMark /> : undefined}
+                key={card.id}
+                role={card.role}
+                onSelect={() => onPick(card.role)}
+                selectLabel={t.notes.markAs(ROLES[card.role].name)}
+                // 同一种角色有好几张时，只在第一张上打勾
+                corner={card.role === note && card.copy === 1 ? <PickedMark /> : undefined}
               />
             ))}
           </CardGrid>
           {note && (
-            <Button variant="outline" size="xl" onClick={() => onPick(null)}>
+            <Button variant="outline" size="xl" className="mt-2.5" onClick={() => onPick(null)}>
               {t.notes.clear}
             </Button>
           )}

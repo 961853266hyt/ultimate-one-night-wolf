@@ -7,10 +7,6 @@ const list = (items: readonly string[]) => items.join(', ')
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? '' : 's'}`
 /** Labels like "you" or "center card A" start a sentence in lower case. */
 const cap = (text: string) => text.charAt(0).toUpperCase() + text.slice(1)
-const ordinal = (n: number) => {
-  const suffix = n % 100 >= 11 && n % 100 <= 13 ? 'th' : (['th', 'st', 'nd', 'rd'][n % 10] ?? 'th')
-  return `${n}${suffix}`
-}
 const copyClause = (looked: string, center: boolean, doppelganger: boolean) =>
   `looked at ${center ? looked : `${looked}'s card`} and ${doppelganger ? 'turned into ' : 'became '}`
 
@@ -219,6 +215,7 @@ export const en: Messages = {
   day: {
     nightOrder: "Tonight's wake order",
     seatsCaption: (identity) => `Tap someone to note their ${identity.toLowerCase()}`,
+    centerCaption: (identity) => `Tap a card to note its ${identity.toLowerCase()}`,
     readyDone: 'Ready',
     discussing: 'Discussing',
     readyButton: 'Start the vote',
@@ -283,14 +280,13 @@ export const en: Messages = {
     other: (identity, role) => `${identity}: ${role}`,
     addForSelf: 'Add a note for yourself',
     addFor: (number) => `Add a note for #${number}`,
+    addForCenter: (letter) => `Add a note for center card ${letter}`,
     markAs: (role) => `Mark as ${role}`,
     clear: 'Clear note',
   },
 
   card: {
     art: (name) => `${name} card`,
-    wakeOrder: (order) => (order ? `Wakes ${ordinal(order)} at night` : "Doesn't wake at night"),
-    details: 'Role details',
   },
 
   errors: {

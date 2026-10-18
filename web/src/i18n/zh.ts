@@ -248,6 +248,7 @@ export const zh = {
   day: {
     nightOrder: '今晚的行动顺序',
     seatsCaption: (identity: string) => `点头像备注${identity}`,
+    centerCaption: (identity: string) => `点牌备注${identity}`,
     readyDone: '可以投了',
     discussing: '讨论中',
     readyButton: '开始公投',
@@ -317,14 +318,13 @@ export const zh = {
     other: (identity: string, role: string) => `${identity}：${role}`,
     addForSelf: '给自己添加备注',
     addFor: (number: number) => `给 ${number} 号添加备注`,
+    addForCenter: (letter: string) => `给 ${letter} 号底牌添加备注`,
     markAs: (role: string) => `标记为${role}`,
     clear: '清除备注',
   },
 
   card: {
     art: (name: string) => `${name}的卡牌`,
-    wakeOrder: (order: number | null) => (order ? `夜里第 ${order} 个醒` : '夜里不醒'),
-    details: '角色说明',
   },
 
   errors: {

@@ -20,9 +20,3 @@ export const NIGHT_ORDER: readonly RoleId[] = [
 export function nightPlan(deck: readonly RoleId[]): RoleId[] {
   return NIGHT_ORDER.filter((role) => deck.includes(role))
 }
-
-/** 这个角色这局夜里第几个醒，从 1 开始；夜里不醒就是 null。 */
-export function wakeOrder(deck: readonly RoleId[], role: RoleId): number | null {
-  const index = nightPlan(deck).indexOf(role)
-  return index >= 0 ? index + 1 : null
-}
