@@ -51,6 +51,12 @@ class ReadyToVote(BaseModel):
     type: Literal["ready_to_vote"] = "ready_to_vote"
 
 
+class EndSpeech(BaseModel):
+    """白天轮流发言时，说完了交给下一个。房主也能替正在发言的人结束。"""
+
+    type: Literal["end_speech"] = "end_speech"
+
+
 class Vote(BaseModel):
     type: Literal["vote"] = "vote"
     target: PlayerId
@@ -70,6 +76,7 @@ Command = Annotated[
     | NightAction
     | EndStep
     | ReadyToVote
+    | EndSpeech
     | Vote
     | Rematch,
     Field(discriminator="type"),

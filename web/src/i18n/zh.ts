@@ -163,6 +163,9 @@ export const zh = {
     seconds: (n: number) => `${n} 秒`,
     secondsShort: (n: number) => `${n}s`,
     selfVote: '可以投自己',
+    speechRounds: '发言轮数',
+    speechOff: '关',
+    speechRoundsLabel: (n: number) => (n ? `${n} 轮` : '不排顺序'),
     debug: '调试模式',
     box: '牌库',
     inGame: '本局',
@@ -179,8 +182,8 @@ export const zh = {
     atMost: (n: number) => `最多 ${n} 张牌`,
     overviewRoles: '角色 · 点头像看介绍',
     overviewNightOrder: '夜里的醒来顺序',
-    overviewRest: (seats: number, nightStep: number, selfVote: boolean, debug: boolean) =>
-      `房间 ${seats} 人 · ${debug ? '调试模式，夜里不计时' : `夜间操作时间 ${nightStep} 秒`} · ${selfVote ? '可以' : '不能'}投自己，房主可以调整`,
+    overviewRest: (seats: number, nightStep: number, selfVote: boolean, debug: boolean, speechRounds: number) =>
+      `房间 ${seats} 人 · ${debug ? '调试模式，夜里不计时' : `夜间操作时间 ${nightStep} 秒`} · ${speechRounds ? `白天轮流发言 ${speechRounds} 轮` : '白天自由讨论'} · ${selfVote ? '可以' : '不能'}投自己，房主可以调整`,
     fillOne: '补一张',
     toFill: '待补',
     summaryTitle: (seats: number, cards: string) => `${seats} 人局 · ${cards}`,
@@ -252,6 +255,10 @@ export const zh = {
     readyDone: '可以投了',
     discussing: '讨论中',
     readyButton: '开始公投',
+    speaking: (round: number, rounds: number) => `第 ${round}/${rounds} 轮 · `,
+    speakingSuffix: ' 发言中',
+    endSpeech: '结束发言',
+    endSpeechFor: (label: string) => `结束 ${label} 的发言`,
     waitOthers: '等其他人…',
   },
 

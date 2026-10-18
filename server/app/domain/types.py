@@ -56,6 +56,8 @@ class Settings(BaseModel):
     deck: list[RoleId] | None = None  # None 表示按座位数自动推荐
     timings: Timings = Field(default_factory=Timings)
     self_vote: bool = True  # 能不能投自己。官方规则不能，这里默认放开，房主可以关掉
+    # 白天按座位顺序轮流发言几轮，随机一个人先说；0 是不排顺序，自由讨论
+    speech_rounds: int = Field(default=3, ge=0, le=5)
     # 调试模式，给开发者一个人测试用：空座位坐上机器人，由房主替它们操作；夜里不限时，手动结束每一步
     debug: bool = False
 

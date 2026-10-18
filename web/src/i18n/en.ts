@@ -132,6 +132,9 @@ export const en: Messages = {
     seconds: (n) => plural(n, 'second'),
     secondsShort: (n) => `${n}s`,
     selfVote: 'Can vote for yourself',
+    speechRounds: 'Speaking rounds',
+    speechOff: 'Off',
+    speechRoundsLabel: (n) => (n ? plural(n, 'round') : 'No speaking order'),
     debug: 'Debug mode',
     box: 'Card box',
     inGame: 'This game',
@@ -148,8 +151,8 @@ export const en: Messages = {
     atMost: (n) => `At most ${n} cards`,
     overviewRoles: 'Roles · tap one for details',
     overviewNightOrder: 'Night wake order',
-    overviewRest: (seats, nightStep, selfVote, debug) =>
-      `${plural(seats, 'player')} · ${debug ? 'debug mode, no night timer' : `${nightStep}s per night step`} · voting for yourself ${selfVote ? 'allowed' : 'not allowed'}. The host can change these.`,
+    overviewRest: (seats, nightStep, selfVote, debug, speechRounds) =>
+      `${plural(seats, 'player')} · ${debug ? 'debug mode, no night timer' : `${nightStep}s per night step`} · ${speechRounds ? `${plural(speechRounds, 'speaking round')} by day` : 'free discussion by day'} · voting for yourself ${selfVote ? 'allowed' : 'not allowed'}. The host can change these.`,
     fillOne: 'Add one',
     toFill: 'Needed',
     summaryTitle: (seats, cards) => `${seats}-player game · ${cards}`,
@@ -219,6 +222,10 @@ export const en: Messages = {
     readyDone: 'Ready',
     discussing: 'Discussing',
     readyButton: 'Start the vote',
+    speaking: (round, rounds) => `Round ${round}/${rounds} · `,
+    speakingSuffix: ' is speaking',
+    endSpeech: 'Done speaking',
+    endSpeechFor: (label) => `End ${label}'s turn`,
     waitOthers: 'Waiting for the others…',
   },
 

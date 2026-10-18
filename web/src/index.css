@@ -203,6 +203,26 @@
   84% { opacity: 0.7; transform: scale(1); }
 }
 
+/* 白天轮流发言时，正在发言的人头像外面一圈红色微光，慢慢明暗起伏 */
+@utility speaking-glow {
+  box-shadow:
+    0 0 0 2px color-mix(in oklch, var(--destructive) 70%, transparent),
+    0 0 14px 3px color-mix(in oklch, var(--destructive) 40%, transparent);
+  animation: speaking-glow 1.8s ease-in-out infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+}
+
+@keyframes speaking-glow {
+  50% {
+    box-shadow:
+      0 0 0 2px color-mix(in oklch, var(--destructive) 55%, transparent),
+      0 0 22px 6px color-mix(in oklch, var(--destructive) 25%, transparent);
+  }
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

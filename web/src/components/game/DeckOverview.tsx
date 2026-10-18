@@ -15,6 +15,7 @@ interface DeckOverviewProps {
   need: number
   nightStep: number
   selfVote: boolean
+  speechRounds: number
   debug: boolean
 }
 
@@ -26,6 +27,7 @@ export function DeckOverview({
   need,
   nightStep,
   selfVote,
+  speechRounds,
   debug,
 }: DeckOverviewProps) {
   const plan = nightPlan(deck)
@@ -52,7 +54,7 @@ export function DeckOverview({
             </section>
           )}
           <p className="text-sm text-muted-foreground">
-            {t.settings.overviewRest(seats, nightStep, selfVote, debug)}
+            {t.settings.overviewRest(seats, nightStep, selfVote, debug, speechRounds)}
           </p>
         </div>
       </DrawerContent>

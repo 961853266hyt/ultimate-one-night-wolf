@@ -28,6 +28,8 @@ interface SeatTileProps {
   /** 置灰：离线、出局。 */
   muted?: boolean
   selected?: boolean
+  /** 白天轮流发言时，正在发言的人。 */
+  speaking?: boolean
   /** 头像角上的记号。不传时，选中就打勾。 */
   mark?: Mark | readonly Mark[]
   /** 头像上直接画这个角色，盖过备注。揭晓时用：大家都亮了牌。 */
@@ -49,6 +51,7 @@ export function SeatTile({
   children,
   muted = false,
   selected = false,
+  speaking = false,
   mark,
   role,
   onSelect,
@@ -67,6 +70,7 @@ export function SeatTile({
             note={note}
             tone={muted ? 'muted' : 'default'}
             selected={selected}
+            speaking={speaking}
             mark={mark ?? (selected ? 'check' : undefined)}
           >
             {notes.active && !note ? <span className="text-muted-foreground">?</span> : undefined}
