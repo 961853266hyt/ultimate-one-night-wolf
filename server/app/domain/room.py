@@ -10,6 +10,7 @@ from .commands import (
     Command,
     Configure,
     ConfirmCard,
+    EndSpeech,
     EndStep,
     Kick,
     Leave,
@@ -162,6 +163,8 @@ class Room(BaseModel):
                 self._current_game().night_action(player, targets)
             case ReadyToVote():
                 self._current_game().ready_to_vote(player, now)
+            case EndSpeech():
+                self._current_game().end_speech(player, now, by_host=player == self.host)
             case Vote(target=target):
                 self._current_game().vote(player, target, now)
             case EndStep():
@@ -213,6 +216,7 @@ class Room(BaseModel):
             settings.timings,
             rng,
             self_vote=settings.self_vote,
+            speech_rounds=settings.speech_rounds,
             manual_steps=settings.debug,
         )
 

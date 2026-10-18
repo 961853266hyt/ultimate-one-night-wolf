@@ -1,5 +1,5 @@
 /**
- * 房主调整本局设置。最上面是房间人数、夜间操作时间、能不能投自己和调试模式；中间是牌库，点一下放进本局；
+ * 房主调整本局设置。最上面是房间人数、夜间操作时间、白天发言轮数、能不能投自己和调试模式；中间是牌库，点一下放进本局；
  * 下面是本局，点「−」放回牌库，点头像看介绍。
  *
  * 守夜人这类要成对放的牌，点一张另一张跟着进出。改完点「保存设置」才发给服务端，中途关掉就当没改过。
@@ -32,6 +32,8 @@ interface DeckEditorProps {
   nightStep: number
   /** 能不能投自己，现在的设置。 */
   selfVote: boolean
+  /** 白天轮流发言几轮，0 是不排顺序，现在的设置。 */
+  speechRounds: number
   /** 调试模式开没开，现在的设置。 */
   debug: boolean
   /** 点「保存设置」时调用。牌和按座位数推荐的一样时 deck 传 null，之后改座位数，牌会自动跟着变。 */
@@ -47,6 +49,7 @@ export function DeckEditor({
   recommended,
   nightStep,
   selfVote,
+  speechRounds,
   debug,
   onSave,
 }: DeckEditorProps) {
@@ -61,6 +64,7 @@ export function DeckEditor({
           recommended={recommended}
           nightStep={nightStep}
           selfVote={selfVote}
+          speechRounds={speechRounds}
           debug={debug}
           onSave={(settings) => {
             onSave(settings)
@@ -81,15 +85,26 @@ const SECTION_LABEL = 'text-[13px] font-semibold text-muted-foreground'
 
 type BodyProps = Pick<
   DeckEditorProps,
-  'deck' | 'seats' | 'occupied' | 'recommended' | 'nightStep' | 'selfVote' | 'debug' | 'onSave'
+  'deck' | 'seats' | 'occupied' | 'recommended' | 'nightStep' | 'selfVote' | 'speechRounds' | 'debug' | 'onSave'
 >
 
-function DeckEditorBody({ deck, seats, occupied, recommended, nightStep, selfVote, debug, onSave }: BodyProps) {
+function DeckEditorBody({
+  deck,
+  seats,
+  occupied,
+  recommended,
+  nightStep,
+  selfVote,
+  speechRounds,
+  debug,
+  onSave,
+}: BodyProps) {
   // 存牌盒里的 id 而不是角色：同一种角色的几张也分得清，牌库里点了哪张，就是哪张空出来
   const [picked, setPicked] = useState(() => idsOf(deck))
   const [size, setSize] = useState(seats)
   const [step, setStep] = useState(nightStep)
   const [canVoteSelf, setCanVoteSelf] = useState(selfVote)
+  const [rounds, setRounds] = useState(speechRounds)
   const [debugMode, setDebugMode] = useState(debug)
   const t = useT()
   const need = deckSizeFor(size)
@@ -134,6 +149,10 @@ function DeckEditorBody({ deck, seats, occupied, recommended, nightStep, selfVot
           <div className="flex items-center justify-between gap-3">
             <h3 className={SECTION_LABEL}>{t.settings.nightTime}</h3>
             <NightStepPicker value={step} onChange={setStep} />
+          </div>
+          <div className="flex items-center justify-between gap-3">
+            <h3 className={SECTION_LABEL}>{t.settings.speechRounds}</h3>
+            <RoundsPicker value={rounds} onChange={setRounds} />
           </div>
           <label className="flex items-center justify-between gap-3">
             <span className={SECTION_LABEL}>{t.settings.selfVote}</span>
@@ -211,6 +230,7 @@ function DeckEditorBody({ deck, seats, occupied, recommended, nightStep, selfVot
               deck: isRecommended ? null : chosen,
               timings: { night_step: step },
               self_vote: canVoteSelf,
+              speech_rounds: rounds,
               debug: debugMode,
             })
           }
@@ -269,6 +289,31 @@ function NightStepPicker({ value, onChange }: { value: number; onChange: (value:
           )}
         >
           {t.settings.secondsShort(option)}
+        </button>
+      ))}
+    </div>
+  )
+}
+
+/** 白天轮流发言几轮：关、1 到 5 轮。服务端允许 0–5。 */
+function RoundsPicker({ value, onChange }: { value: number; onChange: (value: number) => void }) {
+  const t = useT()
+  return (
+    <div role="group" aria-label={t.settings.speechRounds} className="flex gap-0.5 rounded-lg bg-muted p-0.5">
+      {[0, 1, 2, 3, 4, 5].map((option) => (
+        <button
+          key={option}
+          type="button"
+          aria-pressed={value === option}
+          aria-label={t.settings.speechRoundsLabel(option)}
+          onClick={() => onChange(option)}
+          className={cn(
+            'h-7 min-w-8 rounded-md px-1.5 text-xs font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
+            option > 0 && 'font-mono',
+            value === option ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+          )}
+        >
+          {option || t.settings.speechOff}
         </button>
       ))}
     </div>

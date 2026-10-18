@@ -16,6 +16,7 @@ export type ClientMessage =
   | ConfirmCard
   | NightAction
   | EndStep
+  | EndSpeech
   | ReadyToVote
   | Vote
   | Rematch;
@@ -87,6 +88,7 @@ export interface Settings {
   deck: RoleId[] | null;
   timings: Timings;
   self_vote: boolean;
+  speech_rounds: number;
   debug: boolean;
 }
 /**
@@ -124,6 +126,12 @@ export interface NightAction {
  */
 export interface EndStep {
   type: "end_step";
+}
+/**
+ * 白天轮流发言时，说完了交给下一个。房主也能替正在发言的人结束。
+ */
+export interface EndSpeech {
+  type: "end_speech";
 }
 export interface ReadyToVote {
   type: "ready_to_vote";
@@ -165,6 +173,7 @@ export interface RoomView {
   };
   timings: Timings;
   self_vote: boolean;
+  speech_rounds: number;
   debug: boolean;
 }
 export interface MemberView {
@@ -249,6 +258,9 @@ export interface NightView {
 }
 export interface DayView {
   ready: string[];
+  speaker: string | null;
+  speech_round: number;
+  speech_rounds: number;
 }
 export interface VoteView {
   voted: string[];
