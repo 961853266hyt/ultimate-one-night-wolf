@@ -42,11 +42,11 @@ def test_a_step_never_ends_early_even_after_the_actor_has_acted():
     assert game.night_role is R.SEER
 
 
-def test_a_deck_without_waking_roles_goes_straight_to_day():
-    # 皮匠在玩家手里；玩家全是好人的话会直接揭晓，见 test_game
+def test_a_deck_without_waking_roles_skips_the_night():
+    # 没人醒，看完牌就天亮；玩家手里没有狼人阵营，按家规直接揭晓，见 test_game
     game = new_game(R.VILLAGER, R.VILLAGER, R.TANNER, R.HUNTER, R.VILLAGER, R.VILLAGER)
     skip(game)
-    assert game.phase is Phase.DAY
+    assert game.phase is Phase.REVEAL and game.night_log == []
 
 
 def test_only_the_player_whose_turn_it_is_may_act():

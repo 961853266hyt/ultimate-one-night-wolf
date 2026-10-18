@@ -26,9 +26,16 @@ def resolve(
     )
 
 
-def all_village(cards: dict[Slot, RoleId], players: list[PlayerId]) -> bool:
-    """玩家手里全是好人阵营的牌：没有狼人、爪牙，也没有皮匠。"""
-    return all(ROLES[cards[p]].team is Team.VILLAGE for p in players)
+def no_werewolf_team(cards: dict[Slot, RoleId], players: list[PlayerId]) -> bool:
+    """玩家手里没有狼人阵营的牌（狼人、爪牙）：只剩好人，可能还有皮匠。"""
+    return all(ROLES[cards[p]].team is not Team.WEREWOLF for p in players)
+
+
+def everyone_wins(cards: dict[Slot, RoleId], players: list[PlayerId]) -> Result:
+    """家规：夜里过后玩家手里没有狼人阵营，不讨论也不投票，所有人一起赢，皮匠也算。"""
+    held = {ROLES[cards[p]].team for p in players}
+    teams = [team for team in (Team.VILLAGE, Team.TANNER) if team in held]
+    return Result(deaths=[], winning_teams=teams, winners=list(players))
 
 
 def lynched(votes: dict[PlayerId, PlayerId]) -> set[PlayerId]:

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 import { RoleCard } from '@/components/game/RoleCard'
 import { useSeatNotes } from '@/components/game/SeatNotes'
 import { SeatGrid, SeatTile } from '@/components/game/SeatGrid'
@@ -15,10 +15,11 @@ export function DealPhase({ view, send }: PhaseProps) {
   const confirmed = new Set(view.deal?.confirmed)
   const card = view.me.card
   const done = confirmed.has(view.me.id)
-  const [revealed, setRevealed] = useState(false)
+  const [held, setHeld] = useState(false)
   const notes = useSeatNotes()
-  // 已经点过「我记住了」，比如刷新了页面，就直接翻开
-  const faceUp = revealed || done
+  // 按住看过一次才能点「我记住了」；已经点过了（比如刷新了页面）也算看过
+  const seen = held || done
+  const markSeen = useCallback(() => setHeld(true), [])
   const t = useT()
 
   return (
@@ -26,11 +27,7 @@ export function DealPhase({ view, send }: PhaseProps) {
       <PageContent>
         {card ? (
           <Section title={t.deal.yourCard}>
-            <RoleCard
-              role={card}
-              revealed={faceUp}
-              onReveal={() => setRevealed(true)}
-            />
+            <RoleCard role={card} onSeen={markSeen} />
           </Section>
         ) : (
           <PageTitle title={t.deal.alreadyStarted} description={t.deal.waitNext} />
@@ -54,10 +51,10 @@ export function DealPhase({ view, send }: PhaseProps) {
 
       {card && (
         <PageFooter>
-          {/* 先翻开看过才能点 */}
+          {/* 先按住看过才能点 */}
           <Button
             size="xl"
-            disabled={done || !faceUp}
+            disabled={done || !seen}
             onClick={() => send({ type: 'confirm_card' })}
           >
             {done ? t.deal.waitOthers : t.deal.remembered}

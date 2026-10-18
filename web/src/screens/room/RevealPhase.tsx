@@ -47,8 +47,9 @@ export function RevealPhase({ view, send }: PhaseProps) {
     <>
       <PageContent>
         <ResultBanner
-          headline={headline(result)}
-          team={result.winning_teams.length === 1 ? winner : null}
+          // 没投票的局按家规大家一起赢，皮匠也算
+          headline={voted ? headline(result) : t.reveal.everyoneWins}
+          team={voted && result.winning_teams.length === 1 ? winner : null}
           outcome={played ? (won ? 'won' : 'lost') : null}
         >
           {voted ? (

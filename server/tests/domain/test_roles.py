@@ -3,8 +3,8 @@ import pytest
 from app.domain.errors import ErrorCode, RuleError
 from app.domain.night import NIGHT_ORDER
 from app.domain.roles import ROLES, Role
+from app.domain.types import CENTER, SawCard, SawPlayers, Swapped
 from app.domain.types import RoleId as R
-from app.domain.types import SawCard, SawPlayers, Swapped
 from tests.domain.helpers import new_game, night_until, skip
 
 
@@ -35,7 +35,7 @@ def test_werewolves_see_each_other_and_cannot_peek():
     assert game.prompt_for("p0") is None
 
 
-def test_lone_wolf_may_peek_at_one_center_card():
+def test_lone_wolf_peeks_at_one_center_card():
     game = new_game(R.WEREWOLF, R.SEER, R.VILLAGER, R.WEREWOLF, R.ROBBER, R.DRUNK)
     night_until(game, R.WEREWOLF)
     assert game.knowledge["p0"] == [SawPlayers(step=R.WEREWOLF, role=R.WEREWOLF, players=[])]
@@ -44,11 +44,27 @@ def test_lone_wolf_may_peek_at_one_center_card():
     assert game.knowledge["p0"][-1] == SawCard(step=R.WEREWOLF, slot="C0", role=R.WEREWOLF)
 
 
+def test_lone_wolf_must_peek_so_the_system_picks_a_card_on_timeout():
+    game = new_game(R.WEREWOLF, R.SEER, R.VILLAGER, R.WEREWOLF, R.ROBBER, R.DRUNK)
+    night_until(game, R.WEREWOLF)
+    prompt = game.prompt_for("p0")
+    assert prompt is not None and prompt.required
+
+    skip(game)  # 到时间还没选
+    [entry] = [e for e in game.night_log if e.step is R.WEREWOLF]
+    assert entry.auto and entry.player == "p0" and entry.targets[0] in CENTER
+    assert isinstance(game.knowledge["p0"][-1], SawCard)
+
+
 def test_minion_sees_the_wolf_but_the_wolf_does_not_see_the_minion():
     game = new_game(R.WEREWOLF, R.MINION, R.VILLAGER, R.SEER, R.ROBBER, R.DRUNK)
     night_until(game, R.MINION)
     assert game.knowledge["p1"] == [SawPlayers(step=R.MINION, role=R.WEREWOLF, players=["p0"])]
-    assert game.knowledge["p0"] == [SawPlayers(step=R.WEREWOLF, role=R.WEREWOLF, players=[])]
+    # 狼只知道自己是独狼（之后看的那张底牌不算），不知道爪牙
+    assert game.knowledge["p0"][0] == SawPlayers(step=R.WEREWOLF, role=R.WEREWOLF, players=[])
+    assert not any(
+        isinstance(fact, SawPlayers) and fact.role is R.MINION for fact in game.knowledge["p0"]
+    )
 
 
 def test_minion_learns_when_every_wolf_is_in_the_center():
@@ -106,7 +122,7 @@ def test_a_seer_who_stops_after_one_center_card_sees_another_at_random():
     game.night_action("p0", ["C1"])
     skip(game)
 
-    first, second = game.night_log
+    first, second = actions(game, R.SEER)
     assert not first.auto and second.auto
     [slot] = second.targets
     assert slot in ("C0", "C2")
@@ -162,7 +178,7 @@ def test_a_robber_who_does_nothing_robs_someone_at_random():
     night_until(game, R.ROBBER)
     skip(game)
 
-    [entry] = game.night_log
+    [entry] = actions(game, R.ROBBER)
     assert entry.auto and entry.step is R.ROBBER
     [target] = entry.targets
     assert target in ("p1", "p2")  # 只抢其他玩家，不抢自己，也不抢底牌
@@ -171,6 +187,11 @@ def test_a_robber_who_does_nothing_robs_someone_at_random():
         Swapped(step=R.ROBBER, slots=("p0", target)),
         SawCard(step=R.ROBBER, slot="p0", role=game.cards["p0"]),
     ]
+
+
+def actions(game, step: R) -> list:
+    """夜里某个角色那一步的行动记录。独狼那一步到时间会自动翻一张底牌，和别的角色无关，先滤掉。"""
+    return [entry for entry in game.night_log if entry.step is step]
 
 
 def witch_game():
@@ -214,7 +235,7 @@ def test_witch_must_look_at_a_center_card_first():
 def test_a_witch_who_does_not_look_changes_nothing():
     game = witch_game()
     skip(game)
-    assert game.night_log == []
+    assert actions(game, R.WITCH) == []
     assert game.cards == game.dealt
 
 
@@ -223,7 +244,7 @@ def test_a_witch_who_looks_but_does_not_swap_is_swapped_at_random():
     game.night_action("p0", ["C0"])
     skip(game)
 
-    look, swap = game.night_log
+    look, swap = actions(game, R.WITCH)
     assert not look.auto and swap.auto
     [target] = swap.targets
     assert game.cards[target] is R.SEER  # 看到的那张换到了被选中的人手里
@@ -233,7 +254,7 @@ def test_each_night_log_entry_keeps_what_that_action_revealed():
     game = witch_game()
     game.night_action("p0", ["C0"])
     game.night_action("p0", ["p0"])
-    look, swap = game.night_log
+    look, swap = actions(game, R.WITCH)
     assert look.learned == [SawCard(step=R.WITCH, slot="C0", role=R.SEER)]
     assert swap.learned == [
         Swapped(step=R.WITCH, slots=("C0", "p0")),
@@ -269,7 +290,7 @@ def test_a_drunk_who_does_nothing_is_swapped_at_random():
     night_until(game, R.DRUNK)
     skip(game)
 
-    [entry] = game.night_log
+    [entry] = actions(game, R.DRUNK)
     assert entry.auto and entry.step is R.DRUNK
     assert game.cards[entry.targets[0]] is R.DRUNK
     assert not any(isinstance(fact, SawCard) for fact in game.knowledge["p0"])

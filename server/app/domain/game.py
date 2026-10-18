@@ -3,7 +3,8 @@
 白天可以按座位顺序轮流发言：开局时随机定谁先说，轮到的人说完点「结束发言」交给下一个，
 说满几轮就进入投票。不排顺序时自由讨论，所有人都同意投票才进入投票。
 
-夜里过后玩家手里全是好人，就跳过 day 和 vote 直接 reveal，好人赢。这是家规，官方规则照样投票。
+夜里过后玩家手里没有狼人阵营的牌（只剩好人，可能还有皮匠），就跳过 day 和 vote 直接 reveal，
+所有人一起赢，皮匠也算。这是家规，官方规则照样投票。
 
 时间（now）和随机数（rng）都由调用方传入，这里不读时钟，也不用全局随机数。
 """
@@ -291,8 +292,8 @@ class Game(BaseModel):
 
     def _end_night(self, now: float) -> None:
         # 看的是夜里换完之后的牌：酒鬼可能从底牌换来一张狼
-        if rules.all_village(self.final_roles(), self.players):
-            self._reveal()  # 没有票，没人出局，好人赢
+        if rules.no_werewolf_team(self.final_roles(), self.players):
+            self._reveal(everyone_wins=True)  # 没有票，没人出局，大家一起赢
         else:
             self._enter_day(now)
 
@@ -304,7 +305,10 @@ class Game(BaseModel):
         self.phase = Phase.VOTE
         self.ends_at = None  # 投票也不限时，所有人都投完才揭晓
 
-    def _reveal(self) -> None:
-        self.result = rules.resolve(self.final_roles(), self.players, self.votes)
+    def _reveal(self, everyone_wins: bool = False) -> None:
+        if everyone_wins:
+            self.result = rules.everyone_wins(self.final_roles(), self.players)
+        else:
+            self.result = rules.resolve(self.final_roles(), self.players, self.votes)
         self.phase = Phase.REVEAL
         self.ends_at = None

@@ -1,7 +1,7 @@
 /**
  * 用官方卡图做的角色牌，三种：
  * - RoleArtCard：只有卡图的大牌，看牌时翻开的牌、夜里放大的底牌用它，点一下打开角色详情
- * - RoleDetailCard：一样大的牌，底下写着名字、阵营和角色介绍，角色详情弹窗用它
+ * - RoleDetailCard：一样大的牌，底下写着名字、阵营和角色介绍，角色详情弹窗用它；小号的给看牌时按住查看用
  * - RoleThumbnail：小的缩略图，揭晓时的底牌用它
  */
 import type { RoleId } from '@/api/types'
@@ -22,6 +22,10 @@ export function RoleArtCard({ role, className }: { role: RoleId; className?: str
 
 interface RoleDetailCardProps {
   role: RoleId
+  /** md 是详情弹窗里的大牌（296px）；sm 是看牌时按住查看的小牌（208px），字跟着小一号。 */
+  size?: 'md' | 'sm'
+  /** 阴影之类。 */
+  className?: string
   /** 角色名和介绍的 id，弹窗拿去做 aria-labelledby、aria-describedby。 */
   titleId?: string
   descriptionId?: string
@@ -32,36 +36,62 @@ interface RoleDetailCardProps {
  * 介绍短的露出更多卡图，长的（化身幽灵）往上多盖一些，牌的大小都一样。
  * 套一层 dark：不管页面是浅色还是深色，牌都是深色的，阵营色取深色主题的值。
  */
-export function RoleDetailCard({ role, titleId, descriptionId }: RoleDetailCardProps) {
+export function RoleDetailCard({ role, size = 'md', className, titleId, descriptionId }: RoleDetailCardProps) {
   const { name, team, ability, teamNote } = ROLES[role]
   const { name: teamName, textClass } = TEAMS[team]
+  const s = DETAIL_SIZES[size]
   return (
-    <div className="dark relative isolate aspect-[200/274] w-74 overflow-hidden rounded-[24px] bg-card text-card-foreground shadow-2xl">
+    <div
+      className={cn(
+        'dark relative isolate aspect-[200/274] overflow-hidden bg-card text-card-foreground shadow-2xl',
+        s.card,
+        className,
+      )}
+    >
       <CardArt role={role} />
       {/* 文字底下垫一层从下往上的渐变：文字那一截是实色，上面一截慢慢透出卡图 */}
-      <div className="absolute inset-x-0 bottom-0 flex flex-col gap-3 bg-linear-to-t from-card from-55% to-transparent px-5.5 pt-20 pb-6">
+      <div className={cn('absolute inset-x-0 bottom-0 flex flex-col bg-linear-to-t from-card from-55% to-transparent', s.body)}>
         {/* 阵营放在名字右边，放不下（英文的化身幽灵）就换到下一行 */}
         <div className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1">
-          <h2 id={titleId} className="text-[26px] leading-8 font-semibold tracking-wide whitespace-nowrap">
+          <h2 id={titleId} className={cn('font-semibold tracking-wide whitespace-nowrap', s.name)}>
             {name}
           </h2>
           {/* 化身幽灵的阵营不固定，写一句说明；皮匠自成一队，队名就是角色名，不重复写 */}
           {teamNote ? (
-            <span className="text-xs text-muted-foreground">{teamNote}</span>
+            <span className={cn('text-muted-foreground', s.team)}>{teamNote}</span>
           ) : (
             teamName !== name && (
-              <span className={cn('shrink-0 rounded-full bg-current/15 px-2.5 py-0.5 text-xs', textClass)}>
+              <span className={cn('shrink-0 rounded-full bg-current/15 px-2.5 py-0.5', s.team, textClass)}>
                 {teamName}
               </span>
             )
           )}
         </div>
-        <p id={descriptionId} className={isLong(ability) ? 'text-[13px] leading-normal' : 'text-[15px] leading-relaxed'}>
+        <p id={descriptionId} className={isLong(ability) ? s.longAbility : s.ability}>
           {ability}
         </p>
       </div>
     </div>
   )
+}
+
+const DETAIL_SIZES = {
+  md: {
+    card: 'w-74 rounded-[24px]',
+    body: 'gap-3 px-5.5 pt-20 pb-6',
+    name: 'text-[26px] leading-8',
+    team: 'text-xs',
+    ability: 'text-[15px] leading-relaxed',
+    longAbility: 'text-[13px] leading-normal',
+  },
+  sm: {
+    card: 'w-52 rounded-[17px]',
+    body: 'gap-2 px-4 pt-10 pb-4',
+    name: 'text-xl leading-7',
+    team: 'text-[11px]',
+    ability: 'text-[13px] leading-normal',
+    longAbility: 'text-[11px] leading-snug',
+  },
 }
 
 /**
