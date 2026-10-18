@@ -6,7 +6,6 @@ import { SeatProgress } from '@/components/game/SeatStatus'
 import { PageContent, PageFooter } from '@/components/layout/Page'
 import { PageTitle, Section } from '@/components/layout/Section'
 import { Button } from '@/components/ui/button'
-import { wakeOrder } from '@/game/night'
 import { seatsOf } from '@/game/seats'
 import type { PhaseProps } from './types'
 import { useT } from '@/i18n'
@@ -29,7 +28,6 @@ export function DealPhase({ view, send }: PhaseProps) {
           <Section title={t.deal.yourCard}>
             <RoleCard
               role={card}
-              wakeOrder={wakeOrder(view.room.deck, card)}
               revealed={faceUp}
               onReveal={() => setRevealed(true)}
             />

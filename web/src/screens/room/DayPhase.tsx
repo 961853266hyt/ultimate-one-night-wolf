@@ -1,5 +1,7 @@
+import { CENTER } from '@/api/types'
 import { ClueCard } from '@/components/game/Clues'
 import { NightOrder } from '@/components/game/Deck'
+import { CenterCard, CenterCardRow } from '@/components/game/PlayingCard'
 import { IdentitySwitch, useSeatNotes } from '@/components/game/SeatNotes'
 import { SeatGrid, SeatTile } from '@/components/game/SeatGrid'
 import { SeatProgress } from '@/components/game/SeatStatus'
@@ -8,7 +10,7 @@ import { Section } from '@/components/layout/Section'
 import { Button } from '@/components/ui/button'
 import { cluesOf } from '@/game/knowledge'
 import { nightPlan } from '@/game/night'
-import { seatsOf } from '@/game/seats'
+import { centerLetter, seatsOf } from '@/game/seats'
 import type { PhaseProps } from './types'
 import { useT } from '@/i18n'
 
@@ -31,6 +33,24 @@ export function DayPhase({ view, send }: PhaseProps) {
             <NightOrder roles={plan} />
           </Section>
         )}
+
+        {/* 底牌也能备注，跟着座位那边的「初始 / 最终」开关 */}
+        <Section
+          title={t.common.centerCards}
+          caption={t.day.centerCaption(t.notes.identity[notes.identity])}
+          action={<IdentitySwitch />}
+        >
+          <CenterCardRow>
+            {CENTER.map((slot) => (
+              <CenterCard
+                key={slot}
+                letter={centerLetter(slot)}
+                role={notes.roleOfCenter(slot)}
+                onSelect={() => notes.editCenter(slot)}
+              />
+            ))}
+          </CenterCardRow>
+        </Section>
 
         <Section
           title={t.common.seats}
