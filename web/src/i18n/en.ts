@@ -169,7 +169,7 @@ export const en: Messages = {
     looking: 'Looking…',
     remembered: 'Got it',
     waitOthers: 'Waiting for the others…',
-    flipYourCard: 'Flip your card',
+    holdToView: 'Hold to view',
     tapToFlip: 'Tap to flip',
   },
 
@@ -259,7 +259,8 @@ export const en: Messages = {
     youLost: 'You lost',
     autoPicked: 'Auto-picked',
     headline: (teams) => (teams.length ? `${teams.join(' & ')} ${teams.length === 1 ? 'wins' : 'win'}` : 'Nobody wins'),
-    noVote: 'After the night everyone held a village card, so there was no vote',
+    noVote: 'After the night no player held a werewolf-team card, so there was no vote',
+    everyoneWins: 'Everyone wins',
     outLabel: 'Out',
     noOneOut: 'Nobody is out',
     wolvesLabel: 'Werewolves',
@@ -371,9 +372,9 @@ export const en: Messages = {
     },
     werewolf: {
       name: 'Werewolf',
-      summary: 'Find each other; a lone werewolf may look at 1 center card',
-      ability: 'Wakes with the other werewolves to see each other. A lone werewolf may look at one center card.',
-      promptHint: () => "You're the only werewolf. You may flip 1 center card.",
+      summary: 'Find each other; a lone werewolf looks at 1 center card',
+      ability: 'Wakes with the other werewolves to see each other. A lone werewolf must look at one center card; if time runs out, one is picked at random.',
+      promptHint: () => "You're the only werewolf. Flip 1 center card (required).",
     },
     minion: {
       name: 'Minion',

@@ -87,7 +87,7 @@ export function headline(result: ResultView): string {
 
 /**
  * 这局投没投票。投票要全员投完才揭晓，所以一张票都没有，
- * 就是夜里过后玩家全是好人、天一亮直接结束的那种局。
+ * 就是夜里过后玩家手里没有狼人阵营（只剩好人，可能还有皮匠）、天一亮直接结束、大家一起赢的那种局。
  */
 export function hadVote(result: ResultView): boolean {
   return Object.keys(result.votes).length > 0

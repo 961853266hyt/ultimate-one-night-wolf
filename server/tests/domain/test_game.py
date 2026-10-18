@@ -57,11 +57,24 @@ def test_if_every_player_ends_the_night_on_the_village_side_the_village_wins_wit
     )
 
 
-@pytest.mark.parametrize("role", [R.MINION, R.TANNER])
-def test_a_minion_or_tanner_among_the_players_still_means_a_vote(role):
-    game = new_game(role, R.SEER, R.VILLAGER, R.WEREWOLF, R.WEREWOLF, R.ROBBER)
+def test_a_minion_among_the_players_still_means_a_vote():
+    game = new_game(R.MINION, R.SEER, R.VILLAGER, R.WEREWOLF, R.WEREWOLF, R.ROBBER)
     until_phase(game, Phase.DAY)
     assert game.result is None
+
+
+def test_with_only_the_village_and_a_tanner_left_everyone_wins_without_a_vote():
+    # 狼都在底牌里，玩家手里只有好人和皮匠：天一亮就揭晓，大家一起赢，皮匠也算
+    game = new_game(R.TANNER, R.SEER, R.VILLAGER, R.WEREWOLF, R.WEREWOLF, R.ROBBER)
+    phases = []
+    while game.phase is not Phase.REVEAL:
+        phases.append(game.phase)
+        skip(game)
+
+    assert Phase.DAY not in phases and game.votes == {}
+    assert game.result == Result(
+        deaths=[], winning_teams=[Team.VILLAGE, Team.TANNER], winners=["p0", "p1", "p2"]
+    )
 
 
 def test_the_check_uses_the_cards_after_the_night():

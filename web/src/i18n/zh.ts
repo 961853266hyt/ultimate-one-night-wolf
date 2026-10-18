@@ -201,7 +201,7 @@ export const zh = {
     looking: '看牌中…',
     remembered: '我记住了',
     waitOthers: '等其他人看完…',
-    flipYourCard: '翻开你的身份',
+    holdToView: '按住查看',
     tapToFlip: '点一下翻开',
   },
 
@@ -293,7 +293,8 @@ export const zh = {
     youLost: '你输了',
     autoPicked: '超时代选',
     headline: (teams: readonly string[]) => (teams.length ? `${list(teams)}获胜` : '没有人获胜'),
-    noVote: '夜里过后玩家手里全是好人，不用投票',
+    noVote: '夜里过后场上没有狼人阵营，不用投票',
+    everyoneWins: '大家一起赢',
     outLabel: '出局',
     noOneOut: '没有人出局',
     wolvesLabel: '狼人',
@@ -408,9 +409,9 @@ export const zh = {
     },
     werewolf: {
       name: '狼人',
-      summary: '和同伴互认；独狼能看 1 张底牌',
-      ability: '夜里和其他狼互相确认。如果只有你一只狼，可以看一张底牌。',
-      promptHint: () => '你是唯一的狼，可以点 1 张底牌翻开看看',
+      summary: '和同伴互认；独狼要看 1 张底牌',
+      ability: '夜里和其他狼互相确认。如果只有你一只狼，必须看一张底牌，到时间没选会随机替你翻一张。',
+      promptHint: () => '你是唯一的狼，点 1 张底牌翻开看看（必须选）',
     },
     minion: {
       name: '爪牙',
