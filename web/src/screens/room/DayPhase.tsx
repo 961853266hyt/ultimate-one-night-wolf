@@ -113,10 +113,6 @@ export function DayPhase({ view, send }: PhaseProps) {
                 onClick={() => send({ type: 'ready_to_vote' })}
               >
                 {done ? t.day.waitOthers : t.day.readyButton}
-                {/* 几个人已经同意开始投票 */}
-                <span className="font-mono opacity-60">
-                  {ready.size}/{seats.length}
-                </span>
               </Button>
               {mySpeech && (
                 <Button size="xl" className="flex-1" onClick={() => send({ type: 'end_speech' })}>
