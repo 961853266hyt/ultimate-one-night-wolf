@@ -35,6 +35,17 @@ class RoomSummary(BaseModel):
     joinable: bool
 
 
+class OpenRoom(BaseModel):
+    """「房间」列表里的一个房间：谁开的、来了几个人、配了什么牌。"""
+
+    code: str
+    host: str  # 房主的名字
+    phase: Phase  # lobby 是等开局，reveal 是一局刚结束、等下一局
+    players: int
+    seats: int
+    deck: list[RoleId]
+
+
 class RoleInfo(BaseModel):
     id: RoleId
     team: Team
@@ -88,6 +99,25 @@ async def create_room(
     if code is None:
         raise HTTPException(503, "too_many_rooms")
     return CreateRoomOut(code=code)
+
+
+@router.get("/rooms")
+async def open_rooms(request: Request) -> list[OpenRoom]:
+    """现在能加入的房间，快坐满的排前面。不用身份就能看。"""
+    rooms = [actor.room for actor in _manager(request).all() if not actor.closed]
+    listed = [room for room in rooms if room.is_open()]
+    listed.sort(key=lambda room: (room.settings.seats - len(room.members), room.code))
+    return [
+        OpenRoom(
+            code=room.code,
+            host=host.name if (host := room.member(room.host)) else "",
+            phase=room.phase,
+            players=len(room.members),
+            seats=room.settings.seats,
+            deck=room.deck(),
+        )
+        for room in listed
+    ]
 
 
 @router.get("/rooms/{code}")

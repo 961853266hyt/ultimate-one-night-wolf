@@ -290,3 +290,30 @@ def test_a_room_survives_a_json_round_trip():
     room = new_room(3)
     room.handle("p0", Start(), 0, RNG)
     assert Room.model_validate_json(room.model_dump_json()) == room
+
+
+# ---------------------------------------------------------------- 「房间」列表
+
+
+def test_a_room_is_listed_while_it_has_a_free_seat_and_someone_online():
+    room = Room.create("ABCD", "p0", "p0", 0)
+    assert not room.is_open()  # 房主还没连上来
+    room.connect("p0", "p0", 0)
+    assert room.is_open()
+    room.connect("p1", "p1", 0)
+    room.connect("p2", "p2", 0)
+    assert not room.is_open()  # 3 个座位坐满了
+
+
+def test_a_room_in_the_middle_of_a_game_is_not_listed():
+    room = new_room(3)
+    room.handle("p0", Start(), 0, RNG)
+    room.handle("p2", Leave(), 0, RNG)  # 中途走了也只是离线，座位留到这局结束
+    assert not room.is_open()
+
+
+def test_a_room_left_to_people_who_went_offline_is_not_listed():
+    room = Room.create("ABCD", "p0", "p0", 0)
+    room.connect("p0", "p0", 0)
+    room.disconnect("p0", 5)
+    assert not room.is_open()

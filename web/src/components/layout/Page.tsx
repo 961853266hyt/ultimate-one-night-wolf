@@ -9,11 +9,11 @@ interface Props {
 /**
  * 手机竖屏的一页。桌面上居中，宽度和手机差不多。
  *
- * 里面依次放：顶栏（可选）、PageContent、PageFooter。
+ * 里面依次放：顶栏（可选）、PageContent、PageFooter。底下给固定在屏幕底部的标签栏让出位置。
  */
 export function Page({ children, className }: Props) {
   return (
-    <div className={cn('mx-auto flex min-h-dvh w-full max-w-md flex-col bg-background', className)}>
+    <div className={cn('mx-auto flex min-h-dvh w-full max-w-md flex-col bg-background pb-[calc(var(--tab-bar-height)+1rem)]', className)}>
       {children}
     </div>
   )
@@ -26,12 +26,13 @@ export function PageContent({ children, className }: Props) {
   )
 }
 
-/** 贴在屏幕底部的操作区，放主按钮。会避开全面屏手机底部的横条。 */
+/** 贴在屏幕底部的操作区，放主按钮。停在标签栏上面，全面屏底部的横条由标签栏让开。 */
 export function PageFooter({ children, className }: Props) {
   return (
     <footer
       className={cn(
-        'sticky bottom-0 z-10 flex flex-col gap-2.5 bg-background/95 px-5 pt-3 pb-[max(1.75rem,env(safe-area-inset-bottom))] backdrop-blur',
+        // 底下多留的 1.5rem 给标签栏中间高出来的圆按钮
+        'sticky bottom-(--tab-bar-height) z-10 flex flex-col gap-2.5 bg-background/95 px-5 pt-3 pb-6 backdrop-blur',
         className,
       )}
     >

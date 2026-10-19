@@ -17,11 +17,32 @@ export const en: Messages = {
     cannotConnect: "Can't reach the server. Please refresh in a moment.",
   },
 
+  tabs: {
+    label: 'Pages',
+    home: 'Home',
+    roles: 'Roles',
+    rooms: 'Rooms',
+    settings: 'Settings',
+    yourTurn: "It's your turn in the room",
+    play: 'Create or join a room',
+  },
+
+  rooms: {
+    empty: 'Not a single wolf hair in here',
+    title: (host) => `${host}'s room`,
+    players: (n, seats) => `${n}/${seats} players`,
+    lobby: 'Waiting to start',
+    reveal: 'A game just ended',
+    playing: 'Game in progress',
+    back: (code) => `Back to room ${code}`,
+    playersOnly: (n) => plural(n, 'player'),
+    failed: "Can't reach the server, retrying…",
+  },
+
   common: {
     close: 'Close',
     cancel: 'Cancel',
     confirm: 'Confirm',
-    menu: 'Menu',
     seats: 'Seats',
     centerCards: 'Center cards',
     youSuffix: ' · you',
@@ -40,7 +61,6 @@ export const en: Messages = {
   },
 
   menu: {
-    roles: 'Roles',
     teamGroup: (team, count) => `${team} · ${count}`,
     language: 'Language',
     theme: 'Appearance',
@@ -73,6 +93,7 @@ export const en: Messages = {
     everyoneOpenEyes: 'Everyone, open your eyes',
     leaveRoom: 'Leave room',
     leaveTitle: "This game isn't over yet. Leave anyway?",
+    leaveTitleIdle: 'Leave this room?',
     leaveDescription: 'Your seat is kept until the game ends.',
     leave: 'Leave',
     stay: 'Stay',

@@ -12,7 +12,7 @@ interface NameFieldProps {
   autoFocus?: boolean
 }
 
-/** 「你的名字」输入框，首页和直接打开房间链接时都用它。标签只给屏幕阅读器，看得见的是占位文字。 */
+/** 「你的名字」输入框，首页、直接打开房间链接时、标签栏的「加入房间」都用它。标签只给屏幕阅读器，看得见的是占位文字。 */
 export function NameField({ value, onChange, autoFocus }: NameFieldProps) {
   const id = useId()
   const t = useT()
