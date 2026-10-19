@@ -3,7 +3,7 @@
  * （语言、深浅色）、反馈问题，最后是版本和作者的落款。首页和房间里共用。
  */
 import { Collapsible } from '@base-ui/react/collapsible'
-import { ChevronDown, Menu, MessageSquareWarning, Moon, Sun, SunMoon, X, type LucideIcon } from 'lucide-react'
+import { ChevronDown, Menu, MessageSquareWarning, Monitor, Moon, Sun, X, type LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import type { RoleId, Team } from '@/api/types'
 import { RoleAvatar } from '@/components/game/RoleAvatar'
@@ -151,9 +151,9 @@ function LanguageRow() {
   )
 }
 
-const THEME_ICON: Record<Theme, LucideIcon> = { light: Sun, dark: Moon, system: SunMoon }
+const THEME_ICON: Record<Theme, LucideIcon> = { light: Sun, dark: Moon, system: Monitor }
 
-/** 深浅色：「外观  ☀ ☾ ◐」，三个图标分别是浅色、深色、跟随系统，读屏软件念 aria-label。 */
+/** 深浅色：「外观  ☀ ☾ 🖥」，三个图标分别是浅色、深色、跟随系统（电脑），读屏软件念 aria-label。 */
 function ThemeRow() {
   const t = useT()
   const theme = useTheme()
