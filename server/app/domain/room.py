@@ -93,9 +93,14 @@ class Room(BaseModel):
         return min(deadlines, default=None)
 
     def is_open(self) -> bool:
-        """能在「房间」列表里看到、点进来就能坐下：在大厅里或者一局刚结束，还有空座位，有真人在线。"""
+        """能在「房间」列表里看到、点进来就能坐下：公开房间，在大厅里或者一局刚结束，还有空座位，有真人在线。"""
         in_between = self.phase in (Phase.LOBBY, Phase.REVEAL)
-        return in_between and self._free_seat() is not None and self._someone_online()
+        return (
+            self.settings.public
+            and in_between
+            and self._free_seat() is not None
+            and self._someone_online()
+        )
 
     def expires_at(self) -> float | None:
         """所有人都离线时，房间在这个时间之后可以销毁。"""

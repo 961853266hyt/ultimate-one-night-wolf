@@ -156,6 +156,7 @@ export const en: Messages = {
     speechRounds: 'Speaking rounds',
     speechOff: 'Off',
     speechRoundsLabel: (n) => (n ? plural(n, 'round') : 'No speaking order'),
+    public: 'Public room',
     debug: 'Debug mode',
     box: 'Card box',
     inGame: 'This game',
@@ -172,8 +173,8 @@ export const en: Messages = {
     atMost: (n) => `At most ${n} cards`,
     overviewRoles: 'Roles · tap one for details',
     overviewNightOrder: 'Night wake order',
-    overviewRest: (seats, nightStep, selfVote, debug, speechRounds) =>
-      `${plural(seats, 'player')} · ${debug ? 'debug mode, no night timer' : `${nightStep}s per night step`} · ${speechRounds ? `${plural(speechRounds, 'speaking round')} by day` : 'free discussion by day'} · voting for yourself ${selfVote ? 'allowed' : 'not allowed'}. The host can change these.`,
+    overviewRest: (seats, nightStep, selfVote, debug, speechRounds, isPublic) =>
+      `${plural(seats, 'player')} · ${debug ? 'debug mode, no night timer' : `${nightStep}s per night step`} · ${speechRounds ? `${plural(speechRounds, 'speaking round')} by day` : 'free discussion by day'} · voting for yourself ${selfVote ? 'allowed' : 'not allowed'} · ${isPublic ? 'public room' : 'private, join by code'}. The host can change these.`,
     fillOne: 'Add one',
     toFill: 'Needed',
     summaryTitle: (seats, cards) => `${seats}-player game · ${cards}`,

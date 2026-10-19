@@ -317,3 +317,12 @@ def test_a_room_left_to_people_who_went_offline_is_not_listed():
     room.connect("p0", "p0", 0)
     room.disconnect("p0", 5)
     assert not room.is_open()
+
+
+def test_a_private_room_is_not_listed():
+    room = Room.create("ABCD", "p0", "p0", 0)
+    room.connect("p0", "p0", 0)
+    room.handle("p0", Configure(settings=Settings(public=False)), 0, RNG)
+    assert not room.is_open()
+    room.connect("p1", "p1", 0)  # 拿着房间号还是进得来
+    assert room.member("p1") is not None
