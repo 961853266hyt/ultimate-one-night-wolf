@@ -313,6 +313,8 @@ export const en: Messages = {
     addForCenter: (letter) => `Add a note for center card ${letter}`,
     markAs: (role) => `Mark as ${role}`,
     clear: 'Clear note',
+    text: 'Notes',
+    listTitle: 'My notes',
   },
 
   card: {

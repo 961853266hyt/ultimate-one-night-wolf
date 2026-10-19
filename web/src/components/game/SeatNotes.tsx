@@ -5,12 +5,16 @@
  * 切换看哪一套，点头像标的也是正在看的那一套。自己的初始身份就是发到的牌，直接显示，不用标。
  * 白天讨论时，三张底牌也能这样标，跟着同一个开关。
  *
+ * 座位还能写一段笔记，不分初始和最终。写了的头像右下角有个笔，
+ * 白天和投票时座位下面列出所有笔记。自己的初始身份不用标，点自己的头像只写笔记。
+ *
  * 只是自己的备忘：存在这台设备上，不发给服务器，别人看不到。刷新不丢，回到大厅（下一局之前）清空。
  * 开局之后到投票都显示；揭晓时大家都亮了牌，就不显示了。
  */
 import { createContext, useContext, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { storageKey } from '@/api/session'
 import type { Phase, PlayerView, RoleId } from '@/api/types'
+import { Section } from '@/components/layout/Section'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { boxCardsOf, type BoxCard } from '@/game/deck'
@@ -24,9 +28,12 @@ import { useT } from '@/i18n'
 /** 看哪一套身份：发到的牌，还是夜里换完之后的牌。 */
 export type Identity = 'initial' | 'final'
 
-type Notes = Record<Identity, Record<string, RoleId>>
+type Notes = Record<Identity, Record<string, RoleId>> & {
+  /** 每个座位的笔记。 */
+  text: Record<string, string>
+}
 
-const EMPTY: Notes = { initial: {}, final: {} }
+const EMPTY: Notes = { initial: {}, final: {}, text: {} }
 
 interface SeatNotesValue {
   /** 这一局里头像显示身份：开局之后到投票。不显示时头像照旧是座位号。 */
@@ -38,9 +45,9 @@ interface SeatNotesValue {
   setIdentity: (identity: Identity) => void
   /** 这个座位在正在看的那一套里是什么角色，没标就是 undefined。 */
   roleOf: (seat: Seat) => RoleId | undefined
-  /** 能不能标：自己的初始身份是确定的，不用标。 */
-  canEdit: (seat: Seat) => boolean
-  /** 打开抽屉，给这个座位标正在看的那一套。 */
+  /** 这个座位的笔记，没写就是 undefined。 */
+  textOf: (seat: Seat) => string | undefined
+  /** 打开抽屉，给这个座位写笔记、标正在看的那一套。 */
   edit: (seat: Seat) => void
   /** 底牌在正在看的那一套里标的是什么角色，没标就是 undefined。 */
   roleOfCenter: (slot: string) => RoleId | undefined
@@ -54,6 +61,8 @@ interface NoteTarget {
   /** 抽屉的标题，比如「给 2 号添加备注」。 */
   title: string
   isMe: boolean
+  /** 座位能写笔记，底牌不能。 */
+  isSeat: boolean
 }
 
 const SeatNotesContext = createContext<SeatNotesValue>({
@@ -62,7 +71,7 @@ const SeatNotesContext = createContext<SeatNotesValue>({
   switchable: false,
   setIdentity: () => {},
   roleOf: () => undefined,
-  canEdit: () => false,
+  textOf: () => undefined,
   edit: () => {},
   roleOfCenter: () => undefined,
   editCenter: () => {},
@@ -97,8 +106,6 @@ export function SeatNotesProvider({ view, children }: { view: PlayerView; childr
   const [open, setOpen] = useState(false)
 
   const value = useMemo<SeatNotesValue>(() => {
-    const knownIn = (which: Identity, seat: Seat) =>
-      which === 'initial' && (seat.isMe || known[seat.id] !== undefined)
     const roleIn = (which: Identity, seat: Seat) => {
       if (which !== 'initial') return notes[which][seat.id]
       if (seat.isMe) return myCard ?? undefined
@@ -110,14 +117,15 @@ export function SeatNotesProvider({ view, children }: { view: PlayerView; childr
       switchable,
       setIdentity,
       roleOf: (seat) => (active ? roleIn(identity, seat) : undefined),
-      canEdit: (seat) => !knownIn(identity, seat),
+      textOf: (seat) => (active ? notes.text[seat.id] : undefined),
       edit: (seat) => {
-        setEditing({ id: seat.id, title: seat.isMe ? t.notes.addForSelf : t.notes.addFor(seat.number), isMe: seat.isMe })
+        const title = seat.isMe ? t.notes.addForSelf : t.notes.addFor(seat.number)
+        setEditing({ id: seat.id, title, isMe: seat.isMe, isSeat: true })
         setOpen(true)
       },
       roleOfCenter: (slot) => (active ? notes[identity][slot] : undefined),
       editCenter: (slot) => {
-        setEditing({ id: slot, title: t.notes.addForCenter(centerLetter(slot)), isMe: false })
+        setEditing({ id: slot, title: t.notes.addForCenter(centerLetter(slot)), isMe: false, isSeat: false })
         setOpen(true)
       },
     }
@@ -132,6 +140,19 @@ export function SeatNotesProvider({ view, children }: { view: PlayerView; childr
     }
     setOpen(false)
   }
+
+  // 写一个字存一次；删空了就不留这条
+  const write = (text: string) => {
+    if (!editing) return
+    setNotes((current) => {
+      const { [editing.id]: _, ...rest } = current.text
+      return { ...current, text: text.trim() ? { ...rest, [editing.id]: text } : rest }
+    })
+  }
+
+  // 自己的初始身份就是发到的牌；有机器人的一局，机器人的也知道。这些不用标，抽屉里只写笔记
+  const roleKnown =
+    editing !== null && identity === 'initial' && (editing.isMe || known[editing.id] !== undefined)
 
   // 抽屉里顺便写上另一套标了什么，比如标最终身份时看得到初始身份猜的是谁
   const other: Identity = identity === 'initial' ? 'final' : 'initial'
@@ -148,11 +169,45 @@ export function SeatNotesProvider({ view, children }: { view: PlayerView; childr
         title={editing?.title ?? ''}
         identity={identity}
         otherNote={switchable ? otherNote : null}
-        cards={boxCardsOf(view.room.deck)}
+        text={editing?.isSeat ? (notes.text[editing.id] ?? '') : null}
+        onWrite={write}
+        cards={roleKnown ? null : boxCardsOf(view.room.deck)}
         note={editing ? notes[identity][editing.id] : undefined}
         onPick={pick}
       />
     </SeatNotesContext.Provider>
+  )
+}
+
+/** 白天和投票时座位下面的「我的笔记」：写过笔记的座位按座位号列出来，点一条接着改。一条都没写就不显示。 */
+export function SeatNoteList({ seats }: { seats: readonly Seat[] }) {
+  const { textOf, edit } = useSeatNotes()
+  const t = useT()
+  const written = seats.flatMap((seat) => {
+    const text = textOf(seat)
+    return text ? [{ seat, text }] : []
+  })
+  if (!written.length) return null
+  return (
+    <Section title={t.notes.listTitle}>
+      <ul className="flex w-full flex-col divide-y rounded-xl border">
+        {written.map(({ seat, text }) => (
+          <li key={seat.id}>
+            <button
+              type="button"
+              onClick={() => edit(seat)}
+              className="flex w-full flex-col gap-1 rounded-xl px-3.5 py-3 text-left outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            >
+              <span className="text-xs text-muted-foreground">
+                <span className="font-mono">{seat.number}</span> {seat.name}
+                {seat.isMe && t.common.youSuffix}
+              </span>
+              <span className="text-sm break-words whitespace-pre-wrap">{text}</span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </Section>
   )
 }
 
@@ -202,7 +257,7 @@ function useStoredNotes(code: string, me: string, inLobby: boolean) {
   }, [inLobby])
 
   useEffect(() => {
-    const empty = !Object.keys(notes.initial).length && !Object.keys(notes.final).length
+    const empty = [notes.initial, notes.final, notes.text].every((part) => !Object.keys(part).length)
     if (empty) localStorage.removeItem(key)
     else localStorage.setItem(key, JSON.stringify(notes))
   }, [key, notes])
@@ -214,7 +269,7 @@ function load(key: string): Notes {
   try {
     const saved = JSON.parse(localStorage.getItem(key) ?? '{}') as Partial<Notes>
     // 以前只存一套，格式不一样，直接不要了
-    return { initial: saved.initial ?? {}, final: saved.final ?? {} }
+    return { initial: saved.initial ?? {}, final: saved.final ?? {}, text: saved.text ?? {} }
   } catch {
     return EMPTY
   }
@@ -228,12 +283,17 @@ interface NoteDrawerProps {
   identity: Identity
   /** 另一套标了什么，写在标题下面作参考；发牌时只有一套，就是 null。 */
   otherNote: string | null
-  /** 本局的每一张牌，重复的角色有几张就列几张：抽屉也拿来看这局配了什么。 */
-  cards: readonly BoxCard[]
+  /** 这个座位的笔记；底牌不能写笔记，是 null。 */
+  text: string | null
+  onWrite: (text: string) => void
+  /** 本局的每一张牌，重复的角色有几张就列几张：抽屉也拿来看这局配了什么。身份已经知道、不用标时是 null。 */
+  cards: readonly BoxCard[] | null
   note: RoleId | undefined
   /** 选了一个角色；null 是清除标记。 */
   onPick: (role: RoleId | null) => void
 }
+
+const HEADING = 'text-[13px] font-semibold text-muted-foreground'
 
 function NoteDrawer({
   open,
@@ -241,43 +301,64 @@ function NoteDrawer({
   title,
   identity,
   otherNote,
+  text,
+  onWrite,
   cards,
   note,
   onPick,
 }: NoteDrawerProps) {
   const t = useT()
   return (
+    // 用手点开时不把焦点放进输入框：大多时候是来标角色的，别一打开就弹键盘
     <Drawer open={open} onOpenChange={onOpenChange} showSwipeHandle>
-      <DrawerContent className="mx-auto w-full max-w-md">
+      <DrawerContent className="mx-auto w-full max-w-md" initialFocus={(type) => type === 'keyboard'}>
         <DrawerHeader className="items-center gap-1.5">
           <DrawerTitle>{title}</DrawerTitle>
-          <p className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="rounded-full bg-foreground px-2 py-0.5 font-medium text-background">
-              {t.notes.identity[identity]}
-            </span>
-            {otherNote}
-          </p>
+          {cards && (
+            <p className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span className="rounded-full bg-foreground px-2 py-0.5 font-medium text-background">
+                {t.notes.identity[identity]}
+              </span>
+              {otherNote}
+            </p>
+          )}
         </DrawerHeader>
         <div className="flex flex-col gap-3.5 px-5 pt-4 pb-[max(2rem,env(safe-area-inset-bottom))]">
-          <h3 className="text-[13px] font-semibold text-muted-foreground">
-            {t.settings.inGame} · {t.settings.cardsOf(cards.length)}
-          </h3>
-          <CardGrid>
-            {cards.map((card) => (
-              <CardSlot
-                key={card.id}
-                role={card.role}
-                onSelect={() => onPick(card.role)}
-                selectLabel={t.notes.markAs(ROLES[card.role].name)}
-                // 同一种角色有好几张时，只在第一张上打勾
-                corner={card.role === note && card.copy === 1 ? <PickedMark /> : undefined}
+          {text !== null && (
+            <label className="flex flex-col gap-3.5">
+              <span className={HEADING}>{t.notes.text}</span>
+              <textarea
+                value={text}
+                onChange={(event) => onWrite(event.target.value)}
+                rows={3}
+                maxLength={200}
+                className="w-full resize-none rounded-lg border border-input bg-transparent px-3 py-2 text-base outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 dark:bg-input/30"
               />
-            ))}
-          </CardGrid>
-          {note && (
-            <Button variant="outline" size="xl" className="mt-2.5" onClick={() => onPick(null)}>
-              {t.notes.clear}
-            </Button>
+            </label>
+          )}
+          {cards && (
+            <>
+              <h3 className={cn(HEADING, text !== null && 'mt-2')}>
+                {t.settings.inGame} · {t.settings.cardsOf(cards.length)}
+              </h3>
+              <CardGrid>
+                {cards.map((card) => (
+                  <CardSlot
+                    key={card.id}
+                    role={card.role}
+                    onSelect={() => onPick(card.role)}
+                    selectLabel={t.notes.markAs(ROLES[card.role].name)}
+                    // 同一种角色有好几张时，只在第一张上打勾
+                    corner={card.role === note && card.copy === 1 ? <PickedMark /> : undefined}
+                  />
+                ))}
+              </CardGrid>
+              {note && (
+                <Button variant="outline" size="xl" className="mt-2.5" onClick={() => onPick(null)}>
+                  {t.notes.clear}
+                </Button>
+              )}
+            </>
           )}
         </div>
       </DrawerContent>

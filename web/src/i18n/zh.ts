@@ -358,6 +358,8 @@ export const zh = {
     addForCenter: (letter: string) => `给 ${letter} 号底牌添加备注`,
     markAs: (role: string) => `标记为${role}`,
     clear: '清除备注',
+    text: '笔记',
+    listTitle: '我的笔记',
   },
 
   card: {
