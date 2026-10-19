@@ -46,6 +46,7 @@ class RoomView(BaseModel):
     timings: Timings
     self_vote: bool  # 能不能投自己
     speech_rounds: int  # 白天轮流发言几轮，0 是不排顺序
+    public: bool  # 在不在「房间」列表里
     debug: bool  # 调试模式：空座位坐机器人，夜里不限时
 
 
@@ -164,6 +165,7 @@ def _room_view(room: Room) -> RoomView:
         timings=room.settings.timings,
         self_vote=room.game.self_vote if room.game else room.settings.self_vote,
         speech_rounds=room.game.speech_rounds if room.game else room.settings.speech_rounds,
+        public=room.settings.public,
         debug=room.settings.debug,
     )
 

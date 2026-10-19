@@ -30,7 +30,7 @@ interface SeatTileProps {
   selected?: boolean
   /** 白天轮流发言时，正在发言的人。 */
   speaking?: boolean
-  /** 头像角上的记号。不传时，选中就打勾。 */
+  /** 头像角上的记号。不传时，选中就打勾。写了笔记的另外在右下角挂个笔。 */
   mark?: Mark | readonly Mark[]
   /** 头像上直接画这个角色，盖过备注。揭晓时用：大家都亮了牌。 */
   role?: RoleId
@@ -59,6 +59,8 @@ export function SeatTile({
   const notes = useSeatNotes()
   const t = useT()
   const note = role ?? notes.roleOf(seat)
+  const marks: Mark[] = [mark ?? (selected ? 'check' : [])].flat()
+  if (notes.textOf(seat)) marks.push('note')
   // 头像上画着角色时，座位号挪到名字前面
   const numberInName = notes.active || role !== undefined
   return (
@@ -71,7 +73,7 @@ export function SeatTile({
             tone={muted ? 'muted' : 'default'}
             selected={selected}
             speaking={speaking}
-            mark={mark ?? (selected ? 'check' : undefined)}
+            mark={marks}
           >
             {notes.active && !note ? <span className="text-muted-foreground">?</span> : undefined}
           </PlayerAvatar>

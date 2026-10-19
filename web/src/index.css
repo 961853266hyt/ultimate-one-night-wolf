@@ -13,6 +13,8 @@
  * 前半部分是 shadcn 的标准令牌，后面五个是游戏自己的：成功、提醒两种状态和三个阵营。
  */
 :root {
+  /* 底部标签栏的高度（固定在屏幕底部），页面和底部操作区都按它让出位置 */
+  --tab-bar-height: calc(3.5rem + env(safe-area-inset-bottom));
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);

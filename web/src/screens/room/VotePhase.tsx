@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { t as tr, useT } from '@/i18n'
 import { ClueCard } from '@/components/game/Clues'
 import { SeatGrid, SeatTile } from '@/components/game/SeatGrid'
-import { IdentitySwitch } from '@/components/game/SeatNotes'
+import { IdentitySwitch, SeatNoteList } from '@/components/game/SeatNotes'
 import { SeatProgress } from '@/components/game/SeatStatus'
 import { PageContent, PageFooter } from '@/components/layout/Page'
 import { PageTitle, Section } from '@/components/layout/Section'
@@ -52,6 +52,8 @@ export function VotePhase({ view, send }: PhaseProps) {
             ))}
           </SeatGrid>
         </Section>
+
+        <SeatNoteList seats={seats} />
 
         {clues.length > 0 && <ClueCard clues={clues} />}
       </PageContent>

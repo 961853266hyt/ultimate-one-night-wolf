@@ -1,8 +1,8 @@
 import { Sun } from 'lucide-react'
-import { useEffect, useState, type ComponentType } from 'react'
+import { useCallback, useEffect, useState, type ComponentType } from 'react'
 import { toast } from 'sonner'
-import { goHome, type Session } from '@/api/session'
-import type { ErrorMessage, Phase } from '@/api/types'
+import { forgetRoom, goHome, rememberRoom, type Session } from '@/api/session'
+import type { ErrorMessage, Phase, PlayerView } from '@/api/types'
 import { useRoom } from '@/api/useRoom'
 import { ActAsBar } from '@/components/game/ActAsBar'
 import { SeatNotesProvider } from '@/components/game/SeatNotes'
@@ -21,6 +21,7 @@ import { RevealPhase } from './RevealPhase'
 import { RoomHeader } from './RoomHeader'
 import type { PhaseProps } from './types'
 import { VotePhase } from './VotePhase'
+import { setActiveRoom } from '@/lib/activeRoom'
 import { useT } from '@/i18n'
 
 /** 每个阶段对应的页面。加新阶段时在这里登记，漏了 TypeScript 会报错。 */
@@ -37,21 +38,51 @@ interface RoomScreenProps {
   code: string
   session: Session
   name: string
+  /** 切到别的标签页时房间页藏在后台：连接不断，只是不显示。 */
+  visible: boolean
 }
 
-export function RoomScreen({ code, session, name }: RoomScreenProps) {
+export function RoomScreen({ code, session, name, visible }: RoomScreenProps) {
   const room = useRoom(code, session, name)
   useErrorToast(room.error, room.clearError)
   const phase = room.view?.phase
-  useNightTheme(phase === 'night')
+  // 藏在后台时别的页面保持自己选的深浅色，回到房间再变黑
+  useNightTheme(visible && phase === 'night')
   const dawn = useDawn(phase)
   const t = useT()
+  useEffect(() => rememberRoom(code), [code])
+
+  // 登记现在所在的房间：标签栏中间的按钮变成「离开房间」，「房间」标签点了回到这里。
+  // 还没进去（连接中、房间不存在）时离开就是直接回首页
+  const { view: current, send: sendNow } = room
+  const actingAs = current && current.me.id !== session.player_id
+  const inGame = !!current && current.me.seat !== null && current.phase !== 'reveal'
+  const attention = !!current && needsYou(current)
+  const leave = useCallback(() => {
+    if (current) {
+      // 房主可能正在替机器人操作：先换回自己再离开，不然离开的是机器人
+      if (actingAs) sendNow({ type: 'act_as', player: null })
+      sendNow({ type: 'leave' })
+    }
+    forgetRoom()
+    goHome()
+  }, [current, actingAs, sendNow])
+  useEffect(() => {
+    setActiveRoom({ code, leave, inGame, attention })
+  }, [code, leave, inGame, attention])
+  useEffect(() => () => setActiveRoom(null), [])
 
   if (room.fatal) {
     return (
       <FullScreenMessage
         action={
-          <Button size="xl" onClick={goHome}>
+          <Button
+            size="xl"
+            onClick={() => {
+              forgetRoom()
+              goHome()
+            }}
+          >
             {t.room.backHome}
           </Button>
         }
@@ -66,13 +97,6 @@ export function RoomScreen({ code, session, name }: RoomScreenProps) {
 
   const { view, send } = room
   const CurrentPhase = PHASES[view.phase]
-  // 房主可能正在替机器人操作：先换回自己再离开，不然离开的是机器人
-  const actingAsBot = view.me.id !== session.player_id
-  const leave = () => {
-    if (actingAsBot) send({ type: 'act_as', player: null })
-    send({ type: 'leave' })
-    goHome()
-  }
 
   return (
     <Page>
@@ -81,8 +105,6 @@ export function RoomScreen({ code, session, name }: RoomScreenProps) {
         endsAt={view.ends_at}
         clockOffset={room.clockOffset}
         connected={room.connected}
-        confirmLeave={view.me.seat !== null && view.phase !== 'reveal'}
-        onLeave={leave}
       />
       {session.player_id === view.room.host && (
         <ActAsBar
@@ -114,6 +136,23 @@ export function RoomScreen({ code, session, name }: RoomScreenProps) {
  * 夜里刚结束时加一，用来放一次「天亮了」的过场。刷新页面时已经是白天，不算天亮，不放。
  * 在渲染时比较上一次的阶段，不用 effect，免得先闪一帧没有过场的白天。
  */
+/** 房间里有事等着你：没看牌、夜里轮到你、轮到你发言、还没投票。观战的人没事。 */
+function needsYou(view: PlayerView): boolean {
+  if (view.me.seat === null) return false
+  switch (view.phase) {
+    case 'deal':
+      return !view.deal?.confirmed.includes(view.me.id)
+    case 'night':
+      return view.prompt !== null
+    case 'day':
+      return view.day?.speaker === view.me.id
+    case 'vote':
+      return !view.vote?.mine
+    default:
+      return false
+  }
+}
+
 function useDawn(phase: Phase | undefined): number {
   const [previous, setPrevious] = useState(phase)
   const [dawn, setDawn] = useState(0)

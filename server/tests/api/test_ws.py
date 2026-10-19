@@ -112,3 +112,20 @@ def test_reconnecting_puts_you_back_in_your_seat(client):
         after = next_view(ws1)
         assert after["me"] == before["me"]
         assert after["phase"] == "deal"
+
+
+def test_the_room_list_shows_rooms_people_can_join(client):
+    code, sessions = open_room(client, 2)
+    assert client.get("/api/rooms").json() == []  # 房主还没连上来，不算开着的房间
+
+    with connect(client, code, sessions[0], "阿胡") as ws0:
+        next_view(ws0)
+        [room] = client.get("/api/rooms").json()
+        assert {k: room[k] for k in ("code", "host", "phase", "players", "seats")} == {
+            "code": code,
+            "host": "阿胡",
+            "phase": "lobby",
+            "players": 1,
+            "seats": 3,
+        }
+        assert len(room["deck"]) == 6

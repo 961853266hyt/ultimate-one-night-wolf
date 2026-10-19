@@ -89,6 +89,7 @@ export interface Settings {
   timings: Timings;
   self_vote: boolean;
   speech_rounds: number;
+  public: boolean;
   debug: boolean;
 }
 /**
@@ -174,6 +175,7 @@ export interface RoomView {
   timings: Timings;
   self_vote: boolean;
   speech_rounds: number;
+  public: boolean;
   debug: boolean;
 }
 export interface MemberView {

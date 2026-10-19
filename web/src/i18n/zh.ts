@@ -43,11 +43,32 @@ export const zh = {
     cannotConnect: '连不上服务器，请稍后刷新重试',
   },
 
+  tabs: {
+    label: '页面',
+    home: '首页',
+    roles: '角色',
+    rooms: '房间',
+    settings: '设置',
+    yourTurn: '房间里轮到你了',
+    play: '创建或加入房间',
+  },
+
+  rooms: {
+    empty: '这里连一根狼毛都没有',
+    title: (host: string) => `${host}的房间`,
+    players: (n: number, seats: number) => `${n}/${seats} 人`,
+    lobby: '等待开始',
+    reveal: '这局刚结束',
+    playing: '游戏中',
+    back: (code: string) => `回到房间 ${code}`,
+    playersOnly: (n: number) => `${n} 人`,
+    failed: '暂时连不上服务器，稍后自动重试',
+  },
+
   common: {
     close: '关闭',
     cancel: '取消',
     confirm: '确定',
-    menu: '菜单',
     seats: '座位',
     centerCards: '牌堆',
     /** 自己的座位名字后面：「阿杰 · 你」。 */
@@ -67,7 +88,6 @@ export const zh = {
   },
 
   menu: {
-    roles: '角色介绍',
     teamGroup: (team: string, count: number) => `${team} · ${count}`,
     language: '语言',
     theme: '外观',
@@ -99,6 +119,7 @@ export const zh = {
     everyoneOpenEyes: '所有人请睁眼',
     leaveRoom: '离开房间',
     leaveTitle: '这一局还没结束，确定离开吗？',
+    leaveTitleIdle: '确定离开房间吗？',
     leaveDescription: '你的座位会保留到这局结束。',
     leave: '离开',
     stay: '留下',
@@ -166,6 +187,7 @@ export const zh = {
     speechRounds: '发言轮数',
     speechOff: '关',
     speechRoundsLabel: (n: number) => (n ? `${n} 轮` : '不排顺序'),
+    public: '公开房间',
     debug: '调试模式',
     box: '牌库',
     inGame: '本局',
@@ -182,8 +204,15 @@ export const zh = {
     atMost: (n: number) => `最多 ${n} 张牌`,
     overviewRoles: '角色 · 点头像看介绍',
     overviewNightOrder: '夜里的醒来顺序',
-    overviewRest: (seats: number, nightStep: number, selfVote: boolean, debug: boolean, speechRounds: number) =>
-      `房间 ${seats} 人 · ${debug ? '调试模式，夜里不计时' : `夜间操作时间 ${nightStep} 秒`} · ${speechRounds ? `白天轮流发言 ${speechRounds} 轮` : '白天自由讨论'} · ${selfVote ? '可以' : '不能'}投自己，房主可以调整`,
+    overviewRest: (
+      seats: number,
+      nightStep: number,
+      selfVote: boolean,
+      debug: boolean,
+      speechRounds: number,
+      isPublic: boolean,
+    ) =>
+      `房间 ${seats} 人 · ${debug ? '调试模式，夜里不计时' : `夜间操作时间 ${nightStep} 秒`} · ${speechRounds ? `白天轮流发言 ${speechRounds} 轮` : '白天自由讨论'} · ${selfVote ? '可以' : '不能'}投自己 · ${isPublic ? '公开房间' : '不公开，凭房间号进'}，房主可以调整`,
     fillOne: '补一张',
     toFill: '待补',
     summaryTitle: (seats: number, cards: string) => `${seats} 人局 · ${cards}`,
@@ -329,6 +358,8 @@ export const zh = {
     addForCenter: (letter: string) => `给 ${letter} 号底牌添加备注`,
     markAs: (role: string) => `标记为${role}`,
     clear: '清除备注',
+    text: '笔记',
+    listTitle: '我的笔记',
   },
 
   card: {

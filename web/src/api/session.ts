@@ -69,6 +69,22 @@ export function goToRoom(code: string): void {
   location.assign(`/r/${code.toUpperCase()}${location.search}`)
 }
 
+const LAST_ROOM_KEY = storageKey('lastRoom')
+
+/** 进房间时记下房间号：切到别的标签页之后，「房间」页能一键回来。 */
+export function rememberRoom(code: string): void {
+  localStorage.setItem(LAST_ROOM_KEY, code.toUpperCase())
+}
+
+/** 自己离开了房间，或者房间已经没了，就不再提示回去。 */
+export function forgetRoom(): void {
+  localStorage.removeItem(LAST_ROOM_KEY)
+}
+
+export function lastRoom(): string | null {
+  return localStorage.getItem(LAST_ROOM_KEY)
+}
+
 export function goHome(): void {
   location.assign(`/${location.search}`)
 }

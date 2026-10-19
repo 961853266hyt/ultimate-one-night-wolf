@@ -39,7 +39,7 @@ export function DealPhase({ view, send }: PhaseProps) {
               <SeatTile
                 key={seat.id}
                 seat={seat}
-                onSelect={notes.canEdit(seat) ? () => notes.edit(seat) : undefined}
+                onSelect={() => notes.edit(seat)}
                 status={
                   <SeatProgress done={confirmed.has(seat.id)} doneText={t.deal.seen} pendingText={t.deal.looking} />
                 }

@@ -3,7 +3,7 @@ import { CENTER } from '@/api/types'
 import { ClueCard } from '@/components/game/Clues'
 import { NightOrder } from '@/components/game/Deck'
 import { CenterCard, CenterCardRow } from '@/components/game/PlayingCard'
-import { IdentitySwitch, useSeatNotes } from '@/components/game/SeatNotes'
+import { IdentitySwitch, SeatNoteList, useSeatNotes } from '@/components/game/SeatNotes'
 import { SeatGrid, SeatTile } from '@/components/game/SeatGrid'
 import { SeatProgress } from '@/components/game/SeatStatus'
 import { PageContent, PageFooter } from '@/components/layout/Page'
@@ -69,7 +69,7 @@ export function DayPhase({ view, send }: PhaseProps) {
                 key={seat.id}
                 seat={seat}
                 speaking={seat.id === speaker?.id}
-                onSelect={notes.canEdit(seat) ? () => notes.edit(seat) : undefined}
+                onSelect={() => notes.edit(seat)}
                 status={
                   <SeatProgress done={ready.has(seat.id)} doneText={t.day.readyDone} pendingText={t.day.discussing} />
                 }
@@ -77,6 +77,8 @@ export function DayPhase({ view, send }: PhaseProps) {
             ))}
           </SeatGrid>
         </Section>
+
+        <SeatNoteList seats={seats} />
       </PageContent>
 
       {(speaker || view.me.seat !== null) && (
@@ -111,10 +113,6 @@ export function DayPhase({ view, send }: PhaseProps) {
                 onClick={() => send({ type: 'ready_to_vote' })}
               >
                 {done ? t.day.waitOthers : t.day.readyButton}
-                {/* 几个人已经同意开始投票 */}
-                <span className="font-mono opacity-60">
-                  {ready.size}/{seats.length}
-                </span>
               </Button>
               {mySpeech && (
                 <Button size="xl" className="flex-1" onClick={() => send({ type: 'end_speech' })}>

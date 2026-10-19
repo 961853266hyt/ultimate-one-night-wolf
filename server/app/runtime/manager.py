@@ -39,6 +39,9 @@ class RoomManager:
     def get(self, code: str) -> RoomActor | None:
         return self._actors.get(code.upper())
 
+    def all(self) -> list[RoomActor]:
+        return list(self._actors.values())
+
     async def close(self) -> None:
         await asyncio.gather(*(actor.stop() for actor in list(self._actors.values())))
 

@@ -2,7 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Page } from '@/components/layout/Page'
 import { PageTitle } from '@/components/layout/Section'
 import { Button } from '@/components/ui/button'
-import { NameField } from './NameField'
+import { NameField } from '@/components/common/NameField'
 import { useT } from '@/i18n'
 
 interface NamePromptScreenProps {

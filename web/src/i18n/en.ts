@@ -17,11 +17,32 @@ export const en: Messages = {
     cannotConnect: "Can't reach the server. Please refresh in a moment.",
   },
 
+  tabs: {
+    label: 'Pages',
+    home: 'Home',
+    roles: 'Roles',
+    rooms: 'Rooms',
+    settings: 'Settings',
+    yourTurn: "It's your turn in the room",
+    play: 'Create or join a room',
+  },
+
+  rooms: {
+    empty: 'Not a single wolf hair in here',
+    title: (host) => `${host}'s room`,
+    players: (n, seats) => `${n}/${seats} players`,
+    lobby: 'Waiting to start',
+    reveal: 'A game just ended',
+    playing: 'Game in progress',
+    back: (code) => `Back to room ${code}`,
+    playersOnly: (n) => plural(n, 'player'),
+    failed: "Can't reach the server, retrying…",
+  },
+
   common: {
     close: 'Close',
     cancel: 'Cancel',
     confirm: 'Confirm',
-    menu: 'Menu',
     seats: 'Seats',
     centerCards: 'Center cards',
     youSuffix: ' · you',
@@ -40,7 +61,6 @@ export const en: Messages = {
   },
 
   menu: {
-    roles: 'Roles',
     teamGroup: (team, count) => `${team} · ${count}`,
     language: 'Language',
     theme: 'Appearance',
@@ -73,6 +93,7 @@ export const en: Messages = {
     everyoneOpenEyes: 'Everyone, open your eyes',
     leaveRoom: 'Leave room',
     leaveTitle: "This game isn't over yet. Leave anyway?",
+    leaveTitleIdle: 'Leave this room?',
     leaveDescription: 'Your seat is kept until the game ends.',
     leave: 'Leave',
     stay: 'Stay',
@@ -135,6 +156,7 @@ export const en: Messages = {
     speechRounds: 'Speaking rounds',
     speechOff: 'Off',
     speechRoundsLabel: (n) => (n ? plural(n, 'round') : 'No speaking order'),
+    public: 'Public room',
     debug: 'Debug mode',
     box: 'Card box',
     inGame: 'This game',
@@ -151,8 +173,8 @@ export const en: Messages = {
     atMost: (n) => `At most ${n} cards`,
     overviewRoles: 'Roles · tap one for details',
     overviewNightOrder: 'Night wake order',
-    overviewRest: (seats, nightStep, selfVote, debug, speechRounds) =>
-      `${plural(seats, 'player')} · ${debug ? 'debug mode, no night timer' : `${nightStep}s per night step`} · ${speechRounds ? `${plural(speechRounds, 'speaking round')} by day` : 'free discussion by day'} · voting for yourself ${selfVote ? 'allowed' : 'not allowed'}. The host can change these.`,
+    overviewRest: (seats, nightStep, selfVote, debug, speechRounds, isPublic) =>
+      `${plural(seats, 'player')} · ${debug ? 'debug mode, no night timer' : `${nightStep}s per night step`} · ${speechRounds ? `${plural(speechRounds, 'speaking round')} by day` : 'free discussion by day'} · voting for yourself ${selfVote ? 'allowed' : 'not allowed'} · ${isPublic ? 'public room' : 'private, join by code'}. The host can change these.`,
     fillOne: 'Add one',
     toFill: 'Needed',
     summaryTitle: (seats, cards) => `${seats}-player game · ${cards}`,
@@ -291,6 +313,8 @@ export const en: Messages = {
     addForCenter: (letter) => `Add a note for center card ${letter}`,
     markAs: (role) => `Mark as ${role}`,
     clear: 'Clear note',
+    text: 'Notes',
+    listTitle: 'My notes',
   },
 
   card: {
