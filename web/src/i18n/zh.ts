@@ -116,6 +116,7 @@ export const zh = {
     theme: '外观',
     themes: { light: '浅色', dark: '深色', system: '跟随系统' },
     feedback: '反馈问题',
+    coffee: '请我喝杯咖啡',
     feedbackBody: (version: string, page: string, device: string) =>
       [
         '**遇到了什么问题**',

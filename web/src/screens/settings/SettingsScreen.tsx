@@ -1,7 +1,7 @@
 /**
- * 「设置」标签页：界面语言、深浅色、反馈问题，最下面是版本和作者的落款。
+ * 「设置」标签页：界面语言、深浅色、反馈问题、请作者喝杯咖啡，最下面是版本和作者的落款。
  */
-import { Monitor, MessageSquareWarning, Moon, Sun, type LucideIcon } from 'lucide-react'
+import { Coffee, Monitor, MessageSquareWarning, Moon, Sun, type LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { GitHubIcon } from '@/components/icons/GitHubIcon'
 import { Page, PageContent } from '@/components/layout/Page'
@@ -13,6 +13,7 @@ import { setTheme, THEMES, useTheme, type Theme } from '@/theme'
 
 const AUTHOR_URL = 'https://github.com/961853266hyt'
 const SOURCE_URL = `${AUTHOR_URL}/ultimate-one-night-wolf`
+const COFFEE_URL = 'https://buymeacoffee.com/higeli'
 
 export function SettingsScreen() {
   const t = useT()
@@ -32,6 +33,15 @@ export function SettingsScreen() {
         >
           <MessageSquareWarning aria-hidden className="size-4.5" />
           {t.menu.feedback}
+        </a>
+        <a
+          href={COFFEE_URL}
+          target="_blank"
+          rel="noreferrer"
+          className={cn(buttonVariants({ variant: 'outline', size: 'xl' }), 'w-full')}
+        >
+          <Coffee aria-hidden className="size-4.5" />
+          {t.menu.coffee}
         </a>
         <div className="mt-auto pt-6">
           <Credits />
