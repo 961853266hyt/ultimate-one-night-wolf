@@ -1,9 +1,9 @@
 /**
- * 大厅底部的「本局设置」摘要：一排叠在一起的角色头像、张数、阵营比例和夜间操作时间。
+ * 大厅底部的「本局设置」摘要：一排叠在一起的角色头像、张数（用的是首页的板子就写板子名）、阵营比例和夜间操作时间。
  * 点开看完整设置：房主进配牌，其他人只能看。
  */
 import { ChevronRight, Timer } from 'lucide-react'
-import type { RoleId, Team } from '@/api/types'
+import type { BoardKind, RoleId, Team } from '@/api/types'
 import { cn } from '@/lib/utils'
 import { ROLES, TEAMS } from '@/roles/catalog'
 import { RoleAvatar } from './RoleAvatar'
@@ -22,10 +22,12 @@ interface DeckSummaryProps {
   need: number
   /** 夜里每一步几秒。 */
   nightStep: number
+  /** 座位数和牌对得上哪个板子；房主自己配的是 null。 */
+  board: BoardKind | null
   onOpen: () => void
 }
 
-export function DeckSummary({ deck, seats, need, nightStep, onOpen }: DeckSummaryProps) {
+export function DeckSummary({ deck, seats, need, nightStep, board, onOpen }: DeckSummaryProps) {
   const faces = deck.slice(0, MAX_FACES)
   const extra = deck.length - faces.length
   // 牌数对上是平常的样子，少了橙色，多了红色
@@ -61,7 +63,9 @@ export function DeckSummary({ deck, seats, need, nightStep, onOpen }: DeckSummar
             tone === 'destructive' && 'text-destructive',
           )}
         >
-          {t.settings.summaryTitle(seats, t.settings.cardsOf(deck.length, tone ? need : undefined))}
+          {board
+            ? t.settings.summaryBoard(seats, t.boards.kinds[board].name)
+            : t.settings.summaryTitle(seats, t.settings.cardsOf(deck.length, tone ? need : undefined))}
         </span>
         <span className="truncate text-xs text-muted-foreground">
           {teamCounts(deck)} ·{' '}

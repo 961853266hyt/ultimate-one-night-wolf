@@ -7,7 +7,7 @@ import time
 from collections.abc import Callable
 
 from ..domain.room import Room
-from ..domain.types import PlayerId
+from ..domain.types import PlayerId, Settings
 from .actor import RoomActor
 
 CODE_LETTERS = "ABCDEFGHJKLMNPQRSTUVWXYZ"  # 去掉了容易看错的 I 和 O
@@ -26,12 +26,13 @@ class RoomManager:
         self._max_rooms = max_rooms
         self._actors: dict[str, RoomActor] = {}
 
-    def create(self, host: PlayerId, name: str) -> str | None:
+    def create(self, host: PlayerId, name: str, settings: Settings | None = None) -> str | None:
         """开房并返回房间号；房间数到了上限就返回 None。"""
         if len(self._actors) >= self._max_rooms:
             return None
         code = self._new_code()
-        actor = RoomActor(Room.create(code, host, name, self._clock()), self._clock, self._rng)
+        room = Room.create(code, host, name, self._clock(), settings)
+        actor = RoomActor(room, self._clock, self._rng)
         self._actors[code] = actor
         actor.start(on_exit=lambda: self._forget(code, actor))
         return code

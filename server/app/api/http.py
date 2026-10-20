@@ -5,6 +5,7 @@ from typing import Annotated
 from fastapi import APIRouter, Depends, Header, HTTPException, Request
 from pydantic import BaseModel
 
+from ..domain.boards import BOARDS, BOARDS_BY_ID, BoardKind, board_of
 from ..domain.night import NIGHT_ORDER
 from ..domain.roles import ROLES
 from ..domain.types import MAX_PLAYERS, Phase, PlayerId, RoleId, Team
@@ -22,6 +23,7 @@ class SessionOut(BaseModel):
 
 class CreateRoomIn(BaseModel):
     name: Name
+    board: str | None = None  # 从首页的板子开房：板子的 id，比如 chaos-5
 
 
 class CreateRoomOut(BaseModel):
@@ -44,6 +46,17 @@ class OpenRoom(BaseModel):
     players: int
     seats: int
     deck: list[RoleId]
+    board: BoardKind | None  # 用的是哪个板子，房主自己配的牌是 None
+
+
+class BoardOut(BaseModel):
+    """首页的一个板子。名字和标签前端按 kind 翻译。"""
+
+    id: str
+    kind: BoardKind
+    seats: int
+    deck: list[RoleId]
+    speech_rounds: int
 
 
 class RoleInfo(BaseModel):
@@ -95,7 +108,10 @@ async def create_room(
     request: Request,
     player: Annotated[PlayerId, Depends(current_player)],
 ) -> CreateRoomOut:
-    code = _manager(request).create(player, body.name)
+    board = None
+    if body.board is not None and (board := BOARDS_BY_ID.get(body.board)) is None:
+        raise HTTPException(422, "unknown_board")
+    code = _manager(request).create(player, body.name, board.settings() if board else None)
     if code is None:
         raise HTTPException(503, "too_many_rooms")
     return CreateRoomOut(code=code)
@@ -115,8 +131,24 @@ async def open_rooms(request: Request) -> list[OpenRoom]:
             players=len(room.members),
             seats=room.settings.seats,
             deck=room.deck(),
+            board=board_of(room.settings.seats, room.deck()),
         )
         for room in listed
+    ]
+
+
+@router.get("/boards")
+async def boards() -> list[BoardOut]:
+    """首页的板子，按玩法、人数排好。"""
+    return [
+        BoardOut(
+            id=board.id,
+            kind=board.kind,
+            seats=board.seats,
+            deck=board.deck,
+            speech_rounds=board.speech_rounds,
+        )
+        for board in BOARDS
     ]
 
 

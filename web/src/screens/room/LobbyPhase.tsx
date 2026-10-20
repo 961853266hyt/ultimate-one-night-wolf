@@ -84,6 +84,7 @@ export function LobbyPhase({ view, send }: PhaseProps) {
           seats={size}
           need={need}
           nightStep={timings.night_step}
+          board={view.room.board}
           onOpen={() => setSettingsOpen(true)}
         />
         <div className="flex gap-2.5">

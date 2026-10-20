@@ -4,8 +4,14 @@
  * 带参数的写成函数，各语言按自己的语序拼。要在句子里嵌角色名（按阵营上色、能点开详情）的，
  * 返回 Phrase，见 game/phrase.ts。
  */
-import type { ErrorMessage, Phase, Prompt, RoleId, Team, TargetOption } from '@/api/types'
+import type { BoardKind, ErrorMessage, Phase, Prompt, RoleId, Team, TargetOption } from '@/api/types'
 import { mention, type Phrase } from '@/game/phrase'
+
+/** 一个板子的名字和小标签。牌和设置在服务端的 domain/boards.py。 */
+export interface BoardText {
+  name: string
+  tag: string
+}
 
 /** 一个角色的文字。结构（阵营、图标、张数上限……）在 roles/catalog.ts。 */
 export interface RoleText {
@@ -65,6 +71,24 @@ export const zh = {
     failed: '暂时连不上服务器，稍后自动重试',
   },
 
+  boards: {
+    featured: '官方精选',
+    howMany: '几个人玩',
+    seats: (n: number) => `${n} 人`,
+    failed: '板子没加载出来，刷新页面试试',
+    meta: (seats: number, cards: number, rounds: number) =>
+      `${seats} 人 · ${cards} 张 · ${rounds ? `白天发言 ${rounds} 轮` : '白天自由讨论'}`,
+    open: '用这个板子开房',
+    kinds: {
+      starter: { name: '新手局', tag: '新手' },
+      classic: { name: '经典局', tag: '经典' },
+      chaos: { name: '换牌大乱斗', tag: '混乱' },
+      tanner: { name: '皮匠搅局', tag: '搅局' },
+      mason: { name: '守夜人局', tag: '经典' },
+      mirror: { name: '镜像局', tag: '进阶' },
+    } satisfies Record<BoardKind, BoardText> as Record<BoardKind, BoardText>,
+  },
+
   common: {
     close: '关闭',
     cancel: '取消',
@@ -92,7 +116,9 @@ export const zh = {
     language: '语言',
     theme: '外观',
     themes: { light: '浅色', dark: '深色', system: '跟随系统' },
+    about: '关于',
     feedback: '反馈问题',
+    coffee: '请我喝杯咖啡',
     feedbackBody: (version: string, page: string, device: string) =>
       [
         '**遇到了什么问题**',
@@ -216,6 +242,8 @@ export const zh = {
     fillOne: '补一张',
     toFill: '待补',
     summaryTitle: (seats: number, cards: string) => `${seats} 人局 · ${cards}`,
+    /** 用的是首页的板子：「5 人 · 换牌大乱斗」。 */
+    summaryBoard: (seats: number, board: string) => `${seats} 人 · ${board}`,
     cardsOf: (count: number, need?: number) => (need === undefined ? `${count} 张` : `${count}/${need} 张`),
     nightTimeSr: '夜间操作',
     /** 摘要条里地方小：「20 秒」。 */

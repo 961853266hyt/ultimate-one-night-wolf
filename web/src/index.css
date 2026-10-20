@@ -37,6 +37,8 @@
 
   --success: oklch(0.527 0.154 150.069);
   --warning: oklch(0.555 0.163 48.998);
+  /* 设置页「请我喝杯咖啡」的粉色，和 Buy Me a Coffee 的打赏按钮一个调子 */
+  --coffee: oklch(0.592 0.249 0.584); /* pink-600 */
 
   /* 阵营色：狼人红、好人蓝、皮匠橙。角色名、阵营名、小圆点都用它们，要换颜色改这里（深色主题在 .dark 里） */
   --werewolf: oklch(0.505 0.213 27.518); /* red-700 */
@@ -74,6 +76,7 @@
 
   --success: oklch(0.792 0.209 151.711);
   --warning: oklch(0.828 0.189 84.429);
+  --coffee: oklch(0.823 0.12 346.018); /* pink-300 */
 
   /* 阵营色在深色底上要亮一些 */
   --werewolf: oklch(0.704 0.191 22.216); /* red-400 */
@@ -108,6 +111,7 @@
 
   --color-success: var(--success);
   --color-warning: var(--warning);
+  --color-coffee: var(--coffee);
   --color-werewolf: var(--werewolf);
   --color-village: var(--village);
   --color-tanner: var(--tanner);

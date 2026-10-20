@@ -51,10 +51,18 @@ class Room(BaseModel):
     bots_added: int = 0  # 一共加过几个机器人，给新机器人编号；调试模式开着时，移出过的号不再用
 
     @classmethod
-    def create(cls, code: str, host: PlayerId, name: str, now: float) -> Self:
-        """开房的人直接成为成员和房主，等他连上来才算在线。"""
+    def create(
+        cls, code: str, host: PlayerId, name: str, now: float, settings: Settings | None = None
+    ) -> Self:
+        """开房的人直接成为成员和房主，等他连上来才算在线。从首页的板子开房时带着板子的设置。"""
         creator = Member(id=host, name=name, seat=0, offline_since=now)
-        return cls(code=code, host=host, members=[creator], touched_at=now)
+        return cls(
+            code=code,
+            host=host,
+            members=[creator],
+            settings=settings or Settings(),
+            touched_at=now,
+        )
 
     # ------------------------------------------------------------ 查询
 
