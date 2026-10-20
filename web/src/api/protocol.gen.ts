@@ -37,6 +37,7 @@ export type RoleId =
   | "villager";
 export type ServerMessage = StateMessage | ErrorMessage;
 export type Phase = "lobby" | "deal" | "night" | "day" | "vote" | "reveal";
+export type BoardKind = "starter" | "classic" | "chaos" | "tanner" | "mason" | "mirror";
 export type Team = "village" | "werewolf" | "tanner";
 export type ErrorCode =
   | "not_member"
@@ -169,6 +170,7 @@ export interface RoomView {
   deck: RoleId[];
   auto_deck: boolean;
   seats: number;
+  board: BoardKind | null;
   recommended_decks: {
     [k: string]: RoleId[];
   };

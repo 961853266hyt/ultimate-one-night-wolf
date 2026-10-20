@@ -1,7 +1,7 @@
 /** 「房间」页用的：现在能加入的房间。 */
 import { useEffect, useState } from 'react'
 import { forgetRoom, lastRoom } from './session'
-import type { Phase, RoleId } from './types'
+import type { BoardKind, Phase, RoleId } from './types'
 
 export interface OpenRoom {
   code: string
@@ -12,6 +12,8 @@ export interface OpenRoom {
   players: number
   seats: number
   deck: RoleId[]
+  /** 用的是哪个板子，房主自己配的牌是 null。 */
+  board: BoardKind | null
 }
 
 /** 隔几秒重新拉一次。 */

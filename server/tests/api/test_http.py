@@ -40,6 +40,20 @@ def test_opening_a_room_needs_an_identity(client):
     assert client.post("/api/rooms", json={"name": "阿胡"}).status_code == 401
 
 
+def test_the_boards_cover_every_player_count(client):
+    boards = client.get("/api/boards").json()
+    classic = [b for b in boards if b["kind"] == "classic"]
+    assert [b["seats"] for b in classic] == list(range(3, 11))
+    chaos = next(b for b in boards if b["id"] == "chaos-5")
+    assert (chaos["seats"], len(chaos["deck"]), chaos["speech_rounds"]) == (5, 8, 4)
+
+
+def test_a_room_cannot_be_opened_from_a_board_that_does_not_exist(client):
+    token = client.post("/api/session").json()["token"]
+    body = {"name": "阿胡", "board": "chaos-2"}
+    assert client.post("/api/rooms", json=body, headers=bearer(token)).status_code == 422
+
+
 def test_open_a_room_and_look_it_up(client):
     token = client.post("/api/session").json()["token"]
     code = client.post("/api/rooms", json={"name": "阿胡"}, headers=bearer(token)).json()["code"]

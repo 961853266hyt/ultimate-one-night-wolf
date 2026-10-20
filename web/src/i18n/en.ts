@@ -39,6 +39,23 @@ export const en: Messages = {
     failed: "Can't reach the server, retrying…",
   },
 
+  boards: {
+    howMany: 'How many players',
+    count: (n) => `Setups · ${n}`,
+    failed: "Couldn't load the setups. Try refreshing the page.",
+    meta: (seats, cards, rounds) =>
+      `${plural(seats, 'player')} · ${plural(cards, 'card')} · ${rounds ? plural(rounds, 'speaking round') : 'free discussion'}`,
+    open: 'Open a room with this setup',
+    kinds: {
+      starter: { name: 'Starter', tag: 'Beginner' },
+      classic: { name: 'Classic', tag: 'Classic' },
+      chaos: { name: 'Swap Frenzy', tag: 'Chaos' },
+      tanner: { name: 'Tanner Trouble', tag: 'Wildcard' },
+      mason: { name: 'Masons', tag: 'Classic' },
+      mirror: { name: 'Mirror', tag: 'Advanced' },
+    },
+  },
+
   common: {
     close: 'Close',
     cancel: 'Cancel',
@@ -178,6 +195,7 @@ export const en: Messages = {
     fillOne: 'Add one',
     toFill: 'Needed',
     summaryTitle: (seats, cards) => `${seats}-player game · ${cards}`,
+    summaryBoard: (seats, board) => `${plural(seats, 'player')} · ${board}`,
     cardsOf: (count, need) => (need === undefined ? plural(count, 'card') : `${count}/${need} cards`),
     nightTimeSr: 'Night timer',
     summaryTime: (n) => `${n}s`,

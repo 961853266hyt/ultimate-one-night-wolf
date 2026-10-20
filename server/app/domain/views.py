@@ -7,6 +7,7 @@ from collections.abc import Collection
 
 from pydantic import BaseModel
 
+from .boards import BoardKind, board_of
 from .errors import ErrorCode, RuleError
 from .game import Game, NightLogEntry
 from .recommended import recommended_deck
@@ -41,6 +42,7 @@ class RoomView(BaseModel):
     deck: list[RoleId]
     auto_deck: bool
     seats: int  # 房间几个座位
+    board: BoardKind | None  # 座位数和牌对得上哪个预设的板子，房主自己配的就是 None
     # 每种座位数推荐的牌堆。房主配牌时拿来对比和「恢复推荐」；改座位数时直接换成新人数的推荐
     recommended_decks: dict[int, list[RoleId]]
     timings: Timings
@@ -161,6 +163,7 @@ def _room_view(room: Room) -> RoomView:
         deck=room.deck(),
         auto_deck=room.settings.deck is None,
         seats=room.settings.seats,
+        board=board_of(room.settings.seats, room.deck()),
         recommended_decks={n: recommended_deck(n) for n in range(MIN_PLAYERS, MAX_PLAYERS + 1)},
         timings=room.settings.timings,
         self_vote=room.game.self_vote if room.game else room.settings.self_vote,

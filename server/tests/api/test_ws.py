@@ -114,6 +114,18 @@ def test_reconnecting_puts_you_back_in_your_seat(client):
         assert after["phase"] == "deal"
 
 
+def test_a_room_opened_from_a_board_starts_with_its_cards(client):
+    session = client.post("/api/session").json()
+    headers = {"Authorization": f"Bearer {session['token']}"}
+    body = {"name": "阿胡", "board": "chaos-5"}
+    code = client.post("/api/rooms", json=body, headers=headers).json()["code"]
+    with connect(client, code, session, "阿胡") as ws:
+        room = next_view(ws)["room"]
+        assert (room["seats"], room["board"], room["speech_rounds"]) == (5, "chaos", 4)
+        [listed] = client.get("/api/rooms").json()
+        assert listed["board"] == "chaos"
+
+
 def test_the_room_list_shows_rooms_people_can_join(client):
     code, sessions = open_room(client, 2)
     assert client.get("/api/rooms").json() == []  # 房主还没连上来，不算开着的房间

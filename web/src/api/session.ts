@@ -32,11 +32,12 @@ export async function ensureSession(): Promise<Session> {
   return session
 }
 
-export async function createRoom(session: Session, name: string): Promise<string> {
+/** 开房，返回房间号。从首页的板子开房时带上板子的 id，房间一开就是那副牌。 */
+export async function createRoom(session: Session, name: string, board?: string): Promise<string> {
   const response = await fetch('/api/rooms', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${session.token}` },
-    body: JSON.stringify({ name }),
+    body: JSON.stringify({ name, board }),
   })
   if (!response.ok) throw new Error(`create room: ${response.status}`)
   return ((await response.json()) as { code: string }).code
