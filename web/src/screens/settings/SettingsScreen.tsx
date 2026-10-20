@@ -1,12 +1,11 @@
 /**
- * 「设置」标签页：界面语言、深浅色、反馈问题、请作者喝杯咖啡，最下面是版本和作者的落款。
+ * 「设置」标签页：上面是界面语言、深浅色；下面「关于」里是反馈问题、请作者喝杯咖啡，紧跟着版本和作者的落款。
  */
-import { Coffee, Monitor, MessageSquareWarning, Moon, Sun, type LucideIcon } from 'lucide-react'
+import { ArrowUpRight, Coffee, Monitor, MessageSquareWarning, Moon, Sun, type LucideIcon } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { GitHubIcon } from '@/components/icons/GitHubIcon'
 import { Page, PageContent } from '@/components/layout/Page'
 import { TabHeader } from '@/components/layout/TabHeader'
-import { buttonVariants } from '@/components/ui/button'
 import { LOCALE_NAME, LOCALES, setLocale, t as tr, useLocale, useT } from '@/i18n'
 import { cn } from '@/lib/utils'
 import { setTheme, THEMES, useTheme, type Theme } from '@/theme'
@@ -20,32 +19,25 @@ export function SettingsScreen() {
   return (
     <Page>
       <TabHeader title={t.tabs.settings} />
-      <PageContent className="gap-4 pt-2">
+      <PageContent className="gap-6 pt-2">
         <div className="flex flex-col rounded-xl border px-3.5 py-1">
           <LanguageRow />
           <ThemeRow />
         </div>
-        <a
-          href={feedbackUrl()}
-          target="_blank"
-          rel="noreferrer"
-          className={cn(buttonVariants({ variant: 'outline', size: 'xl' }), 'w-full')}
-        >
-          <MessageSquareWarning aria-hidden className="size-4.5" />
-          {t.menu.feedback}
-        </a>
-        <a
-          href={COFFEE_URL}
-          target="_blank"
-          rel="noreferrer"
-          className={cn(buttonVariants({ variant: 'outline', size: 'xl' }), 'w-full')}
-        >
-          <Coffee aria-hidden className="size-4.5" />
-          {t.menu.coffee}
-        </a>
-        <div className="mt-auto pt-6">
-          <Credits />
-        </div>
+        <section className="flex flex-col gap-2">
+          <h2 className="text-[13px] font-semibold text-muted-foreground">{t.menu.about}</h2>
+          <div className="flex flex-col divide-y rounded-xl border">
+            <LinkRow href={feedbackUrl()} icon={MessageSquareWarning}>
+              {t.menu.feedback}
+            </LinkRow>
+            <LinkRow href={COFFEE_URL} icon={Coffee} className="text-coffee">
+              {t.menu.coffee}
+            </LinkRow>
+          </div>
+          <div className="pt-2">
+            <Credits />
+          </div>
+        </section>
       </PageContent>
     </Page>
   )
@@ -58,6 +50,35 @@ export function SettingsScreen() {
 function feedbackUrl(): string {
   const body = tr().menu.feedbackBody(__APP_VERSION__, location.pathname, navigator.userAgent)
   return `${SOURCE_URL}/issues/new?${new URLSearchParams({ body })}`
+}
+
+/** 「关于」里的一行：图标、文字，右边一个斜箭头表示在新页面打开。 */
+function LinkRow({
+  href,
+  icon: Icon,
+  className,
+  children,
+}: {
+  href: string
+  icon: LucideIcon
+  className?: string
+  children: ReactNode
+}) {
+  return (
+    <a
+      href={href}
+      target="_blank"
+      rel="noreferrer"
+      className={cn(
+        'flex items-center gap-3 px-3.5 py-3 text-sm font-medium outline-none transition-colors first:rounded-t-xl last:rounded-b-xl hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
+        className,
+      )}
+    >
+      <Icon aria-hidden className="size-4.5" />
+      <span className="flex-1">{children}</span>
+      <ArrowUpRight aria-hidden className="size-4 opacity-50" />
+    </a>
+  )
 }
 
 /** 落款：版本、作者、源码。小字、淡色、居中，不当菜单项。 */

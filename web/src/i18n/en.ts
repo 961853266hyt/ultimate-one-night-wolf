@@ -84,6 +84,7 @@ export const en: Messages = {
     themes: { light: 'Light', dark: 'Dark', system: 'System' },
     feedback: 'Report a problem',
     coffee: 'Buy me a coffee',
+    about: 'About',
     feedbackBody: (version, page, device) =>
       [
         '**What went wrong**',
