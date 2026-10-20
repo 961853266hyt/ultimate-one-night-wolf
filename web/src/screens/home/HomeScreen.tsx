@@ -1,5 +1,5 @@
 import { ChevronRight, X } from 'lucide-react'
-import { useState, useTransition, type FormEvent } from 'react'
+import { useEffect, useRef, useState, useTransition, type FormEvent } from 'react'
 import { toast } from 'sonner'
 import { useBoards, type Board } from '@/api/boards'
 import { createRoom, ensureSession, goToRoom, loadName, saveName, storageKey } from '@/api/session'
@@ -18,7 +18,7 @@ const SEAT_COUNTS = Array.from({ length: MAX_PLAYERS - MIN_PLAYERS + 1 }, (_, in
 const HEADING = 'text-[13px] font-semibold text-muted-foreground'
 
 /**
- * 首页：先选几个人玩，下面列出这个人数的板子，点一个看配了哪些牌，直接开房。
+ * 首页：「官方精选」的板子。先选几个人玩，下面列出这个人数的板子，点一个看配了哪些牌，直接开房。
  * 自己配牌、输房间号加入在标签栏中间的「+」里。
  */
 export function HomeScreen() {
@@ -46,14 +46,10 @@ export function HomeScreen() {
         </header>
 
         <section className="flex flex-col gap-3">
-          <h2 className={HEADING}>{t.boards.howMany}</h2>
+          <h2 className={HEADING}>{t.boards.featured}</h2>
           <SeatsPicker value={seats} onChange={setSeats} />
-        </section>
-
-        <section className="flex flex-col gap-3">
-          {boards && <h2 className={HEADING}>{t.boards.count(shown.length)}</h2>}
           {failed && <p className="py-10 text-center text-sm text-muted-foreground">{t.boards.failed}</p>}
-          {!boards && !failed && <p className="py-10 text-center text-sm text-muted-foreground">{t.app.loading}</p>}
+          {!boards && !failed && <BoardListSkeleton />}
           <ul className="flex flex-col gap-2.5">
             {shown.map((board) => (
               <li key={board.id}>
@@ -91,24 +87,38 @@ function useStoredSeats() {
   return [seats, choose] as const
 }
 
-/** 几个人玩：3 到 10 排成一排。 */
+/** 几个人玩：「3 人」到「10 人」一排胶囊，和房间顶上「替谁操作」一个样子，放不下就横着滑。选中的滚到中间。 */
 function SeatsPicker({ value, onChange }: { value: number; onChange: (value: number) => void }) {
   const t = useT()
+  const row = useRef<HTMLDivElement>(null)
+  const first = useRef(true)
+  useEffect(() => {
+    const chip = row.current?.querySelector<HTMLElement>('[aria-pressed="true"]')
+    if (!row.current || !chip) return
+    const left = chip.offsetLeft - (row.current.clientWidth - chip.offsetWidth) / 2
+    // 刚打开时直接停在上次选的人数上，之后点了再滑过去
+    row.current.scrollTo({ left, behavior: first.current ? 'instant' : 'smooth' })
+    first.current = false
+  }, [value])
   return (
-    <div role="group" aria-label={t.boards.howMany} className="grid grid-cols-8 gap-0.5 rounded-lg bg-muted p-0.5">
+    <div
+      ref={row}
+      role="group"
+      aria-label={t.boards.howMany}
+      className="-mx-5 flex gap-2 overflow-x-auto px-5 py-0.5 [scrollbar-width:none]"
+    >
       {SEAT_COUNTS.map((count) => (
         <button
           key={count}
           type="button"
           aria-pressed={value === count}
-          aria-label={t.settings.people(count)}
           onClick={() => onChange(count)}
           className={cn(
-            'h-9 rounded-md font-mono text-sm font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
-            value === count ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground',
+            'flex h-9 shrink-0 items-center rounded-full border px-4 text-sm whitespace-nowrap outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
+            value === count ? 'border-primary bg-primary text-primary-foreground' : 'text-muted-foreground hover:bg-muted',
           )}
         >
-          {count}
+          {t.boards.seats(count)}
         </button>
       ))}
     </div>
@@ -145,6 +155,40 @@ function BoardRow({ board, onOpen }: { board: Board; onOpen: () => void }) {
       </span>
       <ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
     </button>
+  )
+}
+
+/** 每张骨架卡片上名字占位的宽度，长短错开一点，像真的板子名。 */
+const SKELETON_NAMES = ['w-16', 'w-14', 'w-24', 'w-20']
+
+/** 板子还没拉到时的骨架：几张卡片，形状、高度和真的一样，拉到之后不跳。 */
+function BoardListSkeleton() {
+  const t = useT()
+  return (
+    <div role="status" className="flex flex-col gap-3">
+      <span className="sr-only">{t.app.loading}</span>
+      {/* 占位块里放一个空格，高度就是那一行字的行高 */}
+      <div aria-hidden className="animate-pulse">
+        <ul className="flex flex-col gap-2.5">
+          {SKELETON_NAMES.map((width) => (
+            <li key={width} className="flex items-center gap-3 rounded-xl border px-3.5 py-3">
+              <span className="flex flex-1 flex-col gap-2.5">
+                <span className="flex items-center gap-2 text-[15px]">
+                  <span className={cn('inline-block rounded-md bg-muted', width)}>&nbsp;</span>
+                  <span className="inline-block w-9 rounded-full bg-muted py-0.5 text-[11px]">&nbsp;</span>
+                </span>
+                <span className="flex pl-1.5">
+                  {Array.from({ length: 8 }, (_, index) => (
+                    <span key={index} className="-ml-1.5 size-7 rounded-full bg-muted ring-2 ring-background" />
+                  ))}
+                </span>
+              </span>
+              <span className="size-4 shrink-0" />
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
   )
 }
 

@@ -1,6 +1,7 @@
 import { ChevronRight, PawPrint, Undo2 } from 'lucide-react'
 import { goToRoom } from '@/api/session'
 import { useLastRoom, useOpenRooms, type OpenRoom, type RoomSummary } from '@/api/rooms'
+import { PawLoader } from '@/components/common/PawLoader'
 import { RoleAvatar } from '@/components/game/RoleAvatar'
 import { Page, PageContent } from '@/components/layout/Page'
 import { TabHeader } from '@/components/layout/TabHeader'
@@ -20,7 +21,13 @@ export function RoomsScreen() {
       <PageContent className="gap-3 pt-2">
         {last && <BackToRoom room={last} />}
         {failed && <p className="text-center text-xs text-muted-foreground">{t.rooms.failed}</p>}
-        {rooms === null && !failed && <p className="py-16 text-center text-sm text-muted-foreground">{t.app.loading}</p>}
+        {/* 和整屏加载一样走一串爪印，文字只给读屏软件；放在没有房间时那只爪印的位置 */}
+        {rooms === null && !failed && (
+          <div role="status" className="flex flex-1 items-center justify-center py-16 text-muted-foreground">
+            <PawLoader />
+            <span className="sr-only">{t.app.loading}</span>
+          </div>
+        )}
         {/* 一个能进的房间都没有，也没有刚才在的房间。开房在标签栏中间的「+」里，这里不再多放按钮 */}
         {rooms?.length === 0 && !last && (
           <div className="flex flex-1 flex-col items-center justify-center gap-3 py-16 text-center text-muted-foreground">

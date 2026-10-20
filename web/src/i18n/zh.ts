@@ -72,8 +72,9 @@ export const zh = {
   },
 
   boards: {
+    featured: '官方精选',
     howMany: '几个人玩',
-    count: (n: number) => `板子 · ${n} 个`,
+    seats: (n: number) => `${n} 人`,
     failed: '板子没加载出来，刷新页面试试',
     meta: (seats: number, cards: number, rounds: number) =>
       `${seats} 人 · ${cards} 张 · ${rounds ? `白天发言 ${rounds} 轮` : '白天自由讨论'}`,

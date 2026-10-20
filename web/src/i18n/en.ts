@@ -40,8 +40,9 @@ export const en: Messages = {
   },
 
   boards: {
+    featured: 'Featured setups',
     howMany: 'How many players',
-    count: (n) => `Setups · ${n}`,
+    seats: (n) => plural(n, 'player'),
     failed: "Couldn't load the setups. Try refreshing the page.",
     meta: (seats, cards, rounds) =>
       `${plural(seats, 'player')} · ${plural(cards, 'card')} · ${rounds ? plural(rounds, 'speaking round') : 'free discussion'}`,
