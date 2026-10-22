@@ -263,6 +263,7 @@ def _transact(self, change):
 | `GET /api/roles` | 角色目录：名字、阵营、说明、张数上限（给配牌界面用） |
 | `GET /api/me/games` | P1：我的战绩 |
 | `GET /healthz` | 健康检查 |
+| `GET /version.json` | 前端打包时生成的静态文件 `{version, build}`：版本号和这次打包的编号。页面里也记着自己的打包编号，设置页的检查更新绕过缓存拉它来对，不一样就提示更新 |
 
 ### 5.2 WebSocket `/ws/rooms/{code}`
 

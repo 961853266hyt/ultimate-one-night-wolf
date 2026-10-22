@@ -1,12 +1,15 @@
 /**
- * 「设置」标签页：上面是界面语言、深浅色；下面「关于」里是反馈问题、请作者喝杯咖啡，紧跟着版本和作者的落款。
+ * 「设置」标签页：上面「通用」里是界面语言、深浅色；下面「关于」里是检查更新、反馈问题、请作者喝杯咖啡，紧跟着版本和作者的落款。
  */
-import { ArrowUpRight, Coffee, Monitor, MessageSquareWarning, Moon, Sun, type LucideIcon } from 'lucide-react'
-import type { ReactNode } from 'react'
+import { ArrowUpRight, CircleCheck, Coffee, Monitor, MessageSquareWarning, Moon, RefreshCw, Sun, type LucideIcon } from 'lucide-react'
+import { useState, type ReactNode } from 'react'
 import { GitHubIcon } from '@/components/icons/GitHubIcon'
 import { Page, PageContent } from '@/components/layout/Page'
 import { TabHeader } from '@/components/layout/TabHeader'
+import { Button } from '@/components/ui/button'
 import { LOCALE_NAME, LOCALES, setLocale, t as tr, useLocale, useT } from '@/i18n'
+import { useActiveRoom } from '@/lib/activeRoom'
+import { reloadLatest, useUpdateStatus } from '@/lib/updates'
 import { cn } from '@/lib/utils'
 import { setTheme, THEMES, useTheme, type Theme } from '@/theme'
 
@@ -14,19 +17,26 @@ const AUTHOR_URL = 'https://github.com/961853266hyt'
 const SOURCE_URL = `${AUTHOR_URL}/ultimate-one-night-wolf`
 const COFFEE_URL = 'https://buymeacoffee.com/higeli'
 
+/** 「通用」「关于」这种分组的小标题。 */
+const SECTION_TITLE = 'text-[13px] font-semibold text-muted-foreground'
+
 export function SettingsScreen() {
   const t = useT()
   return (
     <Page>
       <TabHeader title={t.tabs.settings} />
       <PageContent className="gap-6 pt-2">
-        <div className="flex flex-col rounded-xl border px-3.5 py-1">
-          <LanguageRow />
-          <ThemeRow />
-        </div>
         <section className="flex flex-col gap-2">
-          <h2 className="text-[13px] font-semibold text-muted-foreground">{t.menu.about}</h2>
-          <div className="flex flex-col divide-y rounded-xl border">
+          <h2 className={SECTION_TITLE}>{t.menu.general}</h2>
+          <div className="flex flex-col rounded-xl border px-3.5 py-1">
+            <LanguageRow />
+            <ThemeRow />
+          </div>
+        </section>
+        <section className="flex flex-col gap-2">
+          <h2 className={SECTION_TITLE}>{t.menu.about}</h2>
+          <div className="flex flex-col rounded-xl border">
+            <UpdateRow />
             <LinkRow href={feedbackUrl()} icon={MessageSquareWarning}>
               {t.menu.feedback}
             </LinkRow>
@@ -52,7 +62,60 @@ function feedbackUrl(): string {
   return `${SOURCE_URL}/issues/new?${new URLSearchParams({ body })}`
 }
 
-/** 「关于」里的一行：图标、文字，右边一个斜箭头表示在新页面打开。 */
+/** 「关于」里一行的样子：图标、文字，右边可以再放个小图标。 */
+const ROW =
+  'flex w-full items-center gap-3 px-3.5 py-3 text-left text-sm font-medium outline-none transition-colors first:rounded-t-xl last:rounded-b-xl hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50 disabled:hover:bg-transparent'
+
+/**
+ * 检查更新：打开设置页就去服务器上对一下版本。已经是最新就只写一句，点一下再查一次；
+ * 有新版本给个「更新」；查不了（断网之类）给个「重新加载」兜底。在房间里点的，刷新完回到房间。
+ */
+function UpdateRow() {
+  const t = useT()
+  const room = useActiveRoom()
+  const [status, recheck] = useUpdateStatus()
+  const [reloading, setReloading] = useState(false)
+  const reload = () => {
+    setReloading(true)
+    void reloadLatest(room ? `/r/${room.code}` : location.pathname)
+  }
+  const spinning = status.state === 'checking' || reloading
+
+  if (status.state === 'latest') {
+    return (
+      <button type="button" onClick={recheck} className={ROW}>
+        <CircleCheck aria-hidden className="size-4.5" />
+        <span className="flex-1">{t.menu.updates.latest}</span>
+        <span className="text-xs font-normal text-muted-foreground">v{__APP_VERSION__}</span>
+      </button>
+    )
+  }
+  return (
+    <div role="status" className={ROW}>
+      <RefreshCw aria-hidden className={cn('size-4.5', spinning && 'animate-spin')} />
+      <span className="flex-1">
+        {status.state === 'checking'
+          ? t.menu.updates.checking
+          : status.state === 'available'
+            ? t.menu.updates.available(status.version)
+            : t.menu.updates.failed}
+      </span>
+      {status.state !== 'checking' && (
+        <Button
+          size="sm"
+          variant={status.state === 'available' ? 'default' : 'outline'}
+          disabled={reloading}
+          onClick={reload}
+          className="-my-1 rounded-full px-3"
+        >
+          {status.state === 'available' ? t.menu.updates.install : t.menu.updates.reload}
+        </Button>
+      )}
+    </div>
+  )
+}
+
+/** 「关于」里的一行链接：右边一个斜箭头，表示在新页面打开。 */
 function LinkRow({
   href,
   icon: Icon,
@@ -69,10 +132,7 @@ function LinkRow({
       href={href}
       target="_blank"
       rel="noreferrer"
-      className={cn(
-        'flex items-center gap-3 px-3.5 py-3 text-sm font-medium outline-none transition-colors first:rounded-t-xl last:rounded-b-xl hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
-        className,
-      )}
+      className={cn(ROW, className)}
     >
       <Icon aria-hidden className="size-4.5" />
       <span className="flex-1">{children}</span>

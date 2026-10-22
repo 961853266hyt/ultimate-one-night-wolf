@@ -85,7 +85,16 @@ export const en: Messages = {
     themes: { light: 'Light', dark: 'Dark', system: 'System' },
     feedback: 'Report a problem',
     coffee: 'Buy me a coffee',
+    general: 'General',
     about: 'About',
+    updates: {
+      checking: 'Checking for updates…',
+      latest: "You're up to date",
+      available: (version) => `Version ${version} is available`,
+      failed: "Couldn't check for updates",
+      install: 'Update',
+      reload: 'Reload',
+    },
     feedbackBody: (version, page, device) =>
       [
         '**What went wrong**',
