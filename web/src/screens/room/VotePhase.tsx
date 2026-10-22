@@ -5,7 +5,7 @@ import { SeatGrid, SeatTile } from '@/components/game/SeatGrid'
 import { IdentitySwitch, SeatNoteList } from '@/components/game/SeatNotes'
 import { SeatProgress } from '@/components/game/SeatStatus'
 import { PageContent, PageFooter } from '@/components/layout/Page'
-import { PageTitle, Section } from '@/components/layout/Section'
+import { Section } from '@/components/layout/Section'
 import { Button } from '@/components/ui/button'
 import { cluesOf } from '@/game/knowledge'
 import { seatLabel, seatsOf, type Seat } from '@/game/seats'
@@ -28,14 +28,8 @@ export function VotePhase({ view, send }: PhaseProps) {
   return (
     <>
       <PageContent>
-        <PageTitle
-          title={mine ? t.vote.voted : t.vote.title}
-          description={t.vote.rule}
-        />
-
         <Section
           title={t.common.seats}
-          caption={t.vote.seatsCaption(voted.size, seats.length)}
           action={<IdentitySwitch />}
         >
           <SeatGrid>

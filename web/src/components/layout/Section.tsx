@@ -3,8 +3,6 @@ import { cn } from '@/lib/utils'
 
 interface SectionProps {
   title: string
-  /** 标题下面的一行小字，比如进度「3/6 已投票」。 */
-  caption?: ReactNode
   /** 标题行最右边的小控件，比如座位的身份开关。标题照样居中。 */
   action?: ReactNode
   children: ReactNode
@@ -12,12 +10,11 @@ interface SectionProps {
 }
 
 /** 页面里的一块内容：居中的小标题，下面是内容。 */
-export function Section({ title, caption, action, children, className }: SectionProps) {
+export function Section({ title, action, children, className }: SectionProps) {
   return (
     <section className={cn('flex flex-col items-center gap-4', className)}>
-      <header className="relative flex w-full flex-col items-center gap-0.5 text-center">
+      <header className="relative flex w-full flex-col items-center text-center">
         <h2 className="text-base font-semibold">{title}</h2>
-        {caption && <p className="text-xs text-muted-foreground">{caption}</p>}
         {/* 控件比标题高一点，往上提 4px，和标题那一行居中对齐 */}
         {action && <div className="absolute -top-1 right-0">{action}</div>}
       </header>

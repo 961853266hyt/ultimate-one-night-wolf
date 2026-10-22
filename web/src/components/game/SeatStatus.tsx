@@ -10,7 +10,6 @@ const statusVariants = cva(
         done: 'text-success',
         waiting: 'text-muted-foreground',
         offline: 'bg-muted/60 text-muted-foreground',
-        empty: 'border-dashed text-muted-foreground',
         win: 'font-medium text-success',
         lose: 'font-medium text-destructive',
       },
