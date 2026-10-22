@@ -7,6 +7,7 @@ import { createRoom, ensureSession, goToRoom, loadName, saveName, storageKey } f
 import { NameField } from '@/components/common/NameField'
 import { DeckTray, NightOrder } from '@/components/game/Deck'
 import { Page, PageContent } from '@/components/layout/Page'
+import { TabHeader } from '@/components/layout/TabHeader'
 import { Button } from '@/components/ui/button'
 import { Drawer, DrawerClose, DrawerContent, DrawerHeader, DrawerTitle } from '@/components/ui/drawer'
 import { MAX_PLAYERS, MIN_PLAYERS } from '@/game/lobby'
@@ -33,23 +34,14 @@ export function HomeScreen() {
   const shown = boards?.filter((board) => board.seats === seats) ?? []
   return (
     <Page>
-      <PageContent className="gap-7 pt-8">
-        <header className="flex flex-col items-center gap-2.5">
-          <img src="/icon.svg" alt="" className="size-12" />
-          {/* 英文名长（One Night Ultimate Werewolf），用小一号排成两行 */}
-          <h1
-            className={cn(
-              'text-center leading-tight font-semibold tracking-wide text-balance',
-              t.app.name.length > 10 ? 'text-2xl' : 'text-[28px]',
-            )}
-          >
-            {t.app.name}
-          </h1>
-        </header>
-
+      {/* 和「角色」「房间」「设置」一样，最上面是标签页的标题 */}
+      <TabHeader title={t.boards.featured} />
+      <PageContent className="pt-2">
         <section className="flex flex-col gap-3">
-          <h2 className={HEADING}>{t.boards.featured}</h2>
-          <SeatsPicker value={seats} onChange={setSeats} />
+          {/* 往下滑时人数停在标题下面，和标题一样半透明的底 */}
+          <div className="sticky top-15 z-10 -mx-5 -mt-2 bg-background/95 py-2 backdrop-blur">
+            <SeatsPicker value={seats} onChange={setSeats} />
+          </div>
           {failed && <p className="py-10 text-center text-sm text-muted-foreground">{t.boards.failed}</p>}
           {!boards && !failed && <BoardListSkeleton />}
           <ul className="flex flex-col gap-2.5">
@@ -107,7 +99,7 @@ function SeatsPicker({ value, onChange }: { value: number; onChange: (value: num
       ref={row}
       role="group"
       aria-label={t.boards.howMany}
-      className="-mx-5 flex gap-2 overflow-x-auto px-5 py-0.5 [scrollbar-width:none]"
+      className="flex gap-2 overflow-x-auto px-5 py-0.5"
     >
       {SEAT_COUNTS.map((count) => (
         <button
