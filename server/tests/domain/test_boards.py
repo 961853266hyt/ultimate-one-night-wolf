@@ -23,6 +23,7 @@ def test_a_board_is_a_legal_deck_for_its_player_count(board):
     copies = Counter(board.deck)
     assert all(count <= ROLES[role].max_copies for role, count in copies.items())
     assert copies[R.MASON] in (0, 2)  # 守夜人成对
+    assert board.signature in board.deck
 
 
 @pytest.mark.parametrize("players", PLAYER_COUNTS)

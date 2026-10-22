@@ -7,12 +7,6 @@
 import type { BoardKind, ErrorMessage, Phase, Prompt, RoleId, Team, TargetOption } from '@/api/types'
 import { mention, type Phrase } from '@/game/phrase'
 
-/** 一个板子的名字和小标签。牌和设置在服务端的 domain/boards.py。 */
-export interface BoardText {
-  name: string
-  tag: string
-}
-
 /** 一个角色的文字。结构（阵营、图标、张数上限……）在 roles/catalog.ts。 */
 export interface RoleText {
   name: string
@@ -79,14 +73,15 @@ export const zh = {
     meta: (seats: number, cards: number, rounds: number) =>
       `${seats} 人 · ${cards} 张 · ${rounds ? `白天发言 ${rounds} 轮` : '白天自由讨论'}`,
     open: '用这个板子开房',
+    /** 板子的名字。牌和设置在服务端的 domain/boards.py。 */
     kinds: {
-      starter: { name: '新手局', tag: '新手' },
-      classic: { name: '经典局', tag: '经典' },
-      chaos: { name: '换牌大乱斗', tag: '混乱' },
-      tanner: { name: '皮匠搅局', tag: '搅局' },
-      mason: { name: '守夜人局', tag: '经典' },
-      mirror: { name: '镜像局', tag: '进阶' },
-    } satisfies Record<BoardKind, BoardText> as Record<BoardKind, BoardText>,
+      starter: '新手局',
+      classic: '经典局',
+      chaos: '换牌大乱斗',
+      tanner: '皮匠搅局',
+      mason: '守夜人局',
+      mirror: '镜像局',
+    } satisfies Record<BoardKind, string> as Record<BoardKind, string>,
   },
 
   common: {

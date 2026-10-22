@@ -64,7 +64,7 @@ export function DeckSummary({ deck, seats, need, nightStep, board, onOpen }: Dec
           )}
         >
           {board
-            ? t.settings.summaryBoard(seats, t.boards.kinds[board].name)
+            ? t.settings.summaryBoard(seats, t.boards.kinds[board])
             : t.settings.summaryTitle(seats, t.settings.cardsOf(deck.length, tone ? need : undefined))}
         </span>
         <span className="truncate text-xs text-muted-foreground">

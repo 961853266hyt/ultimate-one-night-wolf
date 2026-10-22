@@ -221,6 +221,13 @@
   84% { opacity: 0.7; transform: scale(1); }
 }
 
+/* 六边形（尖头朝上，角稍微圆一点）：用遮罩裁，里面放什么都行。首页板子上的角色头像用 */
+@utility hexagon {
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 88 100'%3E%3Cpath d='M44 4 L84 27 L84 73 L44 96 L4 73 L4 27 Z' fill='black' stroke='black' stroke-width='8' stroke-linejoin='round'/%3E%3C/svg%3E");
+  mask-size: 100% 100%;
+  mask-repeat: no-repeat;
+}
+
 /* 液态玻璃：背后的内容模糊、颜色提亮一点，半透明的底，上沿一道细高光，下面一层软投影 */
 @utility glass {
   background-color: var(--glass);
