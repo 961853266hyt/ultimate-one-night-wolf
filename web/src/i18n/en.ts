@@ -48,12 +48,12 @@ export const en: Messages = {
       `${plural(seats, 'player')} · ${plural(cards, 'card')} · ${rounds ? plural(rounds, 'speaking round') : 'free discussion'}`,
     open: 'Open a room with this setup',
     kinds: {
-      starter: { name: 'Starter', tag: 'Beginner' },
-      classic: { name: 'Classic', tag: 'Classic' },
-      chaos: { name: 'Swap Frenzy', tag: 'Chaos' },
-      tanner: { name: 'Tanner Trouble', tag: 'Wildcard' },
-      mason: { name: 'Masons', tag: 'Classic' },
-      mirror: { name: 'Mirror', tag: 'Advanced' },
+      starter: 'Starter',
+      classic: 'Classic',
+      chaos: 'Swap Frenzy',
+      tanner: 'Tanner Trouble',
+      mason: 'Masons',
+      mirror: 'Mirror',
     },
   },
 

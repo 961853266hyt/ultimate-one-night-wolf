@@ -98,7 +98,7 @@ function RoomRow({ room }: { room: OpenRoom }) {
       <span className="flex min-w-0 flex-1 flex-col gap-0.5">
         <span className="truncate text-[15px] font-medium">{t.rooms.title(room.host)}</span>
         <span className="text-xs text-muted-foreground">
-          {t.rooms.players(room.players, room.seats)} · {room.board && `${t.boards.kinds[room.board].name} · `}
+          {t.rooms.players(room.players, room.seats)} · {room.board && `${t.boards.kinds[room.board]} · `}
           {room.phase === 'reveal' ? t.rooms.reveal : t.rooms.lobby}
           <span className="ml-1.5 font-mono tracking-wider">{room.code}</span>
         </span>

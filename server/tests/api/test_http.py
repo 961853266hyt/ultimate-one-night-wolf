@@ -46,6 +46,7 @@ def test_the_boards_cover_every_player_count(client):
     assert [b["seats"] for b in classic] == list(range(3, 11))
     chaos = next(b for b in boards if b["id"] == "chaos-5")
     assert (chaos["seats"], len(chaos["deck"]), chaos["speech_rounds"]) == (5, 8, 4)
+    assert chaos["signature"] == "witch"
 
 
 def test_a_room_cannot_be_opened_from_a_board_that_does_not_exist(client):
