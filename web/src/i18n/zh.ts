@@ -65,6 +65,11 @@ export const zh = {
     failed: '暂时连不上服务器，稍后自动重试',
   },
 
+  rolesPage: {
+    team: '阵营',
+    tabs: { village: '好人阵营', werewolf: '狼人阵营', tanner: '第三方' } satisfies Record<Team, string>,
+  },
+
   boards: {
     featured: '官方精选',
     howMany: '几个人玩',
@@ -107,11 +112,19 @@ export const zh = {
   },
 
   menu: {
-    teamGroup: (team: string, count: number) => `${team} · ${count}`,
     language: '语言',
     theme: '外观',
     themes: { light: '浅色', dark: '深色', system: '跟随系统' },
+    general: '通用',
     about: '关于',
+    updates: {
+      checking: '正在检查更新…',
+      latest: '已是最新版本',
+      available: (version: string) => `发现新版本 v${version}`,
+      failed: '检查更新失败',
+      install: '更新',
+      reload: '重新加载',
+    },
     feedback: '反馈问题',
     coffee: '请我喝杯咖啡',
     feedbackBody: (version: string, page: string, device: string) =>

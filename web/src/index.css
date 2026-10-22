@@ -263,6 +263,11 @@
 @layer base {
   * {
     @apply border-border outline-ring/50;
+    /* 滚动条全都不显示，照样能滑：手机上本来就几乎看不见，桌面和安卓上也不要那一条 */
+    scrollbar-width: none;
+  }
+  *::-webkit-scrollbar {
+    display: none;
   }
   html {
     @apply font-sans antialiased;

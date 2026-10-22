@@ -39,6 +39,11 @@ export const en: Messages = {
     failed: "Can't reach the server, retrying…",
   },
 
+  rolesPage: {
+    team: 'Team',
+    tabs: { village: 'Village', werewolf: 'Werewolves', tanner: 'Third party' },
+  },
+
   boards: {
     featured: 'Featured setups',
     howMany: 'How many players',
@@ -79,13 +84,21 @@ export const en: Messages = {
   },
 
   menu: {
-    teamGroup: (team, count) => `${team} · ${count}`,
     language: 'Language',
     theme: 'Appearance',
     themes: { light: 'Light', dark: 'Dark', system: 'System' },
     feedback: 'Report a problem',
     coffee: 'Buy me a coffee',
+    general: 'General',
     about: 'About',
+    updates: {
+      checking: 'Checking for updates…',
+      latest: "You're up to date",
+      available: (version) => `Version ${version} is available`,
+      failed: "Couldn't check for updates",
+      install: 'Update',
+      reload: 'Reload',
+    },
     feedbackBody: (version, page, device) =>
       [
         '**What went wrong**',
