@@ -127,7 +127,7 @@ function SeatsPicker({ value, onChange }: { value: number; onChange: (value: num
   )
 }
 
-/** 角色按阵营分组：狼人阵营在前，然后好人、皮匠，和网易一样坏人先摆。 */
+/** 角色按阵营分组：狼人阵营在前，然后好人、皮匠。 */
 const TOKEN_TEAMS: readonly Team[] = ['werewolf', 'village', 'tanner']
 
 /**
