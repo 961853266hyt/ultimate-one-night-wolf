@@ -1,6 +1,7 @@
 /**
- * 底部标签栏：首页、角色、（中间的圆按钮）、房间、设置。所有页面都有，固定在屏幕底部，房间里也在。
- * 中间是一个比两边高出一截的圆形按钮：在房间外是「+」，点开填昵称，创建房间或者输房间号加入；在房间里是离开房间。
+ * 底部标签栏：首页、角色、（中间的圆按钮）、房间、设置。所有页面都有，房间里也在。
+ * 一条圆角的液态玻璃悬浮在屏幕底部，离两边和底边留点空，页面内容从它后面滑过去。
+ * 中间是一个比两边高出一截的黑色圆按钮，顶出玻璃条的上沿：在房间外是「+」，点开填昵称，创建房间或者输房间号加入；在房间里是离开房间。
  * 切到别的标签页时房间还在后台连着，所以中间照样是离开房间，「房间」点了直接回去。
  */
 import { BookOpen, DoorOpen, House, LogOut, Plus, Settings, X, type LucideIcon } from 'lucide-react'
@@ -47,9 +48,10 @@ export function TabBar() {
           type="button"
           aria-current={active ? 'page' : undefined}
           onClick={() => navigate(target(tab))}
+          // 选中的那一格垫一块浅色的圆角底，像玻璃上又叠了一小片
           className={cn(
-            'flex h-14 w-full flex-col items-center justify-center gap-1 text-[11px] font-medium outline-none transition-colors focus-visible:bg-muted',
-            active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground',
+            'flex h-13 w-full flex-col items-center justify-center gap-0.5 rounded-full text-[11px] font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
+            active ? 'bg-foreground/7 text-foreground' : 'text-muted-foreground hover:text-foreground',
           )}
         >
           <span className="relative">
@@ -68,10 +70,10 @@ export function TabBar() {
   return (
     <nav
       aria-label={t.tabs.label}
-      // 夜里的叫醒过场（z-40）、抽屉和弹窗（z-50）会盖住它
-      className="fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-md border-t bg-background/95 pb-[env(safe-area-inset-bottom)] backdrop-blur"
+      // 夜里的叫醒过场（z-40）、抽屉和弹窗（z-50）会盖住它。玻璃条外面留的空隙点得穿，不挡后面的页面
+      className="pointer-events-none fixed inset-x-0 bottom-0 z-30 mx-auto w-full max-w-md px-4 pb-[max(0.75rem,env(safe-area-inset-bottom))]"
     >
-      <ul className="grid grid-cols-5">
+      <ul className="glass pointer-events-auto grid h-16 grid-cols-5 items-center rounded-full px-1.5">
         {item('home')}
         {item('roles')}
         <li className="flex justify-center">
@@ -89,7 +91,7 @@ function CenterButton() {
   return room ? <LeaveRoomButton room={room} /> : <JoinButton />
 }
 
-/** 中间的圆形按钮本身：比两边高出一截，外面一圈背景色把它和标签栏的上边框隔开。 */
+/** 中间的圆形按钮本身：比两边大一号，往上顶出玻璃条一截。 */
 const RoundButton = forwardRef<HTMLButtonElement, ComponentProps<'button'>>(function RoundButton(
   { className, ...props },
   ref,
@@ -99,7 +101,7 @@ const RoundButton = forwardRef<HTMLButtonElement, ComponentProps<'button'>>(func
       ref={ref}
       type="button"
       className={cn(
-        '-mt-5 flex size-14 items-center justify-center rounded-full bg-foreground text-background shadow-lg ring-4 ring-background outline-none transition-transform active:scale-95 focus-visible:ring-ring/50',
+        'flex size-14 -translate-y-4 items-center justify-center rounded-full bg-foreground text-background shadow-lg outline-none transition-transform active:scale-95 focus-visible:ring-3 focus-visible:ring-ring/50',
         className,
       )}
       {...props}

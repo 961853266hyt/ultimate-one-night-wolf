@@ -13,8 +13,8 @@
  * 前半部分是 shadcn 的标准令牌，后面五个是游戏自己的：成功、提醒两种状态和三个阵营。
  */
 :root {
-  /* 底部标签栏的高度（固定在屏幕底部），页面和底部操作区都按它让出位置 */
-  --tab-bar-height: calc(3.5rem + env(safe-area-inset-bottom));
+  /* 底部标签栏占的高度：悬浮的玻璃条 4rem，加上离屏幕底边的空隙（全面屏按横条让开）。页面和底部操作区都按它让出位置 */
+  --tab-bar-height: calc(4rem + max(0.75rem, env(safe-area-inset-bottom)));
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);
   --card: oklch(1 0 0);
@@ -50,6 +50,12 @@
   --card-back-foreground: oklch(0.985 0 0);
   /* 夜里牌背外面的一圈绿光，黑底上才看得出牌的轮廓 */
   --card-back-glow: oklch(0.78 0.2 150);
+
+  /* 液态玻璃（底部标签栏）：半透明的底、细描边、上沿的高光和下面的投影 */
+  --glass: oklch(1 0 0 / 0.4);
+  --glass-border: oklch(0 0 0 / 0.08);
+  --glass-highlight: oklch(1 0 0 / 0.9);
+  --glass-shadow: oklch(0 0 0 / 0.16);
 }
 
 .dark {
@@ -82,6 +88,12 @@
   --werewolf: oklch(0.704 0.191 22.216); /* red-400 */
   --village: oklch(0.707 0.165 254.624); /* blue-400 */
   --tanner: oklch(0.75 0.183 55.934); /* orange-400 */
+
+  /* 深色底上的玻璃：底更暗，高光淡一些，投影重一些 */
+  --glass: oklch(0.24 0 0 / 0.4);
+  --glass-border: oklch(1 0 0 / 0.1);
+  --glass-highlight: oklch(1 0 0 / 0.14);
+  --glass-shadow: oklch(0 0 0 / 0.6);
 }
 
 @theme inline {
@@ -207,6 +219,18 @@
   41% { opacity: 0.65; transform: scale(0.995); }
   68% { opacity: 0.9; transform: scale(1.015); }
   84% { opacity: 0.7; transform: scale(1); }
+}
+
+/* 液态玻璃：背后的内容模糊、颜色提亮一点，半透明的底，上沿一道细高光，下面一层软投影 */
+@utility glass {
+  background-color: var(--glass);
+  backdrop-filter: blur(24px) saturate(180%);
+  -webkit-backdrop-filter: blur(24px) saturate(180%);
+  border: 1px solid var(--glass-border);
+  box-shadow:
+    inset 0 1px 0 0 var(--glass-highlight),
+    0 12px 32px -12px var(--glass-shadow),
+    0 2px 8px -2px var(--glass-shadow);
 }
 
 /* 白天轮流发言时，正在发言的人头像外面一圈红色微光，慢慢明暗起伏 */

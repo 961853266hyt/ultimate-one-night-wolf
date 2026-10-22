@@ -26,13 +26,17 @@ export function PageContent({ children, className }: Props) {
   )
 }
 
-/** 贴在屏幕底部的操作区，放主按钮。停在标签栏上面，全面屏底部的横条由标签栏让开。 */
+/**
+ * 贴在屏幕底部的操作区，放主按钮。停在标签栏上面，全面屏底部的横条由标签栏让开。
+ * 底色往下一直铺到屏幕底边，悬浮的标签栏浮在它上面，页面内容不会从按钮和标签栏之间露出来。
+ */
 export function PageFooter({ children, className }: Props) {
   return (
     <footer
       className={cn(
-        // 底下多留的 1.5rem 给标签栏中间高出来的圆按钮
+        // 底下多留的 1.5rem 给标签栏中间顶出来的圆按钮
         'sticky bottom-(--tab-bar-height) z-10 flex flex-col gap-2.5 bg-background/95 px-5 pt-3 pb-6 backdrop-blur',
+        'after:absolute after:inset-x-0 after:top-full after:h-(--tab-bar-height) after:bg-background/95',
         className,
       )}
     >
