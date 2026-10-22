@@ -65,6 +65,11 @@ export const zh = {
     failed: '暂时连不上服务器，稍后自动重试',
   },
 
+  rolesPage: {
+    team: '阵营',
+    tabs: { village: '好人阵营', werewolf: '狼人阵营', tanner: '第三方' } satisfies Record<Team, string>,
+  },
+
   boards: {
     featured: '官方精选',
     howMany: '几个人玩',
@@ -107,7 +112,6 @@ export const zh = {
   },
 
   menu: {
-    teamGroup: (team: string, count: number) => `${team} · ${count}`,
     language: '语言',
     theme: '外观',
     themes: { light: '浅色', dark: '深色', system: '跟随系统' },

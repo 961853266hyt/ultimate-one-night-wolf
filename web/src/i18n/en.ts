@@ -39,6 +39,11 @@ export const en: Messages = {
     failed: "Can't reach the server, retrying…",
   },
 
+  rolesPage: {
+    team: 'Team',
+    tabs: { village: 'Village', werewolf: 'Werewolves', tanner: 'Third party' },
+  },
+
   boards: {
     featured: 'Featured setups',
     howMany: 'How many players',
@@ -79,7 +84,6 @@ export const en: Messages = {
   },
 
   menu: {
-    teamGroup: (team, count) => `${team} · ${count}`,
     language: 'Language',
     theme: 'Appearance',
     themes: { light: 'Light', dark: 'Dark', system: 'System' },
