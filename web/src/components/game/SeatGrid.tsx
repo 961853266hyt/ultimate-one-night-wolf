@@ -7,7 +7,6 @@ import { cn } from '@/lib/utils'
 import type { Mark } from './CornerMark'
 import { PlayerAvatar } from './PlayerAvatar'
 import { useSeatNotes } from './SeatNotes'
-import { SeatStatus } from './SeatStatus'
 import { useT } from '@/i18n'
 
 /** 座位网格，一行三个。里面放 SeatTile 和 EmptySeatTile。 */
@@ -21,7 +20,7 @@ interface SeatTileProps {
   badge?: string
   /** 标签的样式：房主是黑底；机器人用浅色，和房主分开。 */
   badgeVariant?: 'default' | 'secondary'
-  /** 最下面的状态条，见 SeatStatus。 */
+  /** 最下面的状态条，见 SeatStatus.tsx。 */
   status?: ReactNode
   /** 名字和状态条之间的补充信息，比如揭晓时的身份变化。 */
   children?: ReactNode
@@ -117,7 +116,6 @@ export function EmptySeatTile({ number, onTake }: { number: number; onTake?: () 
         </PlayerAvatar>
         <span className="text-[13px] text-muted-foreground">{t.seat.emptyName(number)}</span>
       </Tappable>
-      <SeatStatus tone="empty">{onTake ? t.seat.tapToTake : t.seat.emptySeat}</SeatStatus>
     </li>
   )
 }

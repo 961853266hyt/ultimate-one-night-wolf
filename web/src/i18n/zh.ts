@@ -189,13 +189,9 @@ export const zh = {
     offline: '离线',
     emptyLabel: (number: number) => `${number} 号空座位，换到这里`,
     emptyName: (number: number) => `${number} 空位`,
-    tapToTake: '点击换座',
-    emptySeat: '空座位',
   },
 
   lobby: {
-    seatsCaption: (taken: number, size: number, canKick: boolean) =>
-      `${taken}/${size} 人已入座${canKick ? ' · 点头像可以移出房间' : ''}`,
     invite: '邀请朋友',
     start: '开始游戏',
     kickTitle: (label: string) => `把 ${label} 移出房间？`,
@@ -236,7 +232,7 @@ export const zh = {
     save: '保存设置',
     atLeast: (n: number) => `至少要 ${n} 张牌`,
     atMost: (n: number) => `最多 ${n} 张牌`,
-    overviewRoles: '角色 · 点头像看介绍',
+    overviewRoles: '角色',
     overviewNightOrder: '夜里的醒来顺序',
     overviewRest: (
       seats: number,
@@ -246,7 +242,7 @@ export const zh = {
       speechRounds: number,
       isPublic: boolean,
     ) =>
-      `房间 ${seats} 人 · ${debug ? '调试模式，夜里不计时' : `夜间操作时间 ${nightStep} 秒`} · ${speechRounds ? `白天轮流发言 ${speechRounds} 轮` : '白天自由讨论'} · ${selfVote ? '可以' : '不能'}投自己 · ${isPublic ? '公开房间' : '不公开，凭房间号进'}，房主可以调整`,
+      `房间 ${seats} 人 · ${debug ? '调试模式，夜里不计时' : `夜间操作时间 ${nightStep} 秒`} · ${speechRounds ? `白天轮流发言 ${speechRounds} 轮` : '白天自由讨论'} · ${selfVote ? '可以' : '不能'}投自己 · ${isPublic ? '公开房间' : '不公开，凭房间号进'}`,
     fillOne: '补一张',
     toFill: '待补',
     summaryTitle: (seats: number, cards: string) => `${seats} 人局 · ${cards}`,
@@ -275,7 +271,7 @@ export const zh = {
     endStep: '结束这一步',
     wakeUp: (role: string) => `${role}请睁眼`,
     nightFalls: '天黑了，所有人请闭眼',
-    learned: '你得知了新线索，点开下面的「我的线索」看看',
+    learned: '你得知了新线索',
     notYourTurn: '没轮到你 · 随便点点，别让旁人看出来',
     centerCard: (letter: string) => `${letter} 号底牌`,
     flipCenter: (letter: string) => `翻开 ${letter} 号底牌`,
@@ -315,8 +311,6 @@ export const zh = {
 
   day: {
     nightOrder: '今晚的行动顺序',
-    seatsCaption: (identity: string) => `点头像备注${identity}`,
-    centerCaption: (identity: string) => `点牌备注${identity}`,
     readyDone: '可以投了',
     discussing: '讨论中',
     readyButton: '开始公投',
@@ -328,10 +322,6 @@ export const zh = {
   },
 
   vote: {
-    title: '你觉得谁是狼？',
-    voted: '投好了，等大家亮票',
-    rule: '得票最多且至少 2 票的人出局，平票一起出局',
-    seatsCaption: (voted: number, total: number) => `${voted}/${total} 已投票`,
     done: '已投票',
     thinking: '思考中…',
     /** 投票按钮：whom 是 null（还没选）、'self'（自己）或者「3 号阿杰」。 */

@@ -158,13 +158,9 @@ export const en: Messages = {
     offline: 'Offline',
     emptyLabel: (number) => `Empty seat ${number}, move here`,
     emptyName: (number) => `Seat ${number}`,
-    tapToTake: 'Tap to sit',
-    emptySeat: 'Empty',
   },
 
   lobby: {
-    seatsCaption: (taken, size, canKick) =>
-      `${taken}/${size} seated${canKick ? ' · tap someone to remove them' : ''}`,
     invite: 'Invite friends',
     start: 'Start game',
     kickTitle: (label) => `Remove ${label} from the room?`,
@@ -204,10 +200,10 @@ export const en: Messages = {
     save: 'Save settings',
     atLeast: (n) => `At least ${n} cards`,
     atMost: (n) => `At most ${n} cards`,
-    overviewRoles: 'Roles · tap one for details',
+    overviewRoles: 'Roles',
     overviewNightOrder: 'Night wake order',
     overviewRest: (seats, nightStep, selfVote, debug, speechRounds, isPublic) =>
-      `${plural(seats, 'player')} · ${debug ? 'debug mode, no night timer' : `${nightStep}s per night step`} · ${speechRounds ? `${plural(speechRounds, 'speaking round')} by day` : 'free discussion by day'} · voting for yourself ${selfVote ? 'allowed' : 'not allowed'} · ${isPublic ? 'public room' : 'private, join by code'}. The host can change these.`,
+      `${plural(seats, 'player')} · ${debug ? 'debug mode, no night timer' : `${nightStep}s per night step`} · ${speechRounds ? `${plural(speechRounds, 'speaking round')} by day` : 'free discussion by day'} · voting for yourself ${selfVote ? 'allowed' : 'not allowed'} · ${isPublic ? 'public room' : 'private, join by code'}`,
     fillOne: 'Add one',
     toFill: 'Needed',
     summaryTitle: (seats, cards) => `${seats}-player game · ${cards}`,
@@ -234,7 +230,7 @@ export const en: Messages = {
     endStep: 'End this step',
     wakeUp: (role) => `${role}, wake up`,
     nightFalls: 'Night falls. Everyone, close your eyes.',
-    learned: 'You learned something. Check "My clues" below.',
+    learned: 'You learned something new',
     notYourTurn: "Not your turn · tap around so nobody can tell",
     centerCard: (letter) => `Center card ${letter}`,
     flipCenter: (letter) => `Flip center card ${letter}`,
@@ -273,8 +269,6 @@ export const en: Messages = {
 
   day: {
     nightOrder: "Tonight's wake order",
-    seatsCaption: (identity) => `Tap someone to note their ${identity.toLowerCase()}`,
-    centerCaption: (identity) => `Tap a card to note its ${identity.toLowerCase()}`,
     readyDone: 'Ready',
     discussing: 'Discussing',
     readyButton: 'Start the vote',
@@ -286,10 +280,6 @@ export const en: Messages = {
   },
 
   vote: {
-    title: 'Who do you think is a werewolf?',
-    voted: 'Vote cast. Waiting for everyone.',
-    rule: 'Most votes (at least 2) is out; a tie takes everyone tied',
-    seatsCaption: (voted, total) => `${voted}/${total} voted`,
     done: 'Voted',
     thinking: 'Thinking…',
     button: (hasVoted, whom) => {

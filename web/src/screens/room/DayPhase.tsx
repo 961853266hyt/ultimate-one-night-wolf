@@ -43,7 +43,6 @@ export function DayPhase({ view, send }: PhaseProps) {
         {/* 底牌也能备注，跟着座位那边的「初始 / 最终」开关 */}
         <Section
           title={t.common.centerCards}
-          caption={t.day.centerCaption(t.notes.identity[notes.identity])}
           action={<IdentitySwitch />}
         >
           <CenterCardRow>
@@ -60,7 +59,6 @@ export function DayPhase({ view, send }: PhaseProps) {
 
         <Section
           title={t.common.seats}
-          caption={t.day.seatsCaption(t.notes.identity[notes.identity])}
           action={<IdentitySwitch />}
         >
           <SeatGrid>

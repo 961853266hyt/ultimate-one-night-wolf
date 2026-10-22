@@ -46,7 +46,6 @@ export function LobbyPhase({ view, send }: PhaseProps) {
       <PageContent>
         <Section
           title={t.common.seats}
-          caption={t.lobby.seatsCaption(seats.length, size, isHost && seats.length > 1)}
         >
           <SeatGrid>
             {bySeat.map((seat, index) =>
