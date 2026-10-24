@@ -345,6 +345,7 @@ export const zh = {
     votedFor: (number: number) => `投给 ${number} 号`,
     votedForShort: (number: number) => `${number} 号`,
     whatHappened: '夜里发生了什么',
+    dealtLabel: '发牌',
     rematch: '再来一局',
     waitHost: '等房主开始下一局…',
     wasRole: (role: string) => `原来是${role}`,
@@ -384,6 +385,8 @@ export const zh = {
     saw: '看到',
     sawSelf: (role: RoleId): Phrase => ['自己现在是', mention(role)],
     sawSlot: (label: string, role: RoleId): Phrase => [`${label}是`, mention(role)],
+    /** 发牌那一行里的一个人：「2 号阿杰是狼人」。 */
+    dealt: (label: string, role: RoleId): Phrase => [`${label}是`, mention(role)],
     picked: (labels: readonly string[]) => `选了${list(labels)}`,
   },
 

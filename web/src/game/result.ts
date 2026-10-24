@@ -104,20 +104,29 @@ export function outcomeSeats(seats: readonly SeatResult[], result: ResultView) {
 }
 
 export interface NightLogLine {
-  step: RoleId
+  /** 哪个角色那一步；第一行发牌不是夜里的行动，是 null。 */
+  step: RoleId | null
   text: Phrase
   /** 超时了，由系统代选。 */
   auto: boolean
 }
 
 /**
- * 夜里每一次行动，按发生的先后。女巫这样分两次行动的角色，一次一句。
+ * 第一行是发牌：每个人发到的牌，也就是初始身份，和后面的行动连起来看就知道最后的牌是怎么来的。
+ * 后面是夜里每一次行动，按发生的先后。女巫这样分两次行动的角色，一次一句。
  *
  * 一句话由两半组成：做了什么（化身成谁、换了谁的牌），看到了什么，都取自这次行动得知的信息
  * （entry.learned）。比如「2 号阿杰和你换了牌，看到自己现在是狼人」。
  */
 export function nightLog(view: PlayerView, result: ResultView): NightLogLine[] {
   const label = slotLabeler(view)
+  const text = t().log
+  const dealt = seatsOf(view).map((seat) => text.dealt(label(seat.id), result.dealt[seat.id]))
+  const dealtLine: NightLogLine = { step: null, auto: false, text: joinPhrases(dealt, text.clauseSeparator) }
+  return [dealtLine, ...nightActions(result, label)]
+}
+
+function nightActions(result: ResultView, label: SlotLabeler): NightLogLine[] {
   const text = t().log
   return result.night_log.map((entry) => {
     const actor = entry.player
