@@ -3,7 +3,7 @@ import pytest
 from app.domain.errors import ErrorCode, RuleError
 from app.domain.night import NIGHT_ORDER
 from app.domain.roles import ROLES, Role
-from app.domain.types import CENTER, SawCard, SawPlayers, Swapped
+from app.domain.types import CENTER, Revealed, SawCard, SawPlayers, Shifted, Swapped
 from app.domain.types import RoleId as R
 from tests.domain.helpers import new_game, night_until, skip
 
@@ -310,3 +310,109 @@ def test_players_act_as_the_card_they_were_dealt():
     game.night_action("p0", ["p1", "p2"])  # 酒鬼牌换到了 p2 手里
     night_until(game, R.DRUNK)
     assert game.wakers() == ["p1"]
+
+
+# ---------------------------------------------------------------- 白痴
+
+
+def test_village_idiot_passes_everyone_elses_card_to_the_next_seat():
+    # p0 预言家，p1 白痴，p2 猎人，p3 皮匠（强盗到时间会随机抢牌，这里不放）
+    game = new_game(R.SEER, R.VILLAGE_IDIOT, R.HUNTER, R.TANNER, R.WEREWOLF, R.WEREWOLF, R.VILLAGER)
+    night_until(game, R.VILLAGE_IDIOT)
+    game.night_action("p1", ["next"])
+    # 跳过白痴自己：p0 → p2 → p3 → p0
+    assert [game.cards[p] for p in game.players] == [R.TANNER, R.VILLAGE_IDIOT, R.SEER, R.HUNTER]
+    assert game.knowledge["p1"] == [Shifted(step=R.VILLAGE_IDIOT, direction="next")]
+
+
+def test_village_idiot_can_pass_the_other_way():
+    game = new_game(R.SEER, R.VILLAGE_IDIOT, R.HUNTER, R.TANNER, R.WEREWOLF, R.WEREWOLF, R.VILLAGER)
+    night_until(game, R.VILLAGE_IDIOT)
+    game.night_action("p1", ["previous"])
+    assert [game.cards[p] for p in game.players] == [R.HUNTER, R.VILLAGE_IDIOT, R.TANNER, R.SEER]
+
+
+def test_village_idiot_may_leave_the_cards_alone():
+    game = new_game(R.SEER, R.VILLAGE_IDIOT, R.HUNTER, R.TANNER, R.WEREWOLF, R.WEREWOLF, R.VILLAGER)
+    night_until(game, R.VILLAGE_IDIOT)
+    prompt = game.prompt_for("p1")
+    assert prompt is not None and not prompt.required
+    before = dict(game.cards)
+    skip(game)
+    assert game.cards == before
+
+
+@pytest.mark.parametrize("targets", [["p0"], ["left"], ["next", "previous"]])
+def test_village_idiot_only_picks_a_direction(targets):
+    game = new_game(R.SEER, R.VILLAGE_IDIOT, R.HUNTER, R.TANNER, R.WEREWOLF, R.WEREWOLF, R.VILLAGER)
+    night_until(game, R.VILLAGE_IDIOT)
+    with pytest.raises(RuleError) as error:
+        game.night_action("p1", targets)
+    assert error.value.code is ErrorCode.BAD_TARGETS
+
+
+def test_a_doppelganger_village_idiot_shifts_the_cards_right_away():
+    # p0 化身幽灵，p1 白痴，p2 预言家，p3 皮匠
+    game = new_game(
+        R.DOPPELGANGER, R.VILLAGE_IDIOT, R.SEER, R.TANNER, R.WEREWOLF, R.WEREWOLF, R.VILLAGER
+    )
+    night_until(game, R.DOPPELGANGER)
+    game.night_action("p0", ["p1"])
+    game.night_action("p0", ["next"])
+    assert [game.cards[p] for p in game.players] == [
+        R.DOPPELGANGER,
+        R.TANNER,
+        R.VILLAGE_IDIOT,
+        R.SEER,
+    ]
+    assert game.knowledge["p0"][-1] == Shifted(step=R.DOPPELGANGER, direction="next")
+
+
+# ---------------------------------------------------------------- 揭示者
+
+
+def test_revealer_leaves_a_village_card_face_up_for_everyone():
+    game = new_game(R.REVEALER, R.SEER, R.WEREWOLF, R.VILLAGER, R.WEREWOLF, R.ROBBER)
+    night_until(game, R.REVEALER)
+    game.night_action("p0", ["p1"])
+    assert game.face_up == {"p1": R.SEER}
+    assert game.knowledge["p0"] == [Revealed(step=R.REVEALER, slot="p1", role=R.SEER, face_up=True)]
+
+
+@pytest.mark.parametrize("hidden", [R.WEREWOLF, R.MINION, R.TANNER])
+def test_revealer_turns_werewolf_team_and_tanner_cards_back_down(hidden):
+    game = new_game(R.REVEALER, hidden, R.VILLAGER, R.SEER, R.WEREWOLF, R.ROBBER)
+    night_until(game, R.REVEALER)
+    game.night_action("p0", ["p1"])
+    assert game.face_up == {}
+    assert game.knowledge["p0"] == [
+        Revealed(step=R.REVEALER, slot="p1", role=hidden, face_up=False)
+    ]
+
+
+def test_revealer_judges_a_doppelganger_card_by_what_it_became():
+    # p0 化身幽灵化身成狼人：这张牌算狼人，翻开也要扣回去
+    game = new_game(R.DOPPELGANGER, R.WEREWOLF, R.REVEALER, R.VILLAGER, R.SEER, R.ROBBER)
+    night_until(game, R.DOPPELGANGER)
+    game.night_action("p0", ["p1"])
+    night_until(game, R.REVEALER)
+    game.night_action("p2", ["p0"])
+    assert game.face_up == {}
+    assert game.knowledge["p2"][-1] == Revealed(
+        step=R.REVEALER, slot="p0", role=R.DOPPELGANGER, face_up=False
+    )
+
+
+def test_revealer_cannot_flip_their_own_card_or_a_center_card():
+    game = new_game(R.REVEALER, R.SEER, R.WEREWOLF, R.VILLAGER, R.WEREWOLF, R.ROBBER)
+    night_until(game, R.REVEALER)
+    for targets in (["p0"], ["C0"]):
+        with pytest.raises(RuleError) as error:
+            game.night_action("p0", targets)
+        assert error.value.code is ErrorCode.BAD_TARGETS
+
+
+def test_revealer_and_village_idiot_wake_in_the_official_order():
+    order = list(NIGHT_ORDER)
+    assert order.index(R.TROUBLEMAKER) < order.index(R.VILLAGE_IDIOT) < order.index(R.DRUNK)
+    assert order[-1] is R.REVEALER

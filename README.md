@@ -38,7 +38,7 @@
 
 ## 角色进度
 
-已实现 14/80 个官方角色。没实现的角色中文名是非官方译名。
+已实现 16/80 个官方角色。没实现的角色中文名是非官方译名。
 
 <details open>
 <summary>基础版 One Night Ultimate Werewolf · 12/12</summary>
@@ -59,7 +59,7 @@
 </details>
 
 <details>
-<summary>破晓 Daybreak · 1/11</summary>
+<summary>破晓 Daybreak · 3/11</summary>
 
 - [ ] 哨兵 Sentinel
 - [ ] 头狼 Alpha Wolf
@@ -67,8 +67,8 @@
 - [ ] 见习预言家 Apprentice Seer
 - [ ] 灵异调查员 Paranormal Investigator
 - [x] 女巫 Witch
-- [ ] 村庄白痴 Village Idiot
-- [ ] 揭示者 Revealer
+- [x] 白痴 Village Idiot
+- [x] 揭示者 Revealer
 - [ ] 馆长 Curator
 - [ ] 梦游狼 Dream Wolf
 - [ ] 保镖 Bodyguard

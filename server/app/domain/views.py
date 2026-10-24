@@ -5,7 +5,7 @@
 
 from collections.abc import Collection
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 from .boards import BoardKind, board_of
 from .errors import ErrorCode, RuleError
@@ -109,6 +109,8 @@ class PlayerView(BaseModel):
     day: DayView | None = None
     vote: VoteView | None = None
     result: ResultView | None = None
+    # 揭示者翻开、一直翻着的牌，所有人都看得到。天亮之后才有，夜里别人还闭着眼
+    face_up: dict[Slot, RoleId] = Field(default_factory=dict)
 
 
 def view_for(room: Room, player: PlayerId) -> PlayerView:
@@ -149,6 +151,8 @@ def view_for(room: Room, player: PlayerId) -> PlayerView:
             )
         case Phase.REVEAL:
             view.result = _result_view(game)
+    if game.phase in (Phase.DAY, Phase.VOTE, Phase.REVEAL):
+        view.face_up = dict(game.face_up)
     return view
 
 

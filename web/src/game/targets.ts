@@ -7,6 +7,7 @@ import { t } from '@/i18n'
 import { isCenter } from './seats'
 
 export function kindOf(slot: string): TargetOption['kind'] {
+  if (slot === 'next' || slot === 'previous') return 'direction' // 白痴挪牌的方向
   return isCenter(slot) ? 'center' : 'player'
 }
 

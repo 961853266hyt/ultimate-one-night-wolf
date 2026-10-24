@@ -39,6 +39,10 @@ export function describeKnowledge(fact: Knowledge, me: string, label: SlotLabele
     }
     case 'copied':
       return text.copied(label(fact.slot), isCenter(fact.slot), fact.step !== 'copycat', fact.role)
+    case 'shifted':
+      return text.youShifted(fact.direction === 'next')
+    case 'revealed':
+      return text.youRevealed(label(fact.slot), fact.role, fact.face_up)
   }
 }
 

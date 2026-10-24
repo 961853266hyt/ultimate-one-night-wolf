@@ -276,6 +276,8 @@ export const zh = {
     centerCard: (letter: string) => `${letter} 号底牌`,
     flipCenter: (letter: string) => `翻开 ${letter} 号底牌`,
     flipping: '翻开中…',
+    direction: '挪牌方向',
+    directions: { next: '传给下一号', previous: '传给上一号' },
     putBack: '放回',
     notNow: '先不看',
     /** 按 Prompt 自动生成的提示：「选 1 名其他玩家，或者 2 张底牌（必须选）」。 */
@@ -302,6 +304,12 @@ export const zh = {
       names.length ? [`${list(names)}也是`, mention(role)] : ['另一张', mention(role), '在底牌里'],
     youSwappedWith: (other: string): Phrase => [`你和${other}换了牌`],
     youSwapped: (a: string, b: string): Phrase => [`你交换了${a}和${b}的牌`],
+    youShifted: (next: boolean): Phrase => [`你把其他人的牌都传给了${next ? '下一号' : '上一号'}`],
+    youRevealed: (label: string, role: RoleId, faceUp: boolean): Phrase => [
+      `你翻开了${label}的牌，是`,
+      mention(role),
+      faceUp ? '，大家都看得到' : '，又扣了回去',
+    ],
     /** 「你看了 A 号底牌，变成了狼人」「你看了 2 号阿杰的牌，化身成了预言家」。 */
     copied: (looked: string, center: boolean, doppelganger: boolean, role: RoleId): Phrase => [
       `你${copyClause(looked, center, doppelganger)}`,
@@ -367,6 +375,12 @@ export const zh = {
     clauseSeparator: '，',
     swappedWith: (other: string) => `和${other}换了牌`,
     swapped: (a: string, b: string) => `交换了${a}和${b}的牌`,
+    shifted: (next: boolean) => `把其他人的牌都传给了${next ? '下一号' : '上一号'}`,
+    revealed: (label: string, role: RoleId, faceUp: boolean): Phrase => [
+      `翻开了${label}的牌，是`,
+      mention(role),
+      faceUp ? '，一直翻着' : '，又扣了回去',
+    ],
     saw: '看到',
     sawSelf: (role: RoleId): Phrase => ['自己现在是', mention(role)],
     sawSlot: (label: string, role: RoleId): Phrase => [`${label}是`, mention(role)],
@@ -513,6 +527,13 @@ export const zh = {
       ability: '夜里可以交换另外两名玩家的牌，但不能看。',
       notes: ['被交换的两个人都不知道自己的牌变了。'],
     },
+    village_idiot: {
+      name: '白痴',
+      summary: '把其他人的牌一起挪一位，不能看',
+      ability: '夜里可以把除你以外所有玩家的牌，一起传给下一号或者上一号，每张挪一位，也可以不挪。不能看。',
+      notes: ['挪的时候跳过你自己：比如你是 2 号，传给下一号就是 1 号的牌给 3 号、3 号的给 4 号……最后一个人的给 1 号。'],
+      promptHint: () => '把其他人的牌一起传给下一号或上一号',
+    },
     drunk: {
       name: '酒鬼',
       summary: '和 1 张底牌交换，不能看',
@@ -523,6 +544,13 @@ export const zh = {
       name: '失眠者',
       summary: '最后醒来，看自己现在的牌',
       ability: '夜里最后醒来，看看自己现在手里是什么牌。',
+    },
+    revealer: {
+      name: '揭示者',
+      summary: '翻开 1 人的牌，好人就亮给大家',
+      ability: '夜里最后醒来，可以翻开一名其他玩家的牌。是好人阵营的牌就一直翻着，所有人都看得到；狼人阵营的牌或者皮匠就扣回去，只有你知道。',
+      notes: ['模仿者、化身幽灵的牌按他们变成的角色算阵营。'],
+      promptHint: () => '翻开 1 名其他玩家的牌，好人阵营就亮给所有人',
     },
     hunter: {
       name: '猎人',

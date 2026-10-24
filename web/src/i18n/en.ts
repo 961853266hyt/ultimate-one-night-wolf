@@ -235,6 +235,8 @@ export const en: Messages = {
     centerCard: (letter) => `Center card ${letter}`,
     flipCenter: (letter) => `Flip center card ${letter}`,
     flipping: 'Flipping…',
+    direction: 'Direction',
+    directions: { next: 'Pass to the next seat', previous: 'Pass to the previous seat' },
     putBack: 'Put back',
     notNow: 'Not now',
     describePrompt: (options: readonly TargetOption[], required) => {
@@ -261,6 +263,12 @@ export const en: Messages = {
         : ['The other ', mention(role), ' is in the center'],
     youSwappedWith: (other) => [`You swapped cards with ${other}`],
     youSwapped: (a, b) => [`You swapped ${a}'s and ${b}'s cards`],
+    youShifted: (next) => [`You passed everyone else's card to the ${next ? 'next' : 'previous'} seat`],
+    youRevealed: (label, role, faceUp) => [
+      `You flipped ${label}'s card: `,
+      mention(role),
+      faceUp ? ', face up for everyone' : ', turned back face down',
+    ],
     copied: (looked, center, doppelganger, role) => [
       `You ${copyClause(looked, center, doppelganger)}`,
       mention(role),
@@ -320,6 +328,12 @@ export const en: Messages = {
     clauseSeparator: ', ',
     swappedWith: (other) => `swapped cards with ${other}`,
     swapped: (a, b) => `swapped ${a}'s and ${b}'s cards`,
+    shifted: (next) => `passed everyone else's card to the ${next ? 'next' : 'previous'} seat`,
+    revealed: (label, role, faceUp) => [
+      `flipped ${label}'s card: `,
+      mention(role),
+      faceUp ? ', left face up' : ', turned back face down',
+    ],
     saw: 'saw ',
     sawSelf: (role) => ['their own card is now ', mention(role)],
     sawSlot: (label, role) => [`${label} is `, mention(role)],
@@ -473,6 +487,13 @@ export const en: Messages = {
       ability: "May swap the cards of two other players without looking at them.",
       notes: ["Neither player knows their card has changed."],
     },
+    village_idiot: {
+      name: 'Village Idiot',
+      summary: "Shift everyone else's card one seat",
+      ability: "May move every other player's card one seat over, all to the next seat or all to the previous one. You don't look at them.",
+      notes: ["You're skipped: as seat 2 passing to the next seat, seat 1's card goes to seat 3, seat 3's to seat 4, and the last player's to seat 1."],
+      promptHint: () => "Pass everyone else's card to the next or previous seat",
+    },
     drunk: {
       name: 'Drunk',
       summary: 'Swap with 1 center card without looking',
@@ -483,6 +504,13 @@ export const en: Messages = {
       name: 'Insomniac',
       summary: 'Wakes last and checks their own card',
       ability: 'Wakes last and looks at the card they now hold.',
+    },
+    revealer: {
+      name: 'Revealer',
+      summary: 'Flip 1 card; villagers stay face up',
+      ability: "Wakes last and may flip over another player's card. A village team card stays face up for everyone to see; a werewolf team card or the Tanner goes back face down, and only you know it.",
+      notes: ['A Copycat or Doppelgänger card counts as the role it became.'],
+      promptHint: () => "Flip 1 other player's card; village cards stay face up",
     },
     hunter: {
       name: 'Hunter',

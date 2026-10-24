@@ -37,6 +37,7 @@ export function VotePhase({ view, send }: PhaseProps) {
               <SeatTile
                 key={seat.id}
                 seat={seat}
+                faceUp={view.face_up[seat.id]}
                 selected={seat.id === picked?.id}
                 onSelect={canPickSeat(seat.isMe) ? () => setTarget(seat.id) : undefined}
                 status={
