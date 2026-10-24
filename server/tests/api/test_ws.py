@@ -121,7 +121,7 @@ def test_a_room_opened_from_a_board_starts_with_its_cards(client):
     code = client.post("/api/rooms", json=body, headers=headers).json()["code"]
     with connect(client, code, session, "阿胡") as ws:
         room = next_view(ws)["room"]
-        assert (room["seats"], room["board"], room["speech_rounds"]) == (5, "chaos", 4)
+        assert (room["seats"], room["board"]) == (5, "chaos")
         [listed] = client.get("/api/rooms").json()
         assert listed["board"] == "chaos"
 

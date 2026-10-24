@@ -44,8 +44,7 @@ def until_phase(game: Game, phase: Phase) -> None:
     now = 0.0
     while game.phase is not phase:
         if game.phase is Phase.DAY:
-            for player in game.players:  # 白天不限时，所有人都同意投票才往下走
-                game.ready_to_vote(player, now)
+            game.start_vote(now)  # 白天不限时，房主点「开始投票」才往下走
         else:
             now = skip(game)
 

@@ -92,7 +92,7 @@ export function NightPhase({ view, send }: PhaseProps) {
           </div>
           <PageTitle
             title={t.night.wakeUp(ROLES[night.step].name)}
-            description={hint(hintRole, prompt, learned)}
+            description={view.me.seat === null ? t.night.watching : hint(hintRole, prompt, learned)}
           />
         </div>
 
@@ -157,7 +157,6 @@ export function NightPhase({ view, send }: PhaseProps) {
         need={view.room.deck.length}
         nightStep={view.room.timings.night_step}
         selfVote={view.room.self_vote}
-        speechRounds={view.room.speech_rounds}
         isPublic={view.room.public}
         debug={view.room.debug}
       />

@@ -60,8 +60,7 @@ def test_every_board_plays_to_the_end(board, seed: int):
     now = 0.0
     while game.phase is not Phase.REVEAL:
         if game.phase is Phase.DAY:
-            for player in players:
-                game.ready_to_vote(player, now)
+            game.start_vote(now)
         elif game.phase is Phase.VOTE:
             for i, player in enumerate(players):
                 game.vote(player, players[(i + 1) % len(players)], now)
@@ -74,7 +73,7 @@ def test_a_room_opened_from_a_board_uses_its_cards_and_settings():
     chaos = next(b for b in BOARDS if b.kind is BoardKind.CHAOS and b.seats == 5)
     room = Room.create("ABCD", "p0", "p0", 0, chaos.settings())
     view = view_for(room, "p0").room
-    assert (view.seats, view.board, view.speech_rounds) == (5, BoardKind.CHAOS, 4)
+    assert (view.seats, view.board) == (5, BoardKind.CHAOS)
     assert Counter(view.deck) == Counter(chaos.deck)
 
 

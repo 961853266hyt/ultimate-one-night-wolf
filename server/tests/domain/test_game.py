@@ -94,11 +94,10 @@ def test_dealing_ends_once_everyone_has_seen_their_card():
     assert game.ends_at == 4 + T.night_step
 
 
-def test_the_day_ends_once_everyone_is_ready_to_vote():
+def test_the_day_ends_when_the_vote_starts():
     game = a_game()
     until_phase(game, Phase.DAY)
-    for player in game.players:
-        game.ready_to_vote(player, now=500)
+    game.start_vote(now=500)
     assert game.phase is Phase.VOTE
     assert game.ends_at is None
 

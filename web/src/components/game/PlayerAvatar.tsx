@@ -23,8 +23,6 @@ interface PlayerAvatarProps {
   children?: ReactNode
   tone?: Tone
   selected?: boolean
-  /** 白天轮流发言时，正在发言：外面一圈红色微光。 */
-  speaking?: boolean
   /** 角上的记号，可以同时挂几个，各在各的角上。 */
   mark?: Mark | readonly Mark[]
 }
@@ -36,7 +34,6 @@ export function PlayerAvatar({
   children,
   tone = 'default',
   selected = false,
-  speaking = false,
   mark,
 }: PlayerAvatarProps) {
   return (
@@ -46,7 +43,6 @@ export function PlayerAvatar({
         'size-13',
         TONE[tone].root,
         selected && 'ring-2 ring-foreground ring-offset-2 ring-offset-background',
-        speaking && 'speaking-glow',
       )}
     >
       {note ? (

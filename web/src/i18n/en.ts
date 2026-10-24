@@ -49,8 +49,7 @@ export const en: Messages = {
     howMany: 'How many players',
     seats: (n) => plural(n, 'player'),
     failed: "Couldn't load the setups. Try refreshing the page.",
-    meta: (seats, cards, rounds) =>
-      `${plural(seats, 'player')} · ${plural(cards, 'card')} · ${rounds ? plural(rounds, 'speaking round') : 'free discussion'}`,
+    meta: (seats, cards) => `${plural(seats, 'player')} · ${plural(cards, 'card')}`,
     open: 'Open a room with this setup',
     kinds: {
       starter: 'Starter',
@@ -161,6 +160,8 @@ export const en: Messages = {
   },
 
   lobby: {
+    spectators: 'Spectators',
+    watch: 'Watch',
     invite: 'Invite friends',
     start: 'Start game',
     kickTitle: (label) => `Remove ${label} from the room?`,
@@ -182,9 +183,6 @@ export const en: Messages = {
     seconds: (n) => plural(n, 'second'),
     secondsShort: (n) => `${n}s`,
     selfVote: 'Can vote for yourself',
-    speechRounds: 'Speaking rounds',
-    speechOff: 'Off',
-    speechRoundsLabel: (n) => (n ? plural(n, 'round') : 'No speaking order'),
     public: 'Public room',
     debug: 'Debug mode',
     box: 'Card box',
@@ -202,8 +200,8 @@ export const en: Messages = {
     atMost: (n) => `At most ${n} cards`,
     overviewRoles: 'Roles',
     overviewNightOrder: 'Night wake order',
-    overviewRest: (seats, nightStep, selfVote, debug, speechRounds, isPublic) =>
-      `${plural(seats, 'player')} · ${debug ? 'debug mode, no night timer' : `${nightStep}s per night step`} · ${speechRounds ? `${plural(speechRounds, 'speaking round')} by day` : 'free discussion by day'} · voting for yourself ${selfVote ? 'allowed' : 'not allowed'} · ${isPublic ? 'public room' : 'private, join by code'}`,
+    overviewRest: (seats, nightStep, selfVote, debug, isPublic) =>
+      `${plural(seats, 'player')} · ${debug ? 'debug mode, no night timer' : `${nightStep}s per night step`} · voting for yourself ${selfVote ? 'allowed' : 'not allowed'} · ${isPublic ? 'public room' : 'private, join by code'}`,
     fillOne: 'Add one',
     toFill: 'Needed',
     summaryTitle: (seats, cards) => `${seats}-player game · ${cards}`,
@@ -215,7 +213,7 @@ export const en: Messages = {
 
   deal: {
     yourCard: 'Your role',
-    alreadyStarted: 'This game has already started',
+    watching: "You're watching",
     waitNext: 'Wait for the next one',
     seen: 'Done',
     looking: 'Looking…',
@@ -232,6 +230,7 @@ export const en: Messages = {
     nightFalls: 'Night falls. Everyone, close your eyes.',
     learned: 'You learned something new',
     notYourTurn: "Not your turn · tap around so nobody can tell",
+    watching: "You're watching",
     centerCard: (letter) => `Center card ${letter}`,
     flipCenter: (letter) => `Flip center card ${letter}`,
     flipping: 'Flipping…',
@@ -277,14 +276,10 @@ export const en: Messages = {
 
   day: {
     nightOrder: "Tonight's wake order",
-    readyDone: 'Ready',
-    discussing: 'Discussing',
-    readyButton: 'Start the vote',
-    speaking: (round, rounds) => `Round ${round}/${rounds} · `,
-    speakingSuffix: ' is speaking',
-    endSpeech: 'Done speaking',
-    endSpeechFor: (label) => `End ${label}'s turn`,
-    waitOthers: 'Waiting for the others…',
+    firstSpeaker: ' speaks first',
+    clockwise: 'Clockwise',
+    counterclockwise: 'Counterclockwise',
+    startVote: 'Start the vote',
   },
 
   vote: {

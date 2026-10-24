@@ -45,7 +45,7 @@ def test_the_boards_cover_every_player_count(client):
     classic = [b for b in boards if b["kind"] == "classic"]
     assert [b["seats"] for b in classic] == list(range(3, 11))
     chaos = next(b for b in boards if b["id"] == "chaos-5")
-    assert (chaos["seats"], len(chaos["deck"]), chaos["speech_rounds"]) == (5, 8, 4)
+    assert (chaos["seats"], len(chaos["deck"])) == (5, 8)
     assert chaos["signature"] == "witch"
 
 

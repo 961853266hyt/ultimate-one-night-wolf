@@ -30,7 +30,7 @@ export function DealPhase({ view, send }: PhaseProps) {
             <RoleCard role={card} onSeen={markSeen} />
           </Section>
         ) : (
-          <PageTitle title={t.deal.alreadyStarted} description={t.deal.waitNext} />
+          <PageTitle title={t.deal.watching} description={t.deal.waitNext} />
         )}
 
         <Section title={t.common.seats}>

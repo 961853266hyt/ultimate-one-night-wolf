@@ -8,7 +8,6 @@ export interface Board {
   kind: BoardKind
   seats: number
   deck: RoleId[]
-  speech_rounds: number
   /** 招牌角色：卡片上放它的大卡图。 */
   signature: RoleId
 }

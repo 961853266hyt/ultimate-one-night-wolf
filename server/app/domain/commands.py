@@ -24,6 +24,12 @@ class TakeSeat(BaseModel):
     seat: int
 
 
+class LeaveSeat(BaseModel):
+    """大厅里离开座位，坐到观战席：下一局不玩，看别人玩。想回来就再挑一个空座位。"""
+
+    type: Literal["leave_seat"] = "leave_seat"
+
+
 class Start(BaseModel):
     type: Literal["start"] = "start"
 
@@ -47,14 +53,10 @@ class EndStep(BaseModel):
     type: Literal["end_step"] = "end_step"
 
 
-class ReadyToVote(BaseModel):
-    type: Literal["ready_to_vote"] = "ready_to_vote"
+class StartVote(BaseModel):
+    """房主：白天讨论完了，开始投票。"""
 
-
-class EndSpeech(BaseModel):
-    """白天轮流发言时，说完了交给下一个。房主也能替正在发言的人结束。"""
-
-    type: Literal["end_speech"] = "end_speech"
+    type: Literal["start_vote"] = "start_vote"
 
 
 class Vote(BaseModel):
@@ -70,13 +72,13 @@ Command = Annotated[
     Configure
     | Kick
     | TakeSeat
+    | LeaveSeat
     | Start
     | Leave
     | ConfirmCard
     | NightAction
     | EndStep
-    | ReadyToVote
-    | EndSpeech
+    | StartVote
     | Vote
     | Rematch,
     Field(discriminator="type"),

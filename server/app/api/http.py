@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from ..domain.boards import BOARDS, BOARDS_BY_ID, BoardKind, board_of
 from ..domain.night import NIGHT_ORDER
 from ..domain.roles import ROLES
-from ..domain.types import MAX_PLAYERS, Phase, PlayerId, RoleId, Team
+from ..domain.types import MAX_MEMBERS, Phase, PlayerId, RoleId, Team
 from ..protocol import Name, ProtocolErrorCode
 from ..runtime.manager import RoomManager
 from .auth import Auth
@@ -56,7 +56,6 @@ class BoardOut(BaseModel):
     kind: BoardKind
     seats: int
     deck: list[RoleId]
-    speech_rounds: int
     signature: RoleId  # 招牌角色，卡片上放它的大卡图
 
 
@@ -123,13 +122,13 @@ async def open_rooms(request: Request) -> list[OpenRoom]:
     """现在能加入的房间，快坐满的排前面。不用身份就能看。"""
     rooms = [actor.room for actor in _manager(request).all() if not actor.closed]
     listed = [room for room in rooms if room.is_open()]
-    listed.sort(key=lambda room: (room.settings.seats - len(room.members), room.code))
+    listed.sort(key=lambda room: (room.settings.seats - len(room.seated()), room.code))
     return [
         OpenRoom(
             code=room.code,
             host=host.name if (host := room.member(room.host)) else "",
             phase=room.phase,
-            players=len(room.members),
+            players=len(room.seated()),
             seats=room.settings.seats,
             deck=room.deck(),
             board=board_of(room.settings.seats, room.deck()),
@@ -147,7 +146,6 @@ async def boards() -> list[BoardOut]:
             kind=board.kind,
             seats=board.seats,
             deck=board.deck,
-            speech_rounds=board.speech_rounds,
             signature=board.signature,
         )
         for board in BOARDS
@@ -160,9 +158,9 @@ async def room_summary(code: str, request: Request) -> RoomSummary:
     if actor is None:
         raise HTTPException(404, ProtocolErrorCode.ROOM_NOT_FOUND)
     room = actor.room
-    joinable = room.phase in (Phase.LOBBY, Phase.REVEAL) and len(room.members) < MAX_PLAYERS
+    joinable = len(room.members) < MAX_MEMBERS  # 坐满了、正在打也能进来，先坐观战席
     return RoomSummary(
-        code=room.code, phase=room.phase, players=len(room.members), joinable=joinable
+        code=room.code, phase=room.phase, players=len(room.seated()), joinable=joinable
     )
 
 

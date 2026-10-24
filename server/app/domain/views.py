@@ -47,7 +47,6 @@ class RoomView(BaseModel):
     recommended_decks: dict[int, list[RoleId]]
     timings: Timings
     self_vote: bool  # 能不能投自己
-    speech_rounds: int  # 白天轮流发言几轮，0 是不排顺序
     public: bool  # 在不在「房间」列表里
     debug: bool  # 调试模式：空座位坐机器人，夜里不限时
 
@@ -74,10 +73,8 @@ class NightView(BaseModel):
 
 
 class DayView(BaseModel):
-    ready: list[PlayerId]
-    speaker: PlayerId | None  # 正在发言的人；不排顺序或者已经说满了就是 None
-    speech_round: int  # 第几轮，从 1 开始
-    speech_rounds: int  # 一共几轮，0 是不排顺序
+    first_speaker: PlayerId  # 第一个发言的人，开局时随机定
+    clockwise: bool  # 从他开始往哪边轮：顺时针是座位号往后，逆时针是往前
 
 
 class VoteView(BaseModel):
@@ -140,10 +137,7 @@ def view_for(room: Room, player: PlayerId) -> PlayerView:
             view.prompt = game.prompt_for(player)
         case Phase.DAY:
             view.day = DayView(
-                ready=_in_seat_order(game, game.ready),
-                speaker=game.speaker,
-                speech_round=game.speech_round,
-                speech_rounds=game.speech_rounds,
+                first_speaker=game.players[game.first_speaker], clockwise=game.clockwise
             )
         case Phase.VOTE:
             view.vote = VoteView(
@@ -171,7 +165,6 @@ def _room_view(room: Room) -> RoomView:
         recommended_decks={n: recommended_deck(n) for n in range(MIN_PLAYERS, MAX_PLAYERS + 1)},
         timings=room.settings.timings,
         self_vote=room.game.self_vote if room.game else room.settings.self_vote,
-        speech_rounds=room.game.speech_rounds if room.game else room.settings.speech_rounds,
         public=room.settings.public,
         debug=room.settings.debug,
     )

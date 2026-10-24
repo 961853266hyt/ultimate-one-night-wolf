@@ -41,6 +41,27 @@ export function seatsOf(view: PlayerView): Seat[] {
     .sort((a, b) => a.number - b.number)
 }
 
+/** 观战席上的人：在房间里但没坐座位，按进房的先后排。开局之后中途进来的人也在这里。 */
+export interface Spectator {
+  id: string
+  name: string
+  online: boolean
+  isMe: boolean
+  isHost: boolean
+}
+
+export function spectatorsOf(view: PlayerView): Spectator[] {
+  return view.room.members
+    .filter((member) => member.seat === null && !member.bot)
+    .map((member) => ({
+      id: member.id,
+      name: memberName(member),
+      online: member.online,
+      isMe: member.id === view.me.id,
+      isHost: member.id === view.room.host,
+    }))
+}
+
 /** 「2 号阿杰」。 */
 export function seatLabel(seat: Seat): string {
   return t().seat.label(seat.number, seat.name)

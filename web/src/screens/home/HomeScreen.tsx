@@ -280,7 +280,7 @@ function BoardDetail({ board }: { board: Board }) {
       </DrawerHeader>
 
       <section className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto px-5 pt-1 pb-6">
-        <p className="text-xs text-muted-foreground">{t.boards.meta(board.seats, board.deck.length, board.speech_rounds)}</p>
+        <p className="text-xs text-muted-foreground">{t.boards.meta(board.seats, board.deck.length)}</p>
         <div className="flex flex-col gap-3.5">
           <h3 className={HEADING}>{t.settings.overviewRoles}</h3>
           <DeckTray deck={board.deck} size={board.deck.length} />
