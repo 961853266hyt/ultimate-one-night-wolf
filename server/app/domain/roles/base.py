@@ -27,6 +27,14 @@ class Table(Protocol):
         """模仿者或化身幽灵变成 role。"""
         ...
 
+    def final_roles(self) -> dict[Slot, RoleId]:
+        """每个位置上的牌算作什么：模仿者、化身幽灵的牌算作他们变成的角色。"""
+        ...
+
+    def flip(self, slot: Slot) -> None:
+        """把 slot 上的牌翻开，所有人都看得到，一直到这局结束。"""
+        ...
+
 
 class Role:
     """夜里什么时候醒，不由角色自己决定，见 night.NIGHT_ORDER。"""

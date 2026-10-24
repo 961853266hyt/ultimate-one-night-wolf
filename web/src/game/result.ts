@@ -4,8 +4,10 @@ import {
   type Copied,
   type PlayerView,
   type ResultView,
+  type Revealed,
   type RoleId,
   type SawCard,
+  type Shifted,
   type Swapped,
 } from '@/api/types'
 import { t } from '@/i18n'
@@ -126,6 +128,12 @@ export function nightLog(view: PlayerView, result: ResultView): NightLogLine[] {
       ...entry.learned
         .filter((fact): fact is Swapped => fact.type === 'swapped')
         .map((fact): Phrase => [describeSwap(fact, actor, label)]),
+      ...entry.learned
+        .filter((fact): fact is Shifted => fact.type === 'shifted')
+        .map((fact): Phrase => [text.shifted(fact.direction === 'next')]),
+      ...entry.learned
+        .filter((fact): fact is Revealed => fact.type === 'revealed')
+        .map((fact) => text.revealed(label(fact.slot), fact.role, fact.face_up)),
     ]
     const seen = entry.learned
       .filter((fact): fact is SawCard => fact.type === 'saw_card')

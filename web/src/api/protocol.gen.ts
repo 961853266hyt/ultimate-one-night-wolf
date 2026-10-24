@@ -30,8 +30,10 @@ export type RoleId =
   | "robber"
   | "witch"
   | "troublemaker"
+  | "village_idiot"
   | "drunk"
   | "insomniac"
+  | "revealer"
   | "hunter"
   | "tanner"
   | "villager";
@@ -162,6 +164,9 @@ export interface PlayerView {
   day: DayView | null;
   vote: VoteView | null;
   result: ResultView | null;
+  face_up: {
+    [k: string]: RoleId;
+  };
 }
 export interface RoomView {
   code: string;
@@ -194,7 +199,7 @@ export interface MeView {
   known_dealt: {
     [k: string]: RoleId;
   };
-  knowledge: (SawCard | SawPlayers | Swapped | Copied)[];
+  knowledge: (SawCard | SawPlayers | Swapped | Copied | Shifted | Revealed)[];
 }
 /**
  * 看到了某个位置上的牌。
@@ -236,6 +241,25 @@ export interface Copied {
   role: RoleId;
 }
 /**
+ * 白痴把除自己以外所有玩家的牌，一起往 direction 挪了一位。只挪不看。
+ */
+export interface Shifted {
+  type: "shifted";
+  step: RoleId;
+  direction: "next" | "previous";
+}
+/**
+ * 揭示者翻开 slot 上的牌看到了 role。face_up：好人阵营的牌就一直翻着，所有人都看得到；
+ * 否则扣了回去，只有揭示者知道。
+ */
+export interface Revealed {
+  type: "revealed";
+  step: RoleId;
+  slot: string;
+  role: RoleId;
+  face_up: boolean;
+}
+/**
  * 玩家此刻能做的选择：从 options 里挑一种。required 的选择超时后由系统随机代选。
  */
 export interface Prompt {
@@ -243,10 +267,11 @@ export interface Prompt {
   required: boolean;
 }
 /**
- * 选 count 个目标。player 指其他玩家，include_self 时也可以选自己；center 指底牌。
+ * 选 count 个目标。player 指其他玩家，include_self 时也可以选自己；center 指底牌；
+ * direction 是选一个方向（next / previous），白痴挪牌用。
  */
 export interface TargetOption {
-  kind: "player" | "center";
+  kind: "player" | "center" | "direction";
   count: number;
   include_self: boolean;
   exclude: string[];
@@ -281,7 +306,7 @@ export interface ResultView {
     [k: string]: RoleId;
   };
   knowledge: {
-    [k: string]: (SawCard | SawPlayers | Swapped | Copied)[];
+    [k: string]: (SawCard | SawPlayers | Swapped | Copied | Shifted | Revealed)[];
   };
   night_log: NightLogEntry[];
   votes: {
@@ -296,7 +321,7 @@ export interface NightLogEntry {
   player: string;
   targets: string[];
   auto: boolean;
-  learned: (SawCard | SawPlayers | Swapped | Copied)[];
+  learned: (SawCard | SawPlayers | Swapped | Copied | Shifted | Revealed)[];
 }
 export interface ErrorMessage {
   type: "error";

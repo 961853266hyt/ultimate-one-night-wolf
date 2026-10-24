@@ -45,6 +45,8 @@ class Game(BaseModel):
     night_log: list[NightLogEntry] = Field(default_factory=list)
     # 模仿者、化身幽灵变成过的角色，按先后。模仿者模仿了底牌里的化身幽灵，再去化身，就会变两次
     copies: dict[PlayerId, list[RoleId]] = Field(default_factory=dict)
+    # 揭示者翻开、一直翻着的牌：所有人都看得到。揭示者最后醒，翻开之后不会再被换
+    face_up: dict[Slot, RoleId] = Field(default_factory=dict)
     confirmed: set[PlayerId] = Field(default_factory=set)  # deal 阶段看好牌的人
     ready: set[PlayerId] = Field(default_factory=set)  # day 阶段同意投票的人
     speech_rounds: int = 0  # 白天轮流发言几轮，0 是不排顺序
@@ -162,6 +164,9 @@ class Game(BaseModel):
 
     def become(self, player: PlayerId, role: RoleId) -> None:
         self.copies.setdefault(player, []).append(role)
+
+    def flip(self, slot: Slot) -> None:
+        self.face_up[slot] = self.cards[slot]
 
     # ------------------------------------------------------------ 玩家指令
 

@@ -33,6 +33,8 @@ interface SeatTileProps {
   mark?: Mark | readonly Mark[]
   /** 头像上直接画这个角色，盖过备注。揭晓时用：大家都亮了牌。 */
   role?: RoleId
+  /** 揭示者翻开、一直翻着的牌：头像画成这张牌，左上角一个眼睛，表示大家都看得到。 */
+  faceUp?: RoleId
   /** 传了就能点。 */
   onSelect?: () => void
 }
@@ -53,15 +55,17 @@ export function SeatTile({
   speaking = false,
   mark,
   role,
+  faceUp,
   onSelect,
 }: SeatTileProps) {
   const notes = useSeatNotes()
   const t = useT()
-  const note = role ?? notes.roleOf(seat)
+  const note = role ?? faceUp ?? notes.roleOf(seat)
   const marks: Mark[] = [mark ?? (selected ? 'check' : [])].flat()
+  if (faceUp) marks.push('seen')
   if (notes.textOf(seat)) marks.push('note')
   // 头像上画着角色时，座位号挪到名字前面
-  const numberInName = notes.active || role !== undefined
+  const numberInName = notes.active || note !== undefined
   return (
     <li className="flex min-w-0 flex-col items-center gap-1.5">
       <Tappable onTap={onSelect} pressed={selected} label={seatLabel(seat)}>

@@ -66,6 +66,7 @@ export function DayPhase({ view, send }: PhaseProps) {
               <SeatTile
                 key={seat.id}
                 seat={seat}
+                faceUp={view.face_up[seat.id]}
                 speaking={seat.id === speaker?.id}
                 onSelect={() => notes.edit(seat)}
                 status={

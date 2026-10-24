@@ -1,4 +1,4 @@
-import { SkipForward } from 'lucide-react'
+import { ArrowLeft, ArrowRight, SkipForward } from 'lucide-react'
 import { useState } from 'react'
 import { t as tr, useT } from '@/i18n'
 import { CENTER, type Copied, type Prompt, type RoleId } from '@/api/types'
@@ -17,6 +17,7 @@ import { centerSightings, cluesOf } from '@/game/knowledge'
 import { centerLetter, seatsOf } from '@/game/seats'
 import { canPickCenter, canPickSelf, describePrompt } from '@/game/targets'
 import { useNightTargets } from '@/game/useNightTargets'
+import { cn } from '@/lib/utils'
 import { ROLES } from '@/roles/catalog'
 import type { PhaseProps } from './types'
 
@@ -53,6 +54,9 @@ export function NightPhase({ view, send }: PhaseProps) {
   const canFlip = (slot: string) => peeks && !sightings.now.has(slot) && canPickCenter(prompt!, slot)
   const tapCenter = (slot: string) =>
     peeks || sightings.now.has(slot) ? setPeeking(slot) : targets.tap(slot)
+  // 白痴那一步，所有人都看到同样的两个方向，轮到的人选了才算数；化身幽灵化身成白痴时只有他自己的会变
+  const directional =
+    night.step === 'village_idiot' || (prompt?.options.some((option) => option.kind === 'direction') ?? false)
   // 有机器人的一局，每一步不限时：房主（或者正在替机器人操作）手动结束这一步
   const meIsBot = view.room.members.some((member) => member.id === view.me.id && member.bot)
   const canEndStep = night.manual && (view.me.id === view.room.host || meIsBot)
@@ -87,6 +91,30 @@ export function NightPhase({ view, send }: PhaseProps) {
             description={hint(hintRole, prompt, learned)}
           />
         </div>
+
+        {directional && (
+          <div role="group" aria-label={t.night.direction} className="grid grid-cols-2 gap-2.5">
+            {(['previous', 'next'] as const).map((direction) => {
+              const picked = targets.selected.includes(direction)
+              return (
+                <button
+                  key={direction}
+                  type="button"
+                  aria-pressed={picked}
+                  onClick={() => targets.tap(direction)}
+                  className={cn(
+                    'flex h-12 items-center justify-center gap-1.5 rounded-xl border text-sm font-medium outline-none transition-colors focus-visible:ring-3 focus-visible:ring-ring/50',
+                    picked ? 'border-primary bg-primary text-primary-foreground' : 'hover:bg-muted',
+                  )}
+                >
+                  {direction === 'previous' && <ArrowLeft aria-hidden className="size-4" />}
+                  {t.night.directions[direction]}
+                  {direction === 'next' && <ArrowRight aria-hidden className="size-4" />}
+                </button>
+              )
+            })}
+          </div>
+        )}
 
         <Section title={t.common.centerCards}>
           <CenterCardRow>

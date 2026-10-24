@@ -9,10 +9,12 @@ from .hunter import Hunter
 from .insomniac import Insomniac
 from .mason import Mason
 from .minion import Minion
+from .revealer import Revealer
 from .robber import Robber
 from .seer import Seer
 from .tanner import Tanner
 from .troublemaker import Troublemaker
+from .village_idiot import VillageIdiot
 from .villager import Villager
 from .werewolf import Werewolf
 from .witch import Witch
@@ -30,8 +32,10 @@ ROLES.update(
         Robber(),
         Witch(),
         Troublemaker(),
+        VillageIdiot(),
         Drunk(),
         Insomniac(),
+        Revealer(ROLES),  # 翻开的牌要看阵营，所以也拿着整张注册表
         Hunter(),
         Tanner(),
         Villager(),

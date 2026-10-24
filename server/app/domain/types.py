@@ -8,6 +8,10 @@ from pydantic import BaseModel, Field
 PlayerId = str
 Slot = str  # 放牌的位置：玩家的 id，或者底牌 C0 / C1 / C2
 
+# 白痴挪牌的方向：每张牌传给座位号的下一个人，或者上一个人
+Direction = Literal["next", "previous"]
+DIRECTIONS: tuple[Direction, ...] = ("next", "previous")
+
 CENTER: tuple[Slot, ...] = ("C0", "C1", "C2")
 MIN_PLAYERS = 3
 MAX_PLAYERS = 10
@@ -23,8 +27,10 @@ class RoleId(StrEnum):
     ROBBER = "robber"
     WITCH = "witch"
     TROUBLEMAKER = "troublemaker"
+    VILLAGE_IDIOT = "village_idiot"
     DRUNK = "drunk"
     INSOMNIAC = "insomniac"
+    REVEALER = "revealer"
     HUNTER = "hunter"
     TANNER = "tanner"
     VILLAGER = "villager"
@@ -102,16 +108,38 @@ class Copied(BaseModel):
     role: RoleId
 
 
-Knowledge = Annotated[SawCard | SawPlayers | Swapped | Copied, Field(discriminator="type")]
+class Shifted(BaseModel):
+    """白痴把除自己以外所有玩家的牌，一起往 direction 挪了一位。只挪不看。"""
+
+    type: Literal["shifted"] = "shifted"
+    step: RoleId
+    direction: Direction
+
+
+class Revealed(BaseModel):
+    """揭示者翻开 slot 上的牌看到了 role。face_up：好人阵营的牌就一直翻着，所有人都看得到；
+    否则扣了回去，只有揭示者知道。"""
+
+    type: Literal["revealed"] = "revealed"
+    step: RoleId
+    slot: Slot
+    role: RoleId
+    face_up: bool
+
+
+Knowledge = Annotated[
+    SawCard | SawPlayers | Swapped | Copied | Shifted | Revealed, Field(discriminator="type")
+]
 
 
 # ---------------------------------------------------------------- 夜里能做的选择
 
 
 class TargetOption(BaseModel):
-    """选 count 个目标。player 指其他玩家，include_self 时也可以选自己；center 指底牌。"""
+    """选 count 个目标。player 指其他玩家，include_self 时也可以选自己；center 指底牌；
+    direction 是选一个方向（next / previous），白痴挪牌用。"""
 
-    kind: Literal["player", "center"]
+    kind: Literal["player", "center", "direction"]
     count: int
     include_self: bool = False
     exclude: list[Slot] = Field(default_factory=list)  # 不能选的位置，比如预言家已经看过的那张底牌

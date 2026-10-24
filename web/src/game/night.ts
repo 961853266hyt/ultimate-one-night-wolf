@@ -12,8 +12,10 @@ export const NIGHT_ORDER: readonly RoleId[] = [
   'robber',
   'witch',
   'troublemaker',
+  'village_idiot',
   'drunk',
   'insomniac',
+  'revealer',
 ]
 
 /** 这副牌里夜里会醒的角色，按唤醒顺序每种一个。牌堆是公开的，所以大家都可以看。 */

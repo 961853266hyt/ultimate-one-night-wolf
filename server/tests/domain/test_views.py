@@ -124,3 +124,16 @@ def test_the_deadline_is_sent_in_milliseconds():
 def test_non_members_get_no_view():
     with pytest.raises(RuleError):
         view_for(new_room(3), "stranger")
+
+
+def test_a_card_the_revealer_left_face_up_is_public_once_the_day_starts():
+    # p0 揭示者，p1 预言家，p2 狼
+    room = new_room(3)
+    deck = [R.REVEALER, R.SEER, R.WEREWOLF, R.VILLAGER, R.WEREWOLF, R.ROBBER]
+    room.handle("p0", Configure(settings=Settings(deck=deck)), 0, RNG)
+    room.handle("p0", Start(), 0, RNG)
+    advance_to(room, Phase.NIGHT, step=R.REVEALER)
+    room.handle("p0", NightAction(targets=["p1"]), 0, RNG)
+    assert view_for(room, "p2").face_up == {}  # 夜里别人还闭着眼
+    advance_to(room, Phase.DAY)
+    assert all(view_for(room, p).face_up == {"p1": R.SEER} for p in ("p0", "p1", "p2"))
