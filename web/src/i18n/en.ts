@@ -301,6 +301,7 @@ export const en: Messages = {
     countsAs: 'counts as',
     votedFor: (number) => `voted for #${number}`,
     votedForShort: (number) => `#${number}`,
+    dealtLabel: 'Dealt',
     whatHappened: 'What happened at night',
     rematch: 'Play again',
     waitHost: 'Waiting for the host to start the next game…',
@@ -337,6 +338,7 @@ export const en: Messages = {
     saw: 'saw ',
     sawSelf: (role) => ['their own card is now ', mention(role)],
     sawSlot: (label, role) => [`${label} is `, mention(role)],
+    dealt: (label, role) => [`${cap(label)}: `, mention(role)],
     picked: (labels) => `picked ${list(labels)}`,
   },
 

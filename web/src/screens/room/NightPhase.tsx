@@ -1,10 +1,11 @@
-import { ArrowLeft, ArrowRight, SkipForward } from 'lucide-react'
+import { ArrowLeft, ArrowRight, ChevronRight, SkipForward } from 'lucide-react'
 import { useState } from 'react'
 import { t as tr, useT } from '@/i18n'
 import { CENTER, type Copied, type Prompt, type RoleId } from '@/api/types'
 import { CenterPeek } from '@/components/game/CenterPeek'
+import { DeckOverview } from '@/components/game/DeckOverview'
+import { RoleAvatar } from '@/components/game/RoleAvatar'
 import { CluesDrawer } from '@/components/game/Clues'
-import { PhaseProgress } from '@/components/game/PhaseProgress'
 import { RoleThumbnail } from '@/components/game/RoleArtCard'
 import { CenterCard, CenterCardRow } from '@/components/game/PlayingCard'
 import { SeatGrid, SeatTile } from '@/components/game/SeatGrid'
@@ -14,6 +15,7 @@ import { PageContent, PageFooter } from '@/components/layout/Page'
 import { PageTitle, Section } from '@/components/layout/Section'
 import { Button } from '@/components/ui/button'
 import { centerSightings, cluesOf } from '@/game/knowledge'
+import { nightPlan } from '@/game/night'
 import { centerLetter, seatsOf } from '@/game/seats'
 import { canPickCenter, canPickSelf, describePrompt } from '@/game/targets'
 import { useNightTargets } from '@/game/useNightTargets'
@@ -32,6 +34,8 @@ export function NightPhase({ view, send }: PhaseProps) {
   const { night, prompt } = view
   const targets = useNightTargets(prompt)
   const [peeking, setPeeking] = useState<string | null>(null)
+  // 夜里也能看本局的板子：点顶上那排醒来的角色打开
+  const [deckOpen, setDeckOpen] = useState(false)
   const t = useT()
   if (!night) return null
 
@@ -77,7 +81,7 @@ export function NightPhase({ view, send }: PhaseProps) {
         <div className="flex flex-col gap-6">
           <div className="flex items-center gap-3">
             <div className="flex-1">
-              <PhaseProgress current={night.index} total={night.total} label={t.night.progress} />
+              <WakeOrderStrip deck={view.room.deck} current={night.index} onOpen={() => setDeckOpen(true)} />
             </div>
             {canEndStep && (
               <Button variant="outline" size="sm" onClick={() => send({ type: 'end_step' })}>
@@ -145,6 +149,19 @@ export function NightPhase({ view, send }: PhaseProps) {
         </Section>
       </PageContent>
 
+      <DeckOverview
+        open={deckOpen}
+        onOpenChange={setDeckOpen}
+        deck={view.room.deck}
+        seats={view.room.seats}
+        need={view.room.deck.length}
+        nightStep={view.room.timings.night_step}
+        selfVote={view.room.self_vote}
+        speechRounds={view.room.speech_rounds}
+        isPublic={view.room.public}
+        debug={view.room.debug}
+      />
+
       <PageFooter>
         <Button size="xl" disabled={!targets.ready} onClick={confirm}>
           {t.common.confirm}
@@ -169,6 +186,42 @@ export function NightPhase({ view, send }: PhaseProps) {
         <p className="text-2xl font-semibold tracking-wide">{t.night.wakeUp(ROLES[night.step].name)}</p>
       </Curtain>
     </>
+  )
+}
+
+/**
+ * 夜里的进度：这局醒来的角色按顺序排成一排，醒过的淡下去，正在醒的大一号、套一圈。
+ * 点这一排打开本局设置，看有哪些牌、醒来顺序和房间设置。牌堆是公开的，谁点开都看不出什么。
+ */
+function WakeOrderStrip({ deck, current, onOpen }: { deck: readonly RoleId[]; current: number; onOpen: () => void }) {
+  const t = useT()
+  const plan = nightPlan(deck)
+  return (
+    <button
+      type="button"
+      onClick={onOpen}
+      aria-haspopup="dialog"
+      aria-label={t.night.progress}
+      className="flex w-full items-center gap-1.5 rounded-full outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+    >
+      <span className="flex flex-1 flex-wrap items-center gap-1">
+        {plan.map((role, index) => {
+          const step = index + 1
+          return (
+            <RoleAvatar
+              key={role}
+              role={role}
+              className={cn(
+                'transition-all',
+                step === current ? 'size-8 ring-2 ring-foreground' : 'size-6',
+                step < current && 'opacity-35 grayscale',
+              )}
+            />
+          )
+        })}
+      </span>
+      <ChevronRight aria-hidden className="size-4 shrink-0 text-muted-foreground" />
+    </button>
   )
 }
 
