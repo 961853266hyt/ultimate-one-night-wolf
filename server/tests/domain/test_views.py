@@ -1,6 +1,6 @@
 import pytest
 
-from app.domain.commands import Configure, ConfirmCard, NightAction, ReadyToVote, Start, Vote
+from app.domain.commands import Configure, ConfirmCard, NightAction, Start, StartVote, Vote
 from app.domain.errors import RuleError
 from app.domain.recommended import recommended_deck
 from app.domain.room import Room
@@ -31,8 +31,7 @@ def advance_to(room: Room, phase: Phase, step: R | None = None) -> None:
                 room.handle(player, ConfirmCard(), 0, RNG)
             continue
         if game.phase is Phase.DAY:
-            for player in game.players:  # 白天不限时，所有人都同意投票才往下走
-                room.handle(player, ReadyToVote(), 0, RNG)
+            room.handle(room.host, StartVote(), 0, RNG)  # 白天不限时，房主点「开始投票」
             continue
         assert game.ends_at is not None
         room.tick(game.ends_at, RNG)

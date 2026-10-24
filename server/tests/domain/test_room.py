@@ -7,9 +7,9 @@ from app.domain.commands import (
     Leave,
     LeaveSeat,
     NightAction,
-    ReadyToVote,
     Rematch,
     Start,
+    StartVote,
     TakeSeat,
     Vote,
 )
@@ -39,8 +39,7 @@ def finish_game(room: Room) -> None:
     while game.phase is not Phase.DAY:
         assert game.ends_at is not None
         room.tick(game.ends_at, RNG)
-    for player in game.players:
-        room.handle(player, ReadyToVote(), 0, RNG)
+    room.handle(room.host, StartVote(), 0, RNG)
     for i, voter in enumerate(game.players):
         room.handle(voter, Vote(target=game.players[i - 1]), 0, RNG)
 

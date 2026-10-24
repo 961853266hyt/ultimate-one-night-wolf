@@ -2,7 +2,7 @@
 
 import pytest
 
-from app.domain.commands import Configure, ConfirmCard, EndStep, Leave, ReadyToVote, Start, Vote
+from app.domain.commands import Configure, ConfirmCard, EndStep, Leave, Start, StartVote, Vote
 from app.domain.types import Phase, Settings
 from tests.runtime.fakes import Harness
 
@@ -23,7 +23,7 @@ async def test_the_host_sees_and_acts_as_a_bot(harness):
     await harness.send("p0", ConfirmCard())  # 机器人自己已经记住了，入夜
     while harness.room.phase is Phase.NIGHT:
         await harness.send("p0", EndStep())
-    await harness.send("p0", ReadyToVote())  # 机器人自己已经同意了，开始投票
+    await harness.send("p0", StartVote())  # 房主开始投票
 
     await harness.act_as("p0", "bot-1")
     assert harness.sockets["p0"].view()["me"]["id"] == "bot-1"

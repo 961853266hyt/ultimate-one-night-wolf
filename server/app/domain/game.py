@@ -1,7 +1,7 @@
 """一局游戏的状态机：deal → night[1..k] → day → vote → reveal。
 
-白天可以按座位顺序轮流发言：开局时随机定谁先说，轮到的人说完点「结束发言」交给下一个，
-说满几轮就进入投票。不排顺序时自由讨论，所有人都同意投票才进入投票。
+白天自由讨论：开局时随机定谁第一个发言、往哪个方向轮，天亮后公开，怎么说由大家自己掌握；
+房主点「开始投票」进入投票。
 
 夜里过后玩家手里没有狼人阵营的牌（只剩好人，可能还有皮匠），就跳过 day 和 vote 直接 reveal，
 所有人一起赢，皮匠也算。这是家规，官方规则照样投票。
@@ -48,10 +48,8 @@ class Game(BaseModel):
     # 揭示者翻开、一直翻着的牌：所有人都看得到。揭示者最后醒，翻开之后不会再被换
     face_up: dict[Slot, RoleId] = Field(default_factory=dict)
     confirmed: set[PlayerId] = Field(default_factory=set)  # deal 阶段看好牌的人
-    ready: set[PlayerId] = Field(default_factory=set)  # day 阶段同意投票的人
-    speech_rounds: int = 0  # 白天轮流发言几轮，0 是不排顺序
-    speech_start: int = 0  # 第一个发言的人在 players 里的下标，开局时随机定
-    speech_turn: int = 0  # 已经有几人次说完了
+    first_speaker: int = 0  # 白天第一个发言的人在 players 里的下标，开局时随机定
+    clockwise: bool = True  # 从他开始往哪边轮：顺时针是座位号往后，逆时针是往前
     votes: dict[PlayerId, PlayerId] = Field(default_factory=dict)
     result: Result | None = None
 
@@ -64,23 +62,23 @@ class Game(BaseModel):
         rng: random.Random,
         self_vote: bool = True,
         manual_steps: bool = False,
-        speech_rounds: int = 0,
     ) -> Self:
         if len(deck) != len(players) + len(CENTER):
             raise RuleError(ErrorCode.DECK_SIZE)
         cards = list(deck)
         rng.shuffle(cards)
         dealt = dict(zip([*players, *CENTER], cards, strict=True))
-        # 谁先发言开局就定好，到白天才公开。洗完牌再抽，不影响发牌
-        speech_start = rng.randrange(len(players)) if speech_rounds else 0
+        # 谁先发言、往哪边轮，开局就定好，到白天才公开。洗完牌再抽，不影响发牌
+        first_speaker = rng.randrange(len(players))
+        clockwise = rng.random() < 0.5
         # 看牌不限时，所有人都点了「我记住了」才入夜
         return cls(
             players=list(players),
             timings=timings,
             self_vote=self_vote,
             manual_steps=manual_steps,
-            speech_rounds=speech_rounds,
-            speech_start=speech_start,
+            first_speaker=first_speaker,
+            clockwise=clockwise,
             dealt=dealt,
             cards=dict(dealt),
             night_plan=night.plan_for(deck),
@@ -91,22 +89,6 @@ class Game(BaseModel):
     @property
     def night_role(self) -> RoleId | None:
         return self.night_plan[self.night_index] if self.phase is Phase.NIGHT else None
-
-    @property
-    def speaker(self) -> PlayerId | None:
-        """白天正在发言的人：从 speech_start 开始按座位顺序往后轮。
-
-        不排顺序，或者已经说满了，就是 None。
-        """
-        done = self.speech_turn >= self.speech_rounds * len(self.players)
-        if self.phase is not Phase.DAY or done:
-            return None
-        return self.players[(self.speech_start + self.speech_turn) % len(self.players)]
-
-    @property
-    def speech_round(self) -> int:
-        """现在是第几轮发言，从 1 开始。"""
-        return self.speech_turn // len(self.players) + 1
 
     def acting_role(self, player: PlayerId) -> RoleId:
         """夜里以什么身份行动：发到的牌，而不是现在手里的牌；模仿者、化身幽灵变过之后是最后变成的角色。"""
@@ -186,23 +168,11 @@ class Game(BaseModel):
         self._perform(player, targets)
         # 不动 ends_at：每一步都要走满，提前结束等于告诉所有人这个角色不在底牌里
 
-    def ready_to_vote(self, player: PlayerId, now: float) -> None:
-        self._expect(Phase.DAY, player)
-        self.ready.add(player)
-        if self.ready >= set(self.players):
-            self._enter_vote(now)
-
-    def end_speech(self, player: PlayerId, now: float, by_host: bool = False) -> None:
-        """正在发言的人说完了，交给下一个；房主也能替他结束，免得有人掉线卡住。说满了就进入投票。"""
-        self._expect(Phase.DAY, player)
-        speaker = self.speaker
-        if speaker is None:
+    def start_vote(self, now: float) -> None:
+        """房主觉得讨论得差不多了，开始投票。谁能点由 Room 管。"""
+        if self.phase is not Phase.DAY:
             raise RuleError(ErrorCode.WRONG_PHASE)
-        if player != speaker and not by_host:
-            raise RuleError(ErrorCode.NOT_YOUR_TURN)
-        self.speech_turn += 1
-        if self.speaker is None:
-            self._enter_vote(now)
+        self._enter_vote(now)
 
     def vote(self, player: PlayerId, target: PlayerId, now: float) -> None:
         self._expect(Phase.VOTE, player)
@@ -304,7 +274,7 @@ class Game(BaseModel):
 
     def _enter_day(self, now: float) -> None:
         self.phase = Phase.DAY
-        self.ends_at = None  # 讨论不限时：轮流发言说满几轮，或者所有人都同意投票，就进入投票
+        self.ends_at = None  # 讨论不限时，房主点「开始投票」才进入投票
 
     def _enter_vote(self, now: float) -> None:
         self.phase = Phase.VOTE

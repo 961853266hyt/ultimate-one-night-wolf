@@ -75,8 +75,7 @@ export const zh = {
     howMany: '几个人玩',
     seats: (n: number) => `${n} 人`,
     failed: '板子没加载出来，刷新页面试试',
-    meta: (seats: number, cards: number, rounds: number) =>
-      `${seats} 人 · ${cards} 张 · ${rounds ? `白天发言 ${rounds} 轮` : '白天自由讨论'}`,
+    meta: (seats: number, cards: number) => `${seats} 人 · ${cards} 张`,
     open: '用这个板子开房',
     /** 板子的名字。牌和设置在服务端的 domain/boards.py。 */
     kinds: {
@@ -216,9 +215,6 @@ export const zh = {
     seconds: (n: number) => `${n} 秒`,
     secondsShort: (n: number) => `${n}s`,
     selfVote: '可以投自己',
-    speechRounds: '发言轮数',
-    speechOff: '关',
-    speechRoundsLabel: (n: number) => (n ? `${n} 轮` : '不排顺序'),
     public: '公开房间',
     debug: '调试模式',
     box: '牌库',
@@ -241,10 +237,9 @@ export const zh = {
       nightStep: number,
       selfVote: boolean,
       debug: boolean,
-      speechRounds: number,
       isPublic: boolean,
     ) =>
-      `房间 ${seats} 人 · ${debug ? '调试模式，夜里不计时' : `夜间操作时间 ${nightStep} 秒`} · ${speechRounds ? `白天轮流发言 ${speechRounds} 轮` : '白天自由讨论'} · ${selfVote ? '可以' : '不能'}投自己 · ${isPublic ? '公开房间' : '不公开，凭房间号进'}`,
+      `房间 ${seats} 人 · ${debug ? '调试模式，夜里不计时' : `夜间操作时间 ${nightStep} 秒`} · ${selfVote ? '可以' : '不能'}投自己 · ${isPublic ? '公开房间' : '不公开，凭房间号进'}`,
     fillOne: '补一张',
     toFill: '待补',
     summaryTitle: (seats: number, cards: string) => `${seats} 人局 · ${cards}`,
@@ -322,14 +317,10 @@ export const zh = {
 
   day: {
     nightOrder: '今晚的行动顺序',
-    readyDone: '可以投了',
-    discussing: '讨论中',
-    readyButton: '开始公投',
-    speaking: (round: number, rounds: number) => `第 ${round}/${rounds} 轮 · `,
-    speakingSuffix: ' 发言中',
-    endSpeech: '结束发言',
-    endSpeechFor: (label: string) => `结束 ${label} 的发言`,
-    waitOthers: '等其他人…',
+    firstSpeaker: ' 先发言',
+    clockwise: '顺时针',
+    counterclockwise: '逆时针',
+    startVote: '开始投票',
   },
 
   vote: {

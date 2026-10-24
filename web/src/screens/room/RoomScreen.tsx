@@ -144,8 +144,6 @@ function needsYou(view: PlayerView): boolean {
       return !view.deal?.confirmed.includes(view.me.id)
     case 'night':
       return view.prompt !== null
-    case 'day':
-      return view.day?.speaker === view.me.id
     case 'vote':
       return !view.vote?.mine
     default:

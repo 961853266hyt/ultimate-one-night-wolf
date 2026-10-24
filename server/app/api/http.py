@@ -56,7 +56,6 @@ class BoardOut(BaseModel):
     kind: BoardKind
     seats: int
     deck: list[RoleId]
-    speech_rounds: int
     signature: RoleId  # 招牌角色，卡片上放它的大卡图
 
 
@@ -147,7 +146,6 @@ async def boards() -> list[BoardOut]:
             kind=board.kind,
             seats=board.seats,
             deck=board.deck,
-            speech_rounds=board.speech_rounds,
             signature=board.signature,
         )
         for board in BOARDS

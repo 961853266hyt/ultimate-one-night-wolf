@@ -6,7 +6,7 @@ from collections import Counter
 from hypothesis import given, settings
 from hypothesis import strategies as st
 
-from app.domain.commands import Configure, ConfirmCard, NightAction, ReadyToVote, Start, Vote
+from app.domain.commands import Configure, ConfirmCard, NightAction, Start, StartVote, Vote
 from app.domain.night import candidates
 from app.domain.roles import ROLES
 from app.domain.room import Room
@@ -51,8 +51,7 @@ def play(n: int, deck: list, seed: int) -> Room:
                 changed = [p for p in game.players if view_for(room, p) != before[p]]
                 assert changed == [player]
         if room.phase is Phase.DAY:
-            for player in game.players:  # 白天不限时，所有人都同意投票才往下走
-                room.handle(player, ReadyToVote(), now, rng)
+            room.handle(room.host, StartVote(), now, rng)  # 白天不限时，房主点「开始投票」
         if room.phase is Phase.VOTE:
             for player in game.players:
                 target = rng.choice([p for p in game.players if p != player])

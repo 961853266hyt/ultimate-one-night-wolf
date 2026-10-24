@@ -10,15 +10,14 @@ from .commands import (
     Command,
     Configure,
     ConfirmCard,
-    EndSpeech,
     EndStep,
     Kick,
     Leave,
     LeaveSeat,
     NightAction,
-    ReadyToVote,
     Rematch,
     Start,
+    StartVote,
     TakeSeat,
     Vote,
 )
@@ -185,10 +184,9 @@ class Room(BaseModel):
                 self._current_game().confirm_card(player, now)
             case NightAction(targets=targets):
                 self._current_game().night_action(player, targets)
-            case ReadyToVote():
-                self._current_game().ready_to_vote(player, now)
-            case EndSpeech():
-                self._current_game().end_speech(player, now, by_host=player == self.host)
+            case StartVote():
+                self._expect_host(player)
+                self._current_game().start_vote(now)
             case Vote(target=target):
                 self._current_game().vote(player, target, now)
             case EndStep():
@@ -241,12 +239,11 @@ class Room(BaseModel):
             settings.timings,
             rng,
             self_vote=settings.self_vote,
-            speech_rounds=settings.speech_rounds,
             manual_steps=settings.debug,
         )
 
     def _bots_get_ready(self, now: float) -> None:
-        """机器人不用想：看牌时直接「记住了」，白天直接同意投票。夜里行动和投票由房主替它们做。"""
+        """机器人不用想：看牌时直接「记住了」。夜里行动和投票由房主替它们做。"""
         game = self.game
         if game is None:
             return
@@ -254,8 +251,6 @@ class Room(BaseModel):
         for bot in bots:
             if game.phase is Phase.DEAL and bot not in game.confirmed:
                 game.confirm_card(bot, now)
-            elif game.phase is Phase.DAY and bot not in game.ready:
-                game.ready_to_vote(bot, now)
 
     def _free_seat(self) -> int | None:
         """号最小的空座位；坐满了就是 None。"""

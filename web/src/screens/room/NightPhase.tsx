@@ -157,7 +157,6 @@ export function NightPhase({ view, send }: PhaseProps) {
         need={view.room.deck.length}
         nightStep={view.room.timings.night_step}
         selfVote={view.room.self_vote}
-        speechRounds={view.room.speech_rounds}
         isPublic={view.room.public}
         debug={view.room.debug}
       />

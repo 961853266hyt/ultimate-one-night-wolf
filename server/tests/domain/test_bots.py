@@ -170,17 +170,6 @@ def test_the_night_still_has_a_clock_without_debug_mode():
     rejects(ErrorCode.WRONG_PHASE, lambda: room.handle("p0", EndStep(), 0, RNG))
 
 
-def test_bots_are_ready_to_vote_once_the_day_starts():
-    room = solo_game()
-    room.handle("p0", ConfirmCard(), 0, RNG)
-    game = room.game
-    assert game is not None
-    while game.phase is Phase.NIGHT:
-        room.handle("p0", EndStep(), 0, RNG)
-    if game.phase is Phase.DAY:
-        assert game.ready == {"bot-1", "bot-2"}
-
-
 def test_the_host_sees_the_bots_cards_but_not_other_peoples():
     room = solo_game(humans=2)
     game = room.game

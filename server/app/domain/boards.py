@@ -27,7 +27,6 @@ class Board(BaseModel):
     kind: BoardKind
     seats: int
     deck: list[RoleId]
-    speech_rounds: int
     signature: RoleId  # 招牌角色：首页卡片上放它的大卡图
 
     @property
@@ -40,7 +39,6 @@ class Board(BaseModel):
         return Settings(
             seats=self.seats,
             deck=None if recommended else list(self.deck),
-            speech_rounds=self.speech_rounds,
         )
 
 
@@ -118,8 +116,6 @@ DECKS: dict[BoardKind, dict[int, list[RoleId]]] = {
     },
 }
 
-# 换牌大乱斗天亮之后要理的东西多，多说一轮
-SPEECH_ROUNDS: dict[BoardKind, int] = {BoardKind.CHAOS: 4}
 
 # 每种玩法的招牌角色，各个人数的牌里都得有它
 SIGNATURE: dict[BoardKind, RoleId] = {
@@ -136,7 +132,6 @@ BOARDS: list[Board] = [
         kind=kind,
         seats=seats,
         deck=deck,
-        speech_rounds=SPEECH_ROUNDS.get(kind, Settings().speech_rounds),
         signature=SIGNATURE[kind],
     )
     for kind, decks in DECKS.items()

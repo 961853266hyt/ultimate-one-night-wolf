@@ -12,15 +12,14 @@ from pydantic import BaseModel, Field, StringConstraints
 from .domain.commands import (
     Configure,
     ConfirmCard,
-    EndSpeech,
     EndStep,
     Kick,
     Leave,
     LeaveSeat,
     NightAction,
-    ReadyToVote,
     Rematch,
     Start,
+    StartVote,
     TakeSeat,
     Vote,
 )
@@ -61,8 +60,7 @@ ClientMessage = Annotated[
     | ConfirmCard
     | NightAction
     | EndStep
-    | EndSpeech
-    | ReadyToVote
+    | StartVote
     | Vote
     | Rematch,
     Field(discriminator="type"),

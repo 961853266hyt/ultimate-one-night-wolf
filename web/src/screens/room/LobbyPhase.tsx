@@ -158,7 +158,6 @@ export function LobbyPhase({ view, send }: PhaseProps) {
         recommended={recommendedDecks}
         nightStep={timings.night_step}
         selfVote={view.room.self_vote}
-        speechRounds={view.room.speech_rounds}
         isPublic={view.room.public}
         debug={view.room.debug}
         onSave={saveSettings}
@@ -171,7 +170,6 @@ export function LobbyPhase({ view, send }: PhaseProps) {
         need={need}
         nightStep={timings.night_step}
         selfVote={view.room.self_vote}
-        speechRounds={view.room.speech_rounds}
         isPublic={view.room.public}
         debug={view.room.debug}
       />
