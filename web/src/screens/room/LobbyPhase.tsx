@@ -1,4 +1,4 @@
-import { UserPlus } from 'lucide-react'
+import { Plus, UserPlus } from 'lucide-react'
 import { useState } from 'react'
 import type { Settings } from '@/api/types'
 import { ConfirmDialog } from '@/components/common/ConfirmDialog'
@@ -11,7 +11,8 @@ import { PageContent, PageFooter } from '@/components/layout/Page'
 import { Section } from '@/components/layout/Section'
 import { Button } from '@/components/ui/button'
 import { deckSizeFor, startBlocker } from '@/game/lobby'
-import { seatLabel, seatsOf, type Seat } from '@/game/seats'
+import { seatLabel, seatsOf, spectatorsOf, type Seat, type Spectator } from '@/game/seats'
+import { cn } from '@/lib/utils'
 import { inviteFriends } from './invite'
 import type { PhaseProps } from './types'
 import { useT } from '@/i18n'
@@ -19,6 +20,8 @@ import { useT } from '@/i18n'
 export function LobbyPhase({ view, send }: PhaseProps) {
   const { code, deck, seats: size, recommended_decks: recommendedDecks, timings } = view.room
   const seats = seatsOf(view)
+  const spectators = spectatorsOf(view)
+  const seated = seats.some((seat) => seat.isMe)
   const isHost = view.me.id === view.room.host
   const need = deckSizeFor(size)
   const blocker = startBlocker(seats, size, deck)
@@ -31,13 +34,17 @@ export function LobbyPhase({ view, send }: PhaseProps) {
   const [settingsOpen, setSettingsOpen] = useState(false)
   const saveSettings = (settings: Settings) => send({ type: 'configure', settings })
 
-  // 房主点别人的头像把人移出房间：真人要确认一下，机器人直接移走
-  const [kickTarget, setKickTarget] = useState<Seat | null>(null)
+  // 房主点别人的头像（座位上的、观战席上的都行）把人移出房间：真人要确认一下，机器人直接移走
+  const [kickTarget, setKickTarget] = useState<{ id: string; label: string } | null>(null)
   const [kickOpen, setKickOpen] = useState(false)
-  const kick = (seat: Seat) => send({ type: 'kick', player: seat.id })
+  const kick = (player: string) => send({ type: 'kick', player })
   const askToKick = (seat: Seat) => {
-    if (seat.isBot) return kick(seat)
-    setKickTarget(seat)
+    if (seat.isBot) return kick(seat.id)
+    setKickTarget({ id: seat.id, label: seatLabel(seat) })
+    setKickOpen(true)
+  }
+  const askToKickSpectator = (spectator: Spectator) => {
+    setKickTarget({ id: spectator.id, label: spectator.name })
     setKickOpen(true)
   }
 
@@ -75,6 +82,34 @@ export function LobbyPhase({ view, send }: PhaseProps) {
             )}
           </SeatGrid>
         </Section>
+
+        {/* 观战席：离开座位的人、座位坐满之后进来的人坐这里，下一局不玩。坐着的人点「去观战」过来 */}
+        {(seated || spectators.length > 0) && (
+          <Section title={t.lobby.spectators}>
+            <ul className="flex flex-wrap justify-center gap-2">
+              {spectators.map((spectator) => (
+                <li key={spectator.id}>
+                  <SpectatorChip
+                    spectator={spectator}
+                    onSelect={isHost && !spectator.isMe ? () => askToKickSpectator(spectator) : undefined}
+                  />
+                </li>
+              ))}
+              {seated && (
+                <li>
+                  <button
+                    type="button"
+                    onClick={() => send({ type: 'leave_seat' })}
+                    className="flex h-9 items-center gap-1 rounded-full border border-dashed px-3.5 text-[13px] text-muted-foreground outline-none transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50"
+                  >
+                    <Plus aria-hidden className="size-3.5" />
+                    {t.lobby.watch}
+                  </button>
+                </li>
+              )}
+            </ul>
+          </Section>
+        )}
       </PageContent>
 
       <PageFooter>
@@ -107,10 +142,10 @@ export function LobbyPhase({ view, send }: PhaseProps) {
       <ConfirmDialog
         open={kickOpen}
         onOpenChange={setKickOpen}
-        title={t.lobby.kickTitle(kickTarget ? seatLabel(kickTarget) : '')}
+        title={t.lobby.kickTitle(kickTarget?.label ?? '')}
         description={t.lobby.kickDescription}
         confirmLabel={t.lobby.kick}
-        onConfirm={() => kickTarget && kick(kickTarget)}
+        onConfirm={() => kickTarget && kick(kickTarget.id)}
       />
 
       {/* 房主身份转走或转来时，跟着换成只能看或者能改的那一个 */}
@@ -141,5 +176,31 @@ export function LobbyPhase({ view, send }: PhaseProps) {
         debug={view.room.debug}
       />
     </>
+  )
+}
+
+/** 观战席上的一个人：名字一个胶囊，房主带个标，离线的变淡。房主点别人的能把人移出房间。 */
+function SpectatorChip({ spectator, onSelect }: { spectator: Spectator; onSelect?: () => void }) {
+  const t = useT()
+  const className = cn(
+    'flex h-9 items-center gap-1.5 rounded-full border px-3.5 text-[13px] outline-none',
+    !spectator.online && 'text-muted-foreground opacity-60',
+    onSelect && 'transition-colors hover:bg-muted focus-visible:ring-3 focus-visible:ring-ring/50',
+  )
+  const content = (
+    <>
+      {spectator.isHost && (
+        <span className="rounded-full bg-primary px-1.5 text-[11px] leading-4 text-primary-foreground">{t.seat.host}</span>
+      )}
+      {spectator.name}
+      {spectator.isMe && <span className="text-muted-foreground">{t.common.youSuffix}</span>}
+    </>
+  )
+  return onSelect ? (
+    <button type="button" onClick={onSelect} className={className}>
+      {content}
+    </button>
+  ) : (
+    <span className={className}>{content}</span>
   )
 }

@@ -16,6 +16,7 @@ from .domain.commands import (
     EndStep,
     Kick,
     Leave,
+    LeaveSeat,
     NightAction,
     ReadyToVote,
     Rematch,
@@ -54,6 +55,7 @@ ClientMessage = Annotated[
     | Configure
     | Kick
     | TakeSeat
+    | LeaveSeat
     | Start
     | Leave
     | ConfirmCard

@@ -15,6 +15,7 @@ DIRECTIONS: tuple[Direction, ...] = ("next", "previous")
 CENTER: tuple[Slot, ...] = ("C0", "C1", "C2")
 MIN_PLAYERS = 3
 MAX_PLAYERS = 10
+MAX_MEMBERS = 20  # 一个房间最多几个人：坐着的加上观战席
 
 
 class RoleId(StrEnum):

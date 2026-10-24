@@ -5,6 +5,7 @@ from app.domain.commands import (
     ConfirmCard,
     Kick,
     Leave,
+    LeaveSeat,
     NightAction,
     ReadyToVote,
     Rematch,
@@ -15,7 +16,7 @@ from app.domain.commands import (
 from app.domain.errors import ErrorCode, RuleError
 from app.domain.recommended import recommended_deck
 from app.domain.room import HOST_GRACE, LOBBY_GRACE, Room
-from app.domain.types import MAX_PLAYERS, Phase, Settings
+from app.domain.types import MAX_MEMBERS, MAX_PLAYERS, Phase, Settings
 from app.domain.types import RoleId as R
 from tests.domain.helpers import NoShuffle, new_room
 
@@ -52,21 +53,64 @@ def test_the_creator_is_host_and_offline_until_connecting():
     assert room.members[0].online
 
 
-def test_players_join_in_the_lobby_until_the_room_is_full():
+def test_once_the_seats_are_full_newcomers_sit_in_the_spectator_seats():
     room = new_room(MAX_PLAYERS)
-    rejects(ErrorCode.ROOM_FULL, lambda: room.connect("late", "late", 0))
+    room.connect("late", "late", 0)
+    assert room.member("late").seat is None
+    for i in range(MAX_MEMBERS - MAX_PLAYERS - 1):
+        room.connect(f"w{i}", f"w{i}", 0)
+    rejects(ErrorCode.ROOM_FULL, lambda: room.connect("one-too-many", "x", 0))
 
 
-def test_nobody_new_can_join_during_a_game_but_they_can_once_a_seat_frees_up():
+def test_someone_joining_during_a_game_watches_and_sits_down_once_a_seat_frees_up():
     room = new_room(3)
     room.handle("p0", Start(), 0, RNG)
-    rejects(ErrorCode.GAME_IN_PROGRESS, lambda: room.connect("late", "late", 0))
+    room.connect("late", "late", 0)
+    assert room.member("late").seat is None
+    assert room.game is not None and "late" not in room.game.players
 
     finish_game(room)
     room.disconnect("p2", now=1)
-    room.handle("p0", Rematch(), 1, RNG)  # 离线的 p2 被移出，空出 2 号座位
-    room.connect("late", "late", 1)
+    room.handle("p0", Rematch(), 1, RNG)  # 离线的 p2 被移出，空出 3 号座位
+    assert room.member("late").seat is None  # 还在观战席，自己挑座位
+    room.handle("late", TakeSeat(seat=2), 1, RNG)
     assert room.member("late").seat == 2
+
+
+def test_a_player_can_leave_their_seat_and_come_back_to_another_one():
+    room = new_room(3)
+    room.handle("p1", LeaveSeat(), 0, RNG)
+    assert room.member("p1").seat is None
+    room.handle("p2", TakeSeat(seat=1), 0, RNG)  # 空出来的座位别人可以坐，两个人就这样换了位置
+    room.handle("p1", TakeSeat(seat=2), 0, RNG)
+    assert [room.member(p).seat for p in ("p0", "p1", "p2")] == [0, 2, 1]
+
+
+def test_the_game_starts_without_the_spectators():
+    room = new_room(3)
+    room.connect("watcher", "watcher", 0)
+    room.disconnect("watcher", 0)  # 观战席上的人离线也不耽误开局
+    room.handle("p0", Start(), 0, RNG)
+    assert room.game is not None and room.game.players == ["p0", "p1", "p2"]
+
+
+def test_a_seat_left_empty_has_to_be_filled_before_the_start():
+    room = new_room(3)
+    room.handle("p2", LeaveSeat(), 0, RNG)
+    rejects(ErrorCode.PLAYER_COUNT, lambda: room.handle("p0", Start(), 0, RNG))
+
+
+def test_spectators_do_not_stop_the_host_from_removing_seats():
+    room = new_room(4)
+    room.handle("p3", LeaveSeat(), 0, RNG)
+    room.handle("p0", Configure(settings=Settings(seats=3)), 0, RNG)
+    assert room.settings.seats == 3 and room.member("p3").seat is None
+
+
+def test_seats_can_only_be_left_in_the_lobby():
+    room = new_room(3)
+    room.handle("p0", Start(), 0, RNG)
+    rejects(ErrorCode.WRONG_PHASE, lambda: room.handle("p1", LeaveSeat(), 0, RNG))
 
 
 def test_a_newcomer_takes_the_lowest_free_seat():

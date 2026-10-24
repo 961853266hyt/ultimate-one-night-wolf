@@ -192,6 +192,8 @@ export const zh = {
   },
 
   lobby: {
+    spectators: '观战席',
+    watch: '去观战',
     invite: '邀请朋友',
     start: '开始游戏',
     kickTitle: (label: string) => `把 ${label} 移出房间？`,
@@ -256,7 +258,7 @@ export const zh = {
 
   deal: {
     yourCard: '你的身份',
-    alreadyStarted: '这一局已经开始了',
+    watching: '你在观战',
     waitNext: '等下一局吧',
     seen: '已看好',
     looking: '看牌中…',
@@ -273,6 +275,7 @@ export const zh = {
     nightFalls: '天黑了，所有人请闭眼',
     learned: '你得知了新线索',
     notYourTurn: '没轮到你 · 随便点点，别让旁人看出来',
+    watching: '你在观战',
     centerCard: (letter: string) => `${letter} 号底牌`,
     flipCenter: (letter: string) => `翻开 ${letter} 号底牌`,
     flipping: '翻开中…',

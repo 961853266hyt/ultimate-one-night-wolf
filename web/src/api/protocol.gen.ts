@@ -11,6 +11,7 @@ export type ClientMessage =
   | Configure
   | Kick
   | TakeSeat
+  | LeaveSeat
   | Start
   | Leave
   | ConfirmCard
@@ -111,6 +112,12 @@ export interface Kick {
 export interface TakeSeat {
   type: "take_seat";
   seat: number;
+}
+/**
+ * 大厅里离开座位，坐到观战席：下一局不玩，看别人玩。想回来就再挑一个空座位。
+ */
+export interface LeaveSeat {
+  type: "leave_seat";
 }
 export interface Start {
   type: "start";

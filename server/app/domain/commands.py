@@ -24,6 +24,12 @@ class TakeSeat(BaseModel):
     seat: int
 
 
+class LeaveSeat(BaseModel):
+    """大厅里离开座位，坐到观战席：下一局不玩，看别人玩。想回来就再挑一个空座位。"""
+
+    type: Literal["leave_seat"] = "leave_seat"
+
+
 class Start(BaseModel):
     type: Literal["start"] = "start"
 
@@ -70,6 +76,7 @@ Command = Annotated[
     Configure
     | Kick
     | TakeSeat
+    | LeaveSeat
     | Start
     | Leave
     | ConfirmCard

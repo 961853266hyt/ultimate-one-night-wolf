@@ -161,6 +161,8 @@ export const en: Messages = {
   },
 
   lobby: {
+    spectators: 'Spectators',
+    watch: 'Watch',
     invite: 'Invite friends',
     start: 'Start game',
     kickTitle: (label) => `Remove ${label} from the room?`,
@@ -215,7 +217,7 @@ export const en: Messages = {
 
   deal: {
     yourCard: 'Your role',
-    alreadyStarted: 'This game has already started',
+    watching: "You're watching",
     waitNext: 'Wait for the next one',
     seen: 'Done',
     looking: 'Looking…',
@@ -232,6 +234,7 @@ export const en: Messages = {
     nightFalls: 'Night falls. Everyone, close your eyes.',
     learned: 'You learned something new',
     notYourTurn: "Not your turn · tap around so nobody can tell",
+    watching: "You're watching",
     centerCard: (letter) => `Center card ${letter}`,
     flipCenter: (letter) => `Flip center card ${letter}`,
     flipping: 'Flipping…',

@@ -14,6 +14,7 @@ from .commands import (
     EndStep,
     Kick,
     Leave,
+    LeaveSeat,
     NightAction,
     ReadyToVote,
     Rematch,
@@ -25,7 +26,7 @@ from .errors import ErrorCode, RuleError
 from .game import Game
 from .recommended import recommended_deck
 from .roles import ROLES
-from .types import CENTER, MAX_PLAYERS, MIN_PLAYERS, Phase, PlayerId, RoleId, Settings
+from .types import CENTER, MAX_MEMBERS, MAX_PLAYERS, MIN_PLAYERS, Phase, PlayerId, RoleId, Settings
 
 HOST_GRACE = 30  # 房主离线这么久之后，转给下一个在线的人（秒）
 LOBBY_GRACE = 120  # 大厅里离线这么久之后，移出房间
@@ -35,7 +36,8 @@ EMPTY_TTL = 600  # 所有人都离线这么久之后，房间可以销毁
 class Member(BaseModel):
     id: PlayerId
     name: str
-    seat: int  # 座位号，从 0 开始。大厅里可以换到空座位，开局后按座位号排
+    # 座位号，从 0 开始；None 是坐在观战席，不参加下一局。大厅里可以换到空座位，开局后按座位号排
+    seat: int | None
     bot: bool = False  # 机器人：一直在线，不当房主，由房主替它操作
     online: bool = False
     offline_since: float | None = None
@@ -72,6 +74,10 @@ class Room(BaseModel):
 
     def member(self, player: PlayerId) -> Member | None:
         return next((m for m in self.members if m.id == player), None)
+
+    def seated(self) -> list[Member]:
+        """坐在座位上的人，不含观战席。"""
+        return [m for m in self.members if m.seat is not None]
 
     def can_act_as(self, player: PlayerId, target: PlayerId) -> bool:
         """player 能不能替 target 操作：只有房主能替机器人操作。"""
@@ -117,15 +123,13 @@ class Room(BaseModel):
     # ------------------------------------------------------------ 上线和下线
 
     def connect(self, player: PlayerId, name: str, now: float) -> None:
-        """进房或重连。大厅和揭晓阶段都可以加入新成员。"""
+        """进房或重连。新来的人有空座位就坐下；座位坐满了、或者这一局正在打，先坐观战席。"""
         member = self.member(player)
         if member is None:
-            if self.phase not in (Phase.LOBBY, Phase.REVEAL):
-                raise RuleError(ErrorCode.GAME_IN_PROGRESS)
-            seat = self._free_seat()
-            if seat is None:
+            if len(self.members) >= MAX_MEMBERS:
                 raise RuleError(ErrorCode.ROOM_FULL)
-            member = Member(id=player, name=name, seat=seat)
+            between = self.phase in (Phase.LOBBY, Phase.REVEAL)
+            member = Member(id=player, name=name, seat=self._free_seat() if between else None)
             self.members.append(member)
             if self.member(self.host) is None:
                 self.host = player  # 房主已经不在房间里了（比如开房的人一直没连上来），新来的人接任
@@ -151,8 +155,8 @@ class Room(BaseModel):
             case Configure(settings=settings):
                 self._expect_host_in_lobby(player)
                 _check_deck(settings.deck)
-                # 机器人可以让座，真人不行
-                if settings.seats < len([m for m in self.members if not m.bot]):
+                # 机器人可以让座，坐着的真人不行；观战席上的人不占座位
+                if settings.seats < len([m for m in self.seated() if not m.bot]):
                     raise RuleError(ErrorCode.TOO_FEW_SEATS)
                 self.settings = settings
                 self._seat_bots()
@@ -165,6 +169,8 @@ class Room(BaseModel):
                 self._remove(target)
             case TakeSeat(seat=seat):
                 self._take_seat(player, seat)
+            case LeaveSeat():
+                self._leave_seat(player)
             case Start():
                 self._expect_host_in_lobby(player)
                 self._start(now, rng)
@@ -221,12 +227,13 @@ class Room(BaseModel):
         return self.game
 
     def _start(self, now: float, rng: random.Random) -> None:
-        # 坐满才能开局；座位数本身在 3 到 10 之间，由 Settings 保证
-        if len(self.members) != self.settings.seats:
+        # 坐满才能开局；座位数本身在 3 到 10 之间，由 Settings 保证。观战席上的人不玩，也不用等他们
+        seated = sorted(self.seated(), key=lambda m: m.seat or 0)
+        if len(seated) != self.settings.seats:
             raise RuleError(ErrorCode.PLAYER_COUNT)
-        if not all(m.online for m in self.members):
+        if not all(m.online for m in seated):
             raise RuleError(ErrorCode.PLAYERS_OFFLINE)
-        players = [m.id for m in sorted(self.members, key=lambda m: m.seat)]
+        players = [m.id for m in seated]
         settings = self.settings
         self.game = Game.deal(
             players,
@@ -252,7 +259,7 @@ class Room(BaseModel):
 
     def _free_seat(self) -> int | None:
         """号最小的空座位；坐满了就是 None。"""
-        taken = {m.seat for m in self.members}
+        taken = {m.seat for m in self.seated()}
         return next((s for s in range(self.settings.seats) if s not in taken), None)
 
     def _take_seat(self, player: PlayerId, seat: int) -> None:
@@ -264,10 +271,18 @@ class Room(BaseModel):
         assert member is not None  # handle 已经查过是成员
         member.seat = seat
 
+    def _leave_seat(self, player: PlayerId) -> None:
+        if self.phase is not Phase.LOBBY:
+            raise RuleError(ErrorCode.WRONG_PHASE)
+        member = self.member(player)
+        assert member is not None  # handle 已经查过是成员
+        if not member.bot:  # 机器人只坐座位，不去观战
+            member.seat = None
+
     def _seat_bots(self) -> None:
         """调试模式下空座位都坐上机器人，座位变少时机器人先让座；关掉调试模式，机器人全部移出。"""
-        bots = sorted((m for m in self.members if m.bot), key=lambda m: m.seat)
-        people = len(self.members) - len(bots)
+        bots = sorted((m for m in self.members if m.bot), key=lambda m: m.seat or 0)
+        people = len(self.seated()) - len(bots)
         room_for = self.settings.seats - people if self.settings.debug else 0
         for bot in bots[room_for:]:
             self._remove(bot.id)
@@ -287,8 +302,8 @@ class Room(BaseModel):
 
     def _reseat_overflow(self) -> None:
         """座位变少后，坐在多出来的座位上的人挪到前面的空座位。人数已经查过放得下。"""
-        for m in sorted(self.members, key=lambda m: m.seat):
-            if m.seat >= self.settings.seats:
+        for m in sorted(self.seated(), key=lambda m: m.seat or 0):
+            if m.seat is not None and m.seat >= self.settings.seats:
                 seat = self._free_seat()
                 assert seat is not None
                 m.seat = seat

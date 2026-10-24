@@ -92,7 +92,7 @@ export function NightPhase({ view, send }: PhaseProps) {
           </div>
           <PageTitle
             title={t.night.wakeUp(ROLES[night.step].name)}
-            description={hint(hintRole, prompt, learned)}
+            description={view.me.seat === null ? t.night.watching : hint(hintRole, prompt, learned)}
           />
         </div>
 

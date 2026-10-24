@@ -1,7 +1,6 @@
 import pytest
 
 from app.domain.commands import Configure, ConfirmCard, Kick, NightAction, Start
-from app.domain.errors import ErrorCode
 from app.domain.room import Room
 from app.domain.types import Phase, Settings
 from app.domain.types import RoleId as R
@@ -33,11 +32,13 @@ async def test_a_second_tab_gets_its_own_snapshot(harness):
     assert len(first.frames) == 1  # 第一个标签页没有收到多余的帧
 
 
-async def test_nobody_new_joins_a_game_in_progress(harness):
+async def test_someone_joining_a_game_in_progress_watches_from_the_spectator_seats(harness):
     await harness.join("p0", "p1", "p2")
     await harness.send("p0", Start())
     error = await harness.actor.attach(Connection("late", FakeSocket()), "late")
-    assert error is ErrorCode.GAME_IN_PROGRESS
+    assert error is None
+    member = harness.actor.room.member("late")
+    assert member is not None and member.seat is None
 
 
 async def test_a_night_action_reaches_only_the_player_who_acted(harness):
